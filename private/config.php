@@ -10,3 +10,4 @@ define('BASE_URL', 'https://wedding.stephens.page');
 define('PRIVATE_DIR', __DIR__);
 define('PUBLIC_DIR', __DIR__ . '/../public');
 
+

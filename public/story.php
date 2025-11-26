@@ -17,7 +17,7 @@ include __DIR__ . '/includes/header.php';
     
     <section class="story-section">
         <h2>Proposal</h2>
-        <p>On September 27, 2025, Jacob proposed to Melissa in Banff National Park on a cliff of Mt. Jimmy Stepson, overlooking Peyto Lake, with guitarist Dave Hirschman playing.</p>
+        <p>On September 27, 2025, Jacob proposed to Melissa in Banff National Park on a cliff of Mt. Jimmy Stepson, overlooking Peyto Lake, with guitarist Dave Hirschman playing <a href="https://youtu.be/JHO4SzmjILE?si=brgz0NjLriUdZT52&t=68" target="_blank">Can't Help Falling in Love</a>.</p>
         <div class="story-media">
             <img src="/assets.php?type=photo&path=proposal/PeytoLakeBanff_Proposal_Closeup_Smile.jpg" alt="Proposal closeup" class="clickable-image">
             <img src="/assets.php?type=photo&path=proposal/PeytoLakeBanff_Proposal_One_Knee_wide.jpg" alt="Proposal on one knee" class="clickable-image">
@@ -30,7 +30,7 @@ include __DIR__ . '/includes/header.php';
     
     <section class="story-section">
         <h2>Blessing</h2>
-        <p>The day after the proposal, Fr. Remi Morales of St. Agatha St. James church blessed Jacob and Melissa's engagement, surrounded by many friends and their parents. Afterwards, Jacob, Melissa, their parents, and Melissa's brother Matt went to dinner in South Philly at Scannichio's.</p>
+        <p>The day after the proposal, Fr. Remi Morales of St. Agatha St. James parish blessed Jacob and Melissa's engagement, surrounded by many friends and their parents. Afterwards, Jacob, Melissa, their parents, and Melissa's brother Matt went to dinner in South Philly at Scannichio's.</p>
         <div class="story-media">
             <img src="/assets.php?type=photo&path=blessing/Landscape_JM_at_Altar.jpg" alt="Jacob and Melissa at altar" class="clickable-image">
             <img src="/assets.php?type=photo&path=blessing/Portrait_JM_at_Altar.jpg" alt="Jacob and Melissa at altar portrait" class="clickable-image">
