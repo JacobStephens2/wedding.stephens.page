@@ -4,13 +4,26 @@ This is the specification for the wedding website of Jacob Stephens and Melissa 
 # URL of home page: https://wedding.stephens.page
 The home page should be accessible at https://wedding.stephens.page.
 
+URLs should not end with .php suffixes, for example:
+
+Wrong: https://wedding.stephens.page/registry.php
+Correct: https://wedding.stephens.page/registry
+
 # Conventions
 Some assets have JM in the name. This indicates that the asset depicts Jacob and Melissa.
+
+# Favicon
+The favicon.ico should have a matcha colored background, be a circle, and have a white "JM" in the middle.
+
+# Directory organization
+There is a public folder, which files to be served publicly by HTTP should be in, and there is a private folder, which should not be accessible by HTTP.
 
 # Navigation
 For desktop view, there should be links to different pages beneath the header of each page, as https://www.theknot.com/us/jack-dill-and-hannah-gifford-dec-2025/photos has. 
 
 For mobile view, as this sample wedding site has, there should be a top right burger menu which can be clicked to open the menu.
+
+Clicking "Jacob & Melissa" in the menu should return the user to the home page.
 
 # Pages
 
@@ -27,9 +40,23 @@ The [Days] should be the number of days from now until April 11, 2026.
 ## RSVP
 There should be a page which lets visitors to the website RSVP. If a visitor RSVPs, an email notification of the reservation should be sent to melissa.longua@gmail.com.
 
+The top of this page should note the locations of the wedding:
+
+St. Agatha St. James Parish
+3728 Chestnut St, Philadelphia, PA 19104
+
+Bala Golf Club
+2200 Belmont Ave, Philadelphia, PA 19131
+
+### Storing RSVPs
+In addition to emailing notice of RSVP's, RSVP's should be stored in a MySQL database.
+
+
 
 ## Story
 This page should have several sections for the user to scroll down through, telling the story of Jacob and Melissa's relationship chronologically.
+
+Visitors should be able to click the photos on this page to view them larger.
 
 ### Meeting
 Jacob and Melissa met dancing in Philadelphia.
@@ -57,6 +84,11 @@ There should be a page that displays Jacob and Melissa's registry. They have not
 ## Contact
 There should be a form that lets users send emails to Jacob and Melissa at melissa.longua@gmail.com. Mandrill SMTP can be used to send these emails, with credentials in the private .env file.
 
+## Check RSVPs
+There should be a password protected page accessible at https://wedding.stephens.page/check-rsvps, which is not listed in the site menus. The password is the RSVP_CHECK_PASSWORD value in the .env file. This page should show the user the RSVPs stored in the database.
+
+There should be a link on the logged in and logged out view of this page which takes the user back to the main site.
+
 # Technology
 This website has the following technologies available to it:
 - Ubuntu 24.04.3
@@ -72,6 +104,8 @@ This website has the following technologies available to it:
 - MailChimp SMTP (Mandrill)
 - certbot for SSL certificates
 
+When updates are made to css and js files, references to them should be updated so as to bust clients' caches of these files.
+
 # Style
 
 ## Colors
@@ -86,3 +120,8 @@ We like floral and leafy accents.
 We like seriffed, formal, modern fonts - not too flowy, but more strong, such as:
 - Cinzel Regular
 - Beloved Script Regular
+
+Text should be left justified, not fully justified, so as to prevent large rivers from text sections viewed on mobile.
+
+# Footer
+The footer should note that the website was created by Jacob Stephens, and possibly link to his portfolio page: https://stephens.page/
