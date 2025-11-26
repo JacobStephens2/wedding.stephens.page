@@ -1,0 +1,1 @@
+This is the repository for the wedding website of Jacob Stephens and Melissa Longua, accessible at https://wedding.stephens.page.

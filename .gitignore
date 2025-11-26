@@ -1,0 +1,5 @@
+.env
+vendor/*
+*.jpg
+*.mov
+*.mp4
