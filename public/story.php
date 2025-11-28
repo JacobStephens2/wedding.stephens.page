@@ -25,6 +25,7 @@ include __DIR__ . '/includes/header.php';
                 <source src="/assets.php?type=video&path=Jacob_and_Melissa_proposal_mobile.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
+            <iframe src="https://www.youtube.com/embed/iEbqiWzH800" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
     </section>
     
@@ -39,6 +40,7 @@ include __DIR__ . '/includes/header.php';
                 <source src="/assets.php?type=video&path=JM_Engagement-Blessing-mobile.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
+            <iframe src="https://www.youtube.com/embed/dko2cded45E" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
     </section>
     

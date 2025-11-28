@@ -69,11 +69,15 @@ Jacob proposed to Melissa in Banff National Park on a cliff of Mt. Jimmy Stepson
 [photos in wedding.stephens.page/private/photos/proposal]
 [JM_Engagement-Blessing-mobile.mov]
 
+This YouTube video of the proposal should be embedded in the proposal section of the story page: https://youtu.be/iEbqiWzH800
+
 ### Blessing
 The day after the proposal, Fr. Remi Morales of St. Agatha St. James church blessed Jacob and Melissa's engagement, surrounded my many friends and their parents. Afterwards, Jacob, Melissa, their parents, and Melissa's brother Matt went to dinner in South Philly at Scannichio's
 
 [Photos in wedding.stephens.page/private/photos/blessing]
 [wedding.stephens.page/private/videos/JM_Engagement-Blessing-mobile.mov]
+
+This YouTube video of the blessing should be embedded in the blessing section of the story page: https://youtu.be/dko2cded45E
 
 ### Wedding
 The wedding will be on April 11, 2026 at St. Agatha St. James Parish in Philadelphia. The reception will be hosted at Bala Golf Club.

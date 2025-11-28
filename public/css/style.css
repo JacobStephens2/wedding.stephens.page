@@ -310,11 +310,17 @@ header {
 }
 
 .story-media img,
-.story-media video {
+.story-media video,
+.story-media iframe {
     width: 100%;
     height: auto;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.story-media iframe {
+    aspect-ratio: 16 / 9;
+    min-height: 300px;
 }
 
 .story-media img.clickable-image {
