@@ -21,10 +21,6 @@ include __DIR__ . '/includes/header.php';
         <div class="story-media">
             <img src="/assets.php?type=photo&path=proposal/PeytoLakeBanff_Proposal_Closeup_Smile.jpg" alt="Proposal closeup" class="clickable-image">
             <img src="/assets.php?type=photo&path=proposal/PeytoLakeBanff_Proposal_One_Knee_wide.jpg" alt="Proposal on one knee" class="clickable-image">
-            <video controls>
-                <source src="/assets.php?type=video&path=Jacob_and_Melissa_proposal_mobile.mp4" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
             <iframe src="https://www.youtube.com/embed/iEbqiWzH800" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
     </section>
@@ -33,13 +29,8 @@ include __DIR__ . '/includes/header.php';
         <h2>Blessing</h2>
         <p>The day after the proposal, Fr. Remi Morales of St. Agatha St. James parish blessed Jacob and Melissa's engagement, surrounded by many friends and their parents. Afterwards, Jacob, Melissa, their parents, and Melissa's brother Matt went to dinner in South Philly at Scannichio's.</p>
         <div class="story-media">
-            <img src="/assets.php?type=photo&path=blessing/Landscape_JM_at_Altar.jpg" alt="Jacob and Melissa at altar" class="clickable-image">
             <img src="/assets.php?type=photo&path=blessing/Portrait_JM_at_Altar.jpg" alt="Jacob and Melissa at altar portrait" class="clickable-image">
             <img src="/assets.php?type=photo&path=blessing/JM_With_Parents_at_Scannichios.jpg" alt="Jacob and Melissa with parents at Scannichio's" class="clickable-image">
-            <video controls>
-                <source src="/assets.php?type=video&path=JM_Engagement-Blessing-mobile.mp4" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
             <iframe src="https://www.youtube.com/embed/dko2cded45E" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
     </section>
@@ -47,6 +38,10 @@ include __DIR__ . '/includes/header.php';
     <section class="story-section">
         <h2>Wedding</h2>
         <p>The wedding will be on April 11, 2026 at St. Agatha St. James Parish in Philadelphia. The reception will be hosted at Bala Golf Club.</p>
+        <div class="story-media">
+            <img src="/assets.php?type=photo&path=wedding/Church_Interior_Mass_Kneeling_Ordination.jpg" alt="Church interior" class="clickable-image">
+            <img src="/assets.php?type=photo&path=reception/Bala-Golf-Club-outdoor-view.jpg" alt="Bala Golf Club outdoor view" class="clickable-image">
+        </div>
     </section>
 </main>
 

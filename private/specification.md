@@ -67,7 +67,6 @@ Jacob and Melissa met dancing in Philadelphia.
 Jacob proposed to Melissa in Banff National Park on a cliff of Mt. Jimmy Stepson, overlooking Peyto Lake, with guitarist Dave Hirschman playing 
 
 [photos in wedding.stephens.page/private/photos/proposal]
-[JM_Engagement-Blessing-mobile.mov]
 
 This YouTube video of the proposal should be embedded in the proposal section of the story page: https://youtu.be/iEbqiWzH800
 
@@ -75,12 +74,13 @@ This YouTube video of the proposal should be embedded in the proposal section of
 The day after the proposal, Fr. Remi Morales of St. Agatha St. James church blessed Jacob and Melissa's engagement, surrounded my many friends and their parents. Afterwards, Jacob, Melissa, their parents, and Melissa's brother Matt went to dinner in South Philly at Scannichio's
 
 [Photos in wedding.stephens.page/private/photos/blessing]
-[wedding.stephens.page/private/videos/JM_Engagement-Blessing-mobile.mov]
 
 This YouTube video of the blessing should be embedded in the blessing section of the story page: https://youtu.be/dko2cded45E
 
 ### Wedding
 The wedding will be on April 11, 2026 at St. Agatha St. James Parish in Philadelphia. The reception will be hosted at Bala Golf Club.
+
+The wedding section of the story page should include the photo(s) from the wedding.stephens.page/private/photos/reception folder, and the wedding.stephens.page/private/photos/wedding folder.
 
 ## Registry
 There should be a page that displays Jacob and Melissa's registry. They have not created a registry yet, so this is coming soon.
@@ -92,6 +92,12 @@ There should be a form that lets users send emails to Jacob and Melissa at melis
 There should be a password protected page accessible at https://wedding.stephens.page/check-rsvps, which is not listed in the site menus. The password is the RSVP_CHECK_PASSWORD value in the .env file. This page should show the user the RSVPs stored in the database.
 
 There should be a link on the logged in and logged out view of this page which takes the user back to the main site.
+
+## Blessing
+Navigating to https://wedding.stephens.page/blessing should direct visitors to a page on the wedding website which has the content described in the blessing section of the story page.
+
+The blessing page should not have a link to it in the navigation of the site, rather, it should only be acessible by direct URL access.
+
 
 # Technology
 This website has the following technologies available to it:
