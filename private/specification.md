@@ -135,3 +135,16 @@ Text should be left justified, not fully justified, so as to prevent large river
 
 # Footer
 The footer should note that the website was created by Jacob Stephens, and possibly link to his portfolio page: https://stephens.page/
+
+# Analytics by Google Tag
+Here is the Google Tag for this site's Analytics:
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQN0TVHB1Z"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-DQN0TVHB1Z');
+</script>
