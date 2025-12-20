@@ -73,7 +73,9 @@ Carousel of these two photos. The first photo is portrait, make sure it entirely
 ### Dating
 Jacob had been looking into becoming Catholic, and I had been to St. Agatha-St. James Church a couple of times since recently moving to Philly. We started attending events at St. AJs and dances throughout the city, and after a few dates and a spontaneous knock on my door with a TON of halal food and hummus, we started officially dating.
 
+These two photos should be a carousel, as the proposal and blessing section carousels:
 [2025-01-16_Mel_and_Jacob_2_dip_bw.jpg]
+[2025-03-04_Mardi_Gras.JPG]
 
 ### Proposal
 Jacob proposed to Melissa in Banff National Park on Mt. Jimmy Stepson, overlooking Peyto Lake, while a guitarist played Can't Help Falling In Love in the background.
@@ -85,13 +87,13 @@ There should be a carousel of these two photos. The carousel should be full widt
 Below the carousel should be this YouTube video of the proposal should be embedded in the proposal section of the story page: https://youtu.be/iEbqiWzH800
 
 ### Blessing
-The day after the proposal, Fr. Remi Morales of St. Agatha St. James church blessed Jacob and Melissa's engagement, surrounded by their parents and many friends. Afterwards, Jacob, Melissa, their parents, and Melissa's brother Matt went to dinner in South Philly at Scannichio's
+The day after the proposal, Fr. Remi Morales of St. Agatha St. James church blessed Jacob and Melissa's engagement, surrounded by their parents and many friends.
+
+This YouTube video of the blessing should be embedded in the blessing section of the story page: https://youtu.be/dko2cded45ES
 
 Carousel of these photos:
 [Landscape_JM_at_Altar.jpg]
 [JM_With_Parents_at_Scannichios.jpg]
-
-This YouTube video of the blessing should be embedded in the blessing section of the story page: https://youtu.be/dko2cded45E
 
 ### Wedding
 The wedding will be on April 11, 2026 at St. Agatha St. James Parish in Philadelphia. The reception will be hosted at Bala Golf Club.

@@ -28,8 +28,18 @@ include __DIR__ . '/includes/header.php';
     <section class="story-section">
         <h2>Dating</h2>
         <p><em>Jacob had been looking into becoming Catholic, and I had been to St. Agatha-St. James Church a couple of times since recently moving to Philly. We started attending events at St. AJs and dances throughout the city, and after a few dates and a spontaneous knock on my door with a TON of halal food and hummus, we started officially dating.</em></p>
-        <div class="story-media">
-            <img src="/assets.php?type=photo&path=dating/2025-01-16_Mel_and_Jacob_2_dip_bw.jpg" alt="Jacob and Melissa" class="clickable-image">
+        
+        <div class="photo-carousel carousel-landscape">
+            <div class="carousel-container">
+                <img src="/assets.php?type=photo&path=dating/2025-01-16_Mel_and_Jacob_2_dip_bw.jpg" alt="Jacob and Melissa" class="carousel-image clickable-image active">
+                <img src="/assets.php?type=photo&path=dating/2025-03-04_Mardi_Gras.JPG" alt="Mardi Gras" class="carousel-image clickable-image">
+            </div>
+            <button class="carousel-btn carousel-prev" aria-label="Previous image">‹</button>
+            <button class="carousel-btn carousel-next" aria-label="Next image">›</button>
+            <div class="carousel-indicators">
+                <span class="indicator active" data-slide="0"></span>
+                <span class="indicator" data-slide="1"></span>
+            </div>
         </div>
     </section>
     
@@ -59,6 +69,10 @@ include __DIR__ . '/includes/header.php';
         <h2>Blessing</h2>
         <p>The day after the proposal, Fr. Remi Morales of St. Agatha St. James church blessed Jacob and Melissa's engagement, surrounded by their parents and many friends. Afterwards, Jacob, Melissa, their parents, and Melissa's brother Matt went to dinner in South Philly at Scannichio's</p>
         
+        <div class="story-media">
+            <iframe src="https://www.youtube.com/embed/dko2cded45E" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        
         <div class="photo-carousel carousel-landscape">
             <div class="carousel-container">
                 <img src="/assets.php?type=photo&path=blessing/Landscape_JM_at_Altar.jpg" alt="Jacob and Melissa at altar" class="carousel-image clickable-image active">
@@ -70,10 +84,6 @@ include __DIR__ . '/includes/header.php';
                 <span class="indicator active" data-slide="0"></span>
                 <span class="indicator" data-slide="1"></span>
             </div>
-        </div>
-        
-        <div class="story-media">
-            <iframe src="https://www.youtube.com/embed/dko2cded45E" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
     </section>
     
