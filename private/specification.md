@@ -51,36 +51,57 @@ Bala Golf Club
 ### Storing RSVPs
 In addition to emailing notice of RSVP's, RSVP's should be stored in a MySQL database.
 
-
-
 ## Story
 This page should have several sections for the user to scroll down through, telling the story of Jacob and Melissa's relationship chronologically.
 
 Visitors should be able to click the photos on this page to view them larger.
 
-### Meeting
-Jacob and Melissa met dancing in Philadelphia.
+### Carousels
+Carousels on the story page should not automatically scroll. They should only go to the next photo after being clicked.
 
+The carousels with only landscape photos (proposal and blessing) should not have black bars on the top and bottom of the photos.
+
+Clicking on a photo in the carousel should show the photo that is being displayed.
+
+### Meet Cute
+Jacob and I met fusion dancing in Old City, Philadelphia, and kept meeting at various dance events in the city in October-November of 2024.
+
+Carousel of these two photos. The first photo is portrait, make sure it entirely displays in the carousel, even if that means showing black bars on either side of it.
+[2024-11-15_Fusion_dance_at_Concierge_Ballroom.jpg]
 [2024-11-17_Rittenhop_Dip_Landscape.jpg]
 
+### Dating
+Jacob had been looking into becoming Catholic, and I had been to St. Agatha-St. James Church a couple of times since recently moving to Philly. We started attending events at St. AJs and dances throughout the city, and after a few dates and a spontaneous knock on my door with a TON of halal food and hummus, we started officially dating.
+
+[2025-01-16_Mel_and_Jacob_2_dip_bw.jpg]
+
 ### Proposal
-Jacob proposed to Melissa in Banff National Park on a cliff of Mt. Jimmy Stepson, overlooking Peyto Lake, with guitarist Dave Hirschman playing 
+Jacob proposed to Melissa in Banff National Park on Mt. Jimmy Stepson, overlooking Peyto Lake, while a guitarist played Can't Help Falling In Love in the background.
 
-[photos in wedding.stephens.page/private/photos/proposal]
+There should be a carousel of these two photos. The carousel should be full width to the containing element. The carou
+[PeytoLakeBanff_Proposal_One_Knee_wide.jpg]
+[PeytoLakeBanff_Proposal_Closeup_Smile.jpg]
 
-This YouTube video of the proposal should be embedded in the proposal section of the story page: https://youtu.be/iEbqiWzH800
+Below the carousel should be this YouTube video of the proposal should be embedded in the proposal section of the story page: https://youtu.be/iEbqiWzH800
 
 ### Blessing
-The day after the proposal, Fr. Remi Morales of St. Agatha St. James church blessed Jacob and Melissa's engagement, surrounded my many friends and their parents. Afterwards, Jacob, Melissa, their parents, and Melissa's brother Matt went to dinner in South Philly at Scannichio's
+The day after the proposal, Fr. Remi Morales of St. Agatha St. James church blessed Jacob and Melissa's engagement, surrounded by their parents and many friends. Afterwards, Jacob, Melissa, their parents, and Melissa's brother Matt went to dinner in South Philly at Scannichio's
 
-[Photos in wedding.stephens.page/private/photos/blessing]
+Carousel of these photos:
+[Landscape_JM_at_Altar.jpg]
+[JM_With_Parents_at_Scannichios.jpg]
 
 This YouTube video of the blessing should be embedded in the blessing section of the story page: https://youtu.be/dko2cded45E
 
 ### Wedding
 The wedding will be on April 11, 2026 at St. Agatha St. James Parish in Philadelphia. The reception will be hosted at Bala Golf Club.
 
-The wedding section of the story page should include the photo(s) from the wedding.stephens.page/private/photos/reception folder, and the wedding.stephens.page/private/photos/wedding folder.
+The wedding section of the story page should include these two photos, laid out with block styling rather than inline styling, so they appear top to bottom of one another.
+[Church_Interior_Mass_Kneeling_Ordination.jpg]
+[Bala-Golf-Club-outdoor-view.jpg]
+
+It's been quite the journey of faith and hope. God has been present every step of the way. We still love dancing and being very involved in our parish community, and are excited to be preparing for our sacramental wedding. Jacob entered the Catholic Church in fullness on Divine Mercy Sunday, 2025, and our wedding date is set for the eve of Divine Mercy Sunday, 2026. God has made us new and continues to make us new and give us new life and new hearts, and we see His beauty and His hand in our Easter Octave wedding date.
+
 
 ## Registry
 There should be a page that displays Jacob and Melissa's registry. They have not created a registry yet, so this is coming soon.
@@ -118,6 +139,9 @@ When updates are made to css and js files, references to them should be updated 
 
 # Style
 
+## Formatting dependent on point of view
+If the paragraph is written in the first person, it should be italicized.
+
 ## Colors
 Our wedding colors are green and gold. Further, we like these naturally inspired colors for our published materials:
 - Cloudy Sky Lavendar: #9597a3
@@ -132,6 +156,9 @@ We like seriffed, formal, modern fonts - not too flowy, but more strong, such as
 - Beloved Script Regular
 
 Text should be left justified, not fully justified, so as to prevent large rivers from text sections viewed on mobile.
+
+## Text
+The max width of the text on the page should be 80 characters.
 
 # Footer
 The footer should note that the website was created by Jacob Stephens, and possibly link to his portfolio page: https://stephens.page/

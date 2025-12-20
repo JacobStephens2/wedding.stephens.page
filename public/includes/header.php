@@ -14,7 +14,10 @@
     </script>
     <title><?php echo isset($page_title) ? htmlspecialchars($page_title) : 'Jacob & Melissa - April 11, 2026'; ?></title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="stylesheet" href="/css/style.css?v=<?php echo filemtime(__DIR__ . '/../css/style.css'); ?>">
+    <link rel="stylesheet" href="/css/style.css?v=<?php 
+        $cssPath = __DIR__ . '/../css/style.css';
+        echo file_exists($cssPath) ? filemtime($cssPath) : time(); 
+    ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400&family=Beloved+Script&display=swap" rel="stylesheet">

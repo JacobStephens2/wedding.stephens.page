@@ -3,7 +3,10 @@
         <p>Website created by <a href="https://stephens.page/" target="_blank" rel="noopener noreferrer">Jacob Stephens</a></p>
     </footer>
     
-    <script src="/js/main.js?v=<?php echo filemtime(__DIR__ . '/../js/main.js'); ?>"></script>
+    <script src="/js/main.js?v=<?php 
+        $jsPath = __DIR__ . '/../js/main.js';
+        echo file_exists($jsPath) ? filemtime($jsPath) : time(); 
+    ?>"></script>
 </body>
 </html>
 

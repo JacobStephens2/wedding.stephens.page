@@ -29,8 +29,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Open lightbox when clicking an image
         clickableImages.forEach(img => {
             img.addEventListener('click', function() {
-                lightboxImage.src = this.src;
-                lightboxImage.alt = this.alt;
+                // If this is a carousel image, find the active image in the carousel
+                let imageToShow = this;
+                if (this.classList.contains('carousel-image')) {
+                    const carousel = this.closest('.photo-carousel');
+                    if (carousel) {
+                        const activeImage = carousel.querySelector('.carousel-image.active');
+                        if (activeImage) {
+                            imageToShow = activeImage;
+                        }
+                    }
+                }
+                
+                lightboxImage.src = imageToShow.src;
+                lightboxImage.alt = imageToShow.alt;
                 lightbox.classList.add('active');
                 document.body.style.overflow = 'hidden'; // Prevent background scrolling
             });
@@ -61,5 +73,50 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Photo carousel functionality - handle multiple carousels
+    const photoCarousels = document.querySelectorAll('.photo-carousel');
+    photoCarousels.forEach(photoCarousel => {
+        const images = photoCarousel.querySelectorAll('.carousel-image');
+        const prevBtn = photoCarousel.querySelector('.carousel-prev');
+        const nextBtn = photoCarousel.querySelector('.carousel-next');
+        const indicators = photoCarousel.querySelectorAll('.indicator');
+        let currentIndex = 0;
+        
+        function showSlide(index) {
+            // Remove active class from all images and indicators in this carousel
+            images.forEach(img => img.classList.remove('active'));
+            indicators.forEach(ind => ind.classList.remove('active'));
+            
+            // Add active class to current slide
+            images[index].classList.add('active');
+            indicators[index].classList.add('active');
+            currentIndex = index;
+        }
+        
+        function nextSlide() {
+            const nextIndex = (currentIndex + 1) % images.length;
+            showSlide(nextIndex);
+        }
+        
+        function prevSlide() {
+            const prevIndex = (currentIndex - 1 + images.length) % images.length;
+            showSlide(prevIndex);
+        }
+        
+        // Button event listeners
+        if (nextBtn) {
+            nextBtn.addEventListener('click', nextSlide);
+        }
+        
+        if (prevBtn) {
+            prevBtn.addEventListener('click', prevSlide);
+        }
+        
+        // Indicator event listeners
+        indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => showSlide(index));
+        });
+    });
 });
 
