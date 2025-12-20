@@ -57,7 +57,10 @@ $page_title = "Check RSVPs - Jacob & Melissa";
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($page_title); ?></title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="stylesheet" href="/css/style.css?v=<?php echo filemtime(__DIR__ . '/../css/style.css'); ?>">
+    <link rel="stylesheet" href="/css/style.css?v=<?php 
+        $cssPath = __DIR__ . '/../css/style.css';
+        echo file_exists($cssPath) ? filemtime($cssPath) : time(); 
+    ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400&family=Beloved+Script&display=swap" rel="stylesheet">
