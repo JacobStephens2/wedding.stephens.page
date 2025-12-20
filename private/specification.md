@@ -78,7 +78,7 @@ These two photos should be a carousel, as the proposal and blessing section caro
 [2025-03-04_Mardi_Gras.JPG]
 
 ### Proposal
-Jacob proposed to Melissa in Banff National Park on Mt. Jimmy Stepson, overlooking Peyto Lake, while a guitarist played Can't Help Falling In Love in the background.
+Jacob proposed to Melissa on Mount Jimmy Stepson in the Canadian Rockies, overlooking Peyto Lake, while a guitarist played Can't Help Falling In Love in the background.
 
 There should be a carousel of these two photos. The carousel should be full width to the containing element. The carou
 [PeytoLakeBanff_Proposal_One_Knee_wide.jpg]

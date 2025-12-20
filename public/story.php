@@ -45,7 +45,7 @@ include __DIR__ . '/includes/header.php';
     
     <section class="story-section">
         <h2>Proposal</h2>
-        <p>Jacob proposed to Melissa in Banff National Park on Mt. Jimmy Stepson, overlooking Peyto Lake, while a guitarist played Can't Help Falling In Love in the background.</p>
+        <p>Jacob proposed to Melissa on Mount Jimmy Stepson in the Canadian Rockies, overlooking Peyto Lake, while a guitarist played Can't Help Falling In Love in the&nbsp;background.</p>
         
         <div class="photo-carousel carousel-landscape">
             <div class="carousel-container">
