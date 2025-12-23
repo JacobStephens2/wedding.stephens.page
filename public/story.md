@@ -1,0 +1,1 @@
+The font for paragraphs on the story page should be upper-lower case, not fully uppercase. Ensure the font is not fully uppercase only.
