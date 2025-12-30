@@ -8,7 +8,7 @@ include __DIR__ . '/includes/header.php';
     <h1 class="page-title">Our Story</h1>
     
     <section class="story-section">
-        <h2>Meet Cute</h2>
+        <h2>A Dance Begins</h2>
         <p><em>Jacob and I met fusion dancing in Old City, Philadelphia, and kept meeting at various dance events in the city in October-November of 2024.</em></p>
         
         <div class="photo-carousel">
@@ -26,7 +26,7 @@ include __DIR__ . '/includes/header.php';
     </section>
     
     <section class="story-section">
-        <h2>Dating</h2>
+        <h2>Falling Deeper</h2>
         <p><em>Jacob had been looking into becoming Catholic, and I had been to St. Agatha-St. James Church a couple of times since recently moving to Philly. We started attending events at St. AJs and dances throughout the city, and after a few dates and a spontaneous knock on my door with a TON of halal food and hummus, we started officially&nbsp;dating.</em></p>
         
         <div class="photo-carousel carousel-landscape">
@@ -44,7 +44,7 @@ include __DIR__ . '/includes/header.php';
     </section>
     
     <section class="story-section">
-        <h2>Proposal</h2>
+        <h2>Written in Stone and Sky</h2>
         <p>Jacob proposed to Melissa on Mount Jimmy Stepson in the Canadian Rockies, overlooking Peyto Lake, while a guitarist played Can't Help Falling In Love in the&nbsp;background.</p>
         
         <div class="photo-carousel carousel-landscape">
@@ -66,7 +66,8 @@ include __DIR__ . '/includes/header.php';
     </section>
     
     <section class="story-section">
-        <h2>Blessing</h2>
+        <!-- <h2>Blessings Bestowed</h2> -->
+        <h2>Grace Descends</h2>
         <p>The day after the proposal, Fr. Remi Morales of St. Agatha St. James church blessed Jacob and Melissa's engagement, surrounded by their parents and many friends. Afterwards, Melissa and Jacob shared a meal with each other and their parents.</p>
         
         <div class="story-media">
@@ -88,7 +89,7 @@ include __DIR__ . '/includes/header.php';
     </section>
     
     <section class="story-section">
-        <h2>Wedding</h2>
+        <h2>Divine Mercy's Design</h2>
         <p>The wedding will be on April 11, 2026 at St. Agatha St. James Parish in Philadelphia. The reception will be hosted at Bala Golf Club.</p>
         <div class="story-media-block">
             <img src="/assets.php?type=photo&path=wedding/Church_Interior_Mass_Kneeling_Ordination.jpg" alt="Church interior" class="clickable-image">
