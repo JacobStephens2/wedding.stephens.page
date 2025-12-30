@@ -25,7 +25,57 @@ document.addEventListener('DOMContentLoaded', function() {
     const lightboxImage = document.getElementById('lightbox-image');
     const lightboxClose = document.querySelector('.lightbox-close');
     
+    // Store current carousel and index for keyboard navigation
+    let currentLightboxCarousel = null;
+    let currentLightboxIndex = 0;
+    let currentLightboxImages = [];
+    
     if (clickableImages.length > 0 && lightbox && lightboxImage) {
+        // Function to get all images in a carousel or standalone images
+        function getImagesForLightbox(clickedImage) {
+            if (clickedImage.classList.contains('carousel-image')) {
+                const carousel = clickedImage.closest('.photo-carousel');
+                if (carousel) {
+                    return Array.from(carousel.querySelectorAll('.carousel-image'));
+                }
+            }
+            // For standalone images, return just that image
+            return [clickedImage];
+        }
+        
+        // Function to find the index of an image in its carousel
+        function getImageIndex(image, images) {
+            return images.indexOf(image);
+        }
+        
+        // Function to open lightbox with a specific image
+        function openLightbox(image, images, index) {
+            lightboxImage.src = image.src;
+            lightboxImage.alt = image.alt;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Store current state for keyboard navigation
+            currentLightboxImages = images;
+            currentLightboxIndex = index;
+            currentLightboxCarousel = image.closest('.photo-carousel');
+        }
+        
+        // Function to navigate to next/previous image in lightbox
+        function navigateLightbox(direction) {
+            if (currentLightboxImages.length === 0) return;
+            
+            if (direction === 'next') {
+                currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
+            } else if (direction === 'prev') {
+                currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+            }
+            
+            const newImage = currentLightboxImages[currentLightboxIndex];
+            lightboxImage.src = newImage.src;
+            lightboxImage.alt = newImage.alt;
+        }
+        
         // Open lightbox when clicking an image
         clickableImages.forEach(img => {
             img.addEventListener('click', function() {
@@ -41,10 +91,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
                 
-                lightboxImage.src = imageToShow.src;
-                lightboxImage.alt = imageToShow.alt;
-                lightbox.classList.add('active');
-                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                const images = getImagesForLightbox(imageToShow);
+                const index = getImageIndex(imageToShow, images);
+                openLightbox(imageToShow, images, index);
             });
         });
         
@@ -52,6 +101,9 @@ document.addEventListener('DOMContentLoaded', function() {
         function closeLightbox() {
             lightbox.classList.remove('active');
             document.body.style.overflow = ''; // Restore scrolling
+            currentLightboxCarousel = null;
+            currentLightboxIndex = 0;
+            currentLightboxImages = [];
         }
         
         // Close on X button click
@@ -66,10 +118,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Close on Escape key
+        // Keyboard navigation: Escape to close, Arrow keys to navigate
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+            if (!lightbox.classList.contains('active')) return;
+            
+            if (e.key === 'Escape') {
                 closeLightbox();
+            } else if (e.key === 'ArrowRight') {
+                navigateLightbox('next');
+            } else if (e.key === 'ArrowLeft') {
+                navigateLightbox('prev');
             }
         });
     }

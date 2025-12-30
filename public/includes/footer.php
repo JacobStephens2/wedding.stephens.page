@@ -4,7 +4,7 @@
     </footer>
     
     <script src="/js/main.js?v=<?php 
-        $jsPath = __DIR__ . '/../js/main.js';
+        $jsPath = __DIR__ . '/../js/main.js?v=2';
         echo file_exists($jsPath) ? filemtime($jsPath) : time(); 
     ?>"></script>
 </body>
