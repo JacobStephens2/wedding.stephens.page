@@ -130,6 +130,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 navigateLightbox('prev');
             }
         });
+        
+        // Touch/swipe navigation for mobile devices
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const minSwipeDistance = 50; // Minimum distance in pixels to trigger a swipe
+        
+        lightbox.addEventListener('touchstart', function(e) {
+            if (!lightbox.classList.contains('active')) return;
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        
+        lightbox.addEventListener('touchend', function(e) {
+            if (!lightbox.classList.contains('active')) return;
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+        
+        function handleSwipe() {
+            const swipeDistance = touchEndX - touchStartX;
+            
+            // Swipe right (next image) - user swiped left to right
+            if (swipeDistance > minSwipeDistance) {
+                navigateLightbox('next');
+            }
+            // Swipe left (previous image) - user swiped right to left
+            else if (swipeDistance < -minSwipeDistance) {
+                navigateLightbox('prev');
+            }
+        }
     }
     
     // Photo carousel functionality - handle multiple carousels
