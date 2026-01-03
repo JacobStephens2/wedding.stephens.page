@@ -90,7 +90,7 @@ include __DIR__ . '/includes/header.php';
     
     <section class="story-section">
         <h2>Divine Mercy's Design</h2>
-        <p>The wedding will be on April 11, 2026 at St. Agatha St. James Parish in Philadelphia. The reception will be hosted at Bala Golf Club.</p>
+        <p>Our Nuptial Mass will be on April 11, 2026 at St. Agatha St. James Parish in Philadelphia. The reception will be hosted at Bala Golf Club.</p>
         <div class="story-media-block">
             <img src="/assets.php?type=photo&path=wedding/Church_Interior_Mass_Kneeling_Ordination.jpg" alt="Church interior" class="clickable-image">
             <img src="/assets.php?type=photo&path=reception/Bala-Golf-Club-outdoor-view.jpg" alt="Bala Golf Club outdoor view" class="clickable-image">
