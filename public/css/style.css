@@ -623,8 +623,15 @@ header {
     font-size: 1.1rem;
 }
 
-.house-fund-payment-methods {
+.house-fund-info-container {
+    display: flex;
+    gap: 2rem;
     margin-bottom: 2rem;
+    align-items: stretch;
+}
+
+.house-fund-payment-methods {
+    flex: 1;
     padding: 1.5rem;
     background-color: var(--color-light);
     border-radius: 8px;
@@ -653,11 +660,14 @@ header {
 }
 
 .house-fund-total {
+    flex: 0 0 300px;
     text-align: center;
     padding: 1.5rem;
     background-color: var(--color-light);
     border-radius: 8px;
-    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .total-label {
@@ -991,6 +1001,15 @@ header {
     
     .house-fund-section h3 {
         font-size: 1.5rem;
+    }
+    
+    .house-fund-info-container {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .house-fund-total {
+        flex: 1;
     }
     
     .total-amount {

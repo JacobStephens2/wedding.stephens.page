@@ -37,6 +37,8 @@ If a user clicks the image of a registry item, the image should appear full scre
 ## House Fund
 Above the registry list should be a house fund section. This should notify the user that they can contribute to our house fund as a wedding gift. The section should list a few payment methods: 
 - Venmo to Melissa @Melissa-Longua
-- Check addressed to Melissa Longua, if mailing, send to 3815 Haverford Ave, Unit 1, Philadelphia, PA 19104
+- Check addressed to Jacob Stephens, if mailing, send to 3815 Haverford Ave, Unit 1, Philadelphia, PA 19104
 
 This section should let the user enter how much they contributed, so visitors to the page can see how much total has so far been contributed to the house fund.
+
+On desktop view, the house fund section should have its payment methods container side by side with the total contributed box when the viewport is wide enough to limit the vertical scrolling needed to get to the gifts below.

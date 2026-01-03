@@ -48,19 +48,21 @@ include __DIR__ . '/includes/header.php';
             <h3>House Fund</h3>
             <p>We would be honored if you would like to contribute to our house fund as a wedding gift.</p>
             
-            <div class="house-fund-payment-methods">
-                <div class="payment-method">
-                    <strong>Venmo:</strong> @Melissa-Longua
+            <div class="house-fund-info-container">
+                <div class="house-fund-payment-methods">
+                    <div class="payment-method">
+                        <strong>Venmo:</strong> @Melissa-Longua
+                    </div>
+                    <div class="payment-method">
+                        <strong>Check:</strong> Please make checks payable to Jacob Stephens. If mailing, send to:<br>
+                        <span class="address">3815 Haverford Ave, Unit 1<br>Philadelphia, PA 19104</span>
+                    </div>
                 </div>
-                <div class="payment-method">
-                    <strong>Check:</strong> Please make checks payable to Melissa Longua. If mailing, send to:<br>
-                    <span class="address">3815 Haverford Ave, Unit 1<br>Philadelphia, PA 19104</span>
+                
+                <div class="house-fund-total">
+                    <p class="total-label">Total Contributed:</p>
+                    <p class="total-amount">$<?php echo number_format($houseFundTotal, 2); ?></p>
                 </div>
-            </div>
-            
-            <div class="house-fund-total">
-                <p class="total-label">Total Contributed:</p>
-                <p class="total-amount">$<?php echo number_format($houseFundTotal, 2); ?></p>
             </div>
             
             <div class="house-fund-form-container">
