@@ -23,6 +23,7 @@ The description of registry items on the registry page should be cased in senten
 
 ## Sorting the Registry List
 There should be a select element which lets the user viewing the registry page sort the registry items by the following:
+- - Select -
 - Price low to high
 - Price high to low
 

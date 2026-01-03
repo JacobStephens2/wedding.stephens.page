@@ -44,6 +44,7 @@ include __DIR__ . '/includes/header.php';
             <div class="registry-sort-controls">
                 <label for="sort-select">Sort by:</label>
                 <select id="sort-select" class="sort-select">
+                    <option value="">- Select -</option>
                     <option value="price-low">Price: Low to High</option>
                     <option value="price-high">Price: High to Low</option>
                 </select>
@@ -212,6 +213,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sortSelect && itemsGrid) {
         sortSelect.addEventListener('change', function() {
             const sortValue = this.value;
+            
+            // If "Sort" option is selected (empty value), don't sort
+            if (!sortValue) {
+                return;
+            }
+            
             const items = Array.from(itemsGrid.querySelectorAll('.registry-item-card'));
             
             items.sort((a, b) => {
@@ -229,7 +236,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         return priceA - priceB;
                     
                     case 'price-high':
-                    default:
                         // Sort by price high to low, available items first
                         if (purchasedA !== purchasedB) {
                             return purchasedA - purchasedB; // Available (0) before purchased (1)
