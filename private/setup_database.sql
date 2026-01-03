@@ -5,7 +5,7 @@
 CREATE DATABASE IF NOT EXISTS wedding_stephens_page CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Create user (if it doesn't exist)
-CREATE USER IF NOT EXISTS 'wedding_user'@'localhost' IDENTIFIED BY 'ys$s!&01$RBFiCY5';
+CREATE USER IF NOT EXISTS 'wedding_user'@'localhost' IDENTIFIED BY '[password]';
 
 -- Grant privileges
 GRANT ALL PRIVILEGES ON wedding_stephens_page.* TO 'wedding_user'@'localhost';
@@ -28,7 +28,3 @@ CREATE TABLE IF NOT EXISTS rsvps (
     INDEX idx_email (email),
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-
-
-
