@@ -2,6 +2,17 @@
 require_once __DIR__ . '/../private/config.php';
 require_once __DIR__ . '/../private/db.php';
 
+/**
+ * Convert text to sentence case (first letter capitalized, rest lowercase)
+ */
+function toSentenceCase($text) {
+    if (empty($text)) {
+        return $text;
+    }
+    // Convert to lowercase first, then capitalize first letter
+    return ucfirst(mb_strtolower(trim($text), 'UTF-8'));
+}
+
 $items = [];
 try {
     $pdo = getDbConnection();
@@ -46,7 +57,7 @@ include __DIR__ . '/includes/header.php';
                                 <?php endif; ?>
                             </h3>
                             <?php if ($item['description']): ?>
-                                <p class="registry-item-description"><?php echo htmlspecialchars($item['description']); ?></p>
+                                <p class="registry-item-description"><?php echo htmlspecialchars(toSentenceCase($item['description'])); ?></p>
                             <?php endif; ?>
                             <div class="registry-item-actions">
                                 <a href="<?php echo htmlspecialchars($item['url']); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-registry-link">

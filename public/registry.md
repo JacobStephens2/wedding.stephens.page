@@ -8,3 +8,9 @@ Alternatively there could be a private, password protected admin page which we c
 
 # Ability for Users to Mark Registry Items as Purchased
 Site visitors should be able to mark registry items as purchased so that other visitors can know what has and has not been purchased.
+
+# Editing Registry Items
+There should be a way on the /admin-registry page to edit registry items.
+
+# Style
+The description of registry items on the registry page should be cased in sentence case. This will require using a different font for the description.

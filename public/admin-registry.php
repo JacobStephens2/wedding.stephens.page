@@ -33,23 +33,62 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
-// Handle adding new item
+// Handle adding new item or updating existing item
 if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title'])) {
     try {
         $pdo = getDbConnection();
-        $stmt = $pdo->prepare("
-            INSERT INTO registry_items (title, description, url, image_url)
-            VALUES (?, ?, ?, ?)
-        ");
-        $stmt->execute([
-            trim($_POST['title'] ?? ''),
-            trim($_POST['description'] ?? ''),
-            trim($_POST['url'] ?? ''),
-            trim($_POST['image_url'] ?? '')
-        ]);
-        $success = 'Registry item added successfully!';
+        $itemId = $_POST['item_id'] ?? null;
+        
+        if ($itemId) {
+            // Update existing item
+            $stmt = $pdo->prepare("
+                UPDATE registry_items 
+                SET title = ?, description = ?, url = ?, image_url = ?
+                WHERE id = ?
+            ");
+            $stmt->execute([
+                trim($_POST['title'] ?? ''),
+                trim($_POST['description'] ?? ''),
+                trim($_POST['url'] ?? ''),
+                trim($_POST['image_url'] ?? ''),
+                $itemId
+            ]);
+            // Redirect to clear edit parameter and show success
+            header('Location: /admin-registry?updated=1');
+            exit;
+        } else {
+            // Insert new item
+            $stmt = $pdo->prepare("
+                INSERT INTO registry_items (title, description, url, image_url)
+                VALUES (?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                trim($_POST['title'] ?? ''),
+                trim($_POST['description'] ?? ''),
+                trim($_POST['url'] ?? ''),
+                trim($_POST['image_url'] ?? '')
+            ]);
+            $success = 'Registry item added successfully!';
+        }
     } catch (Exception $e) {
-        $error = 'Error adding item: ' . htmlspecialchars($e->getMessage());
+        $error = 'Error saving item: ' . htmlspecialchars($e->getMessage());
+    }
+}
+
+// Fetch item for editing
+$editItem = null;
+if ($authenticated && isset($_GET['edit'])) {
+    try {
+        $pdo = getDbConnection();
+        $stmt = $pdo->prepare("
+            SELECT id, title, description, url, image_url
+            FROM registry_items
+            WHERE id = ?
+        ");
+        $stmt->execute([$_GET['edit']]);
+        $editItem = $stmt->fetch();
+    } catch (Exception $e) {
+        $error = 'Error loading item: ' . htmlspecialchars($e->getMessage());
     }
 }
 
@@ -253,6 +292,31 @@ $page_title = "Manage Registry - Jacob & Melissa";
         .btn-delete:hover {
             background-color: #c82333;
         }
+        .btn-edit {
+            background-color: var(--color-gold);
+            color: white;
+        }
+        .btn-edit:hover {
+            background-color: #b8860b;
+        }
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            color: white;
+        }
         .purchased-badge {
             display: inline-block;
             background-color: var(--color-green);
@@ -298,6 +362,11 @@ $page_title = "Manage Registry - Jacob & Melissa";
                     </div>
                 <?php endif; ?>
                 
+                <?php if (isset($_GET['updated'])): ?>
+                    <div class="alert alert-success">
+                        <p>Registry item updated successfully!</p>
+                    </div>
+                <?php endif; ?>
                 <?php if ($success): ?>
                     <div class="alert alert-success">
                         <p><?php echo htmlspecialchars($success); ?></p>
@@ -305,25 +374,33 @@ $page_title = "Manage Registry - Jacob & Melissa";
                 <?php endif; ?>
                 
                 <div class="add-item-form">
-                    <h2>Add New Registry Item</h2>
-                    <form method="POST" action="/admin-registry">
+                    <h2 id="form-title"><?php echo $editItem ? 'Edit Registry Item' : 'Add New Registry Item'; ?></h2>
+                    <form method="POST" action="/admin-registry" id="item-form">
+                        <?php if ($editItem): ?>
+                            <input type="hidden" name="item_id" value="<?php echo htmlspecialchars($editItem['id']); ?>">
+                        <?php endif; ?>
                         <div class="form-group required">
                             <label for="title">Title</label>
-                            <input type="text" id="title" name="title" required>
+                            <input type="text" id="title" name="title" value="<?php echo $editItem ? htmlspecialchars($editItem['title']) : ''; ?>" required>
                         </div>
                         <div class="form-group">
                             <label for="description">Description</label>
-                            <textarea id="description" name="description" rows="3"></textarea>
+                            <textarea id="description" name="description" rows="3"><?php echo $editItem ? htmlspecialchars($editItem['description']) : ''; ?></textarea>
                         </div>
                         <div class="form-group required">
                             <label for="url">URL</label>
-                            <input type="url" id="url" name="url" required>
+                            <input type="url" id="url" name="url" value="<?php echo $editItem ? htmlspecialchars($editItem['url']) : ''; ?>" required>
                         </div>
                         <div class="form-group">
                             <label for="image_url">Image URL (optional)</label>
-                            <input type="url" id="image_url" name="image_url">
+                            <input type="url" id="image_url" name="image_url" value="<?php echo $editItem ? htmlspecialchars($editItem['image_url']) : ''; ?>">
                         </div>
-                        <button type="submit" class="btn">Add Item</button>
+                        <div class="form-actions">
+                            <button type="submit" class="btn" id="submit-btn"><?php echo $editItem ? 'Update Item' : 'Add Item'; ?></button>
+                            <?php if ($editItem): ?>
+                                <a href="/admin-registry" class="btn btn-secondary">Cancel</a>
+                            <?php endif; ?>
+                        </div>
                     </form>
                 </div>
                 
@@ -359,6 +436,9 @@ $page_title = "Manage Registry - Jacob & Melissa";
                                         <?php endif; ?>
                                     </div>
                                     <div class="item-actions">
+                                        <a href="/admin-registry?edit=<?php echo $item['id']; ?>" class="btn-small btn-edit">
+                                            Edit
+                                        </a>
                                         <a href="/admin-registry?toggle_purchased=<?php echo $item['id']; ?>" class="btn-small btn-toggle">
                                             <?php echo $item['purchased'] ? 'Mark as Available' : 'Mark as Purchased'; ?>
                                         </a>
@@ -374,6 +454,22 @@ $page_title = "Manage Registry - Jacob & Melissa";
             </div>
         <?php endif; ?>
     </main>
+    <script>
+        // Scroll to form when editing
+        <?php if ($editItem): ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('item-form');
+            if (form) {
+                form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Focus on first input
+                const firstInput = form.querySelector('input[type="text"]');
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }
+        });
+        <?php endif; ?>
+    </script>
 </body>
 </html>
 

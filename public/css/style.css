@@ -701,6 +701,7 @@ header {
     margin-bottom: 1rem;
     line-height: 1.6;
     flex: 1;
+    font-family: 'Crimson Text', serif;
 }
 
 .registry-item-actions {
