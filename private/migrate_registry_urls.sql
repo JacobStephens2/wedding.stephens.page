@@ -9,3 +9,4 @@ ALTER TABLE registry_items MODIFY COLUMN url TEXT NOT NULL;
 -- Alter image_url column from VARCHAR(500) to TEXT
 ALTER TABLE registry_items MODIFY COLUMN image_url TEXT;
 
+

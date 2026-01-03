@@ -41,9 +41,10 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tit
         
         if ($itemId) {
             // Update existing item
+            $price = !empty($_POST['price']) ? $_POST['price'] : null;
             $stmt = $pdo->prepare("
                 UPDATE registry_items 
-                SET title = ?, description = ?, url = ?, image_url = ?
+                SET title = ?, description = ?, url = ?, image_url = ?, price = ?
                 WHERE id = ?
             ");
             $stmt->execute([
@@ -51,6 +52,7 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tit
                 trim($_POST['description'] ?? ''),
                 trim($_POST['url'] ?? ''),
                 trim($_POST['image_url'] ?? ''),
+                $price,
                 $itemId
             ]);
             // Redirect to clear edit parameter and show success
@@ -58,15 +60,17 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tit
             exit;
         } else {
             // Insert new item
+            $price = !empty($_POST['price']) ? $_POST['price'] : null;
             $stmt = $pdo->prepare("
-                INSERT INTO registry_items (title, description, url, image_url)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO registry_items (title, description, url, image_url, price)
+                VALUES (?, ?, ?, ?, ?)
             ");
             $stmt->execute([
                 trim($_POST['title'] ?? ''),
                 trim($_POST['description'] ?? ''),
                 trim($_POST['url'] ?? ''),
-                trim($_POST['image_url'] ?? '')
+                trim($_POST['image_url'] ?? ''),
+                $price
             ]);
             $success = 'Registry item added successfully!';
         }
@@ -81,7 +85,7 @@ if ($authenticated && isset($_GET['edit'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("
-            SELECT id, title, description, url, image_url
+            SELECT id, title, description, url, image_url, price
             FROM registry_items
             WHERE id = ?
         ");
@@ -139,7 +143,7 @@ if ($authenticated) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->query("
-            SELECT id, title, description, url, image_url, purchased, purchased_by, created_at
+            SELECT id, title, description, url, image_url, price, purchased, purchased_by, created_at
             FROM registry_items
             ORDER BY created_at DESC
         ");
@@ -247,6 +251,12 @@ $page_title = "Manage Registry - Jacob & Melissa";
         }
         .item-description {
             color: #666;
+            margin-bottom: 0.5rem;
+        }
+        .item-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--color-green);
             margin-bottom: 0.5rem;
         }
         .item-url {
@@ -395,6 +405,10 @@ $page_title = "Manage Registry - Jacob & Melissa";
                             <label for="image_url">Image URL (optional)</label>
                             <input type="url" id="image_url" name="image_url" value="<?php echo $editItem ? htmlspecialchars($editItem['image_url']) : ''; ?>">
                         </div>
+                        <div class="form-group">
+                            <label for="price">Price (optional)</label>
+                            <input type="number" id="price" name="price" step="0.01" min="0" value="<?php echo $editItem && $editItem['price'] ? htmlspecialchars($editItem['price']) : ''; ?>" placeholder="0.00">
+                        </div>
                         <div class="form-actions">
                             <button type="submit" class="btn" id="submit-btn"><?php echo $editItem ? 'Update Item' : 'Add Item'; ?></button>
                             <?php if ($editItem): ?>
@@ -423,6 +437,9 @@ $page_title = "Manage Registry - Jacob & Melissa";
                                     </div>
                                     <?php if ($item['description']): ?>
                                         <div class="item-description"><?php echo htmlspecialchars($item['description']); ?></div>
+                                    <?php endif; ?>
+                                    <?php if ($item['price']): ?>
+                                        <div class="item-price">$<?php echo number_format($item['price'], 2); ?></div>
                                     <?php endif; ?>
                                     <div class="item-url">
                                         <a href="<?php echo htmlspecialchars($item['url']); ?>" target="_blank" rel="noopener noreferrer">

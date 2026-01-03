@@ -17,7 +17,7 @@ $items = [];
 try {
     $pdo = getDbConnection();
     $stmt = $pdo->query("
-        SELECT id, title, description, url, image_url, purchased, purchased_by, created_at
+        SELECT id, title, description, url, image_url, price, purchased, purchased_by, created_at
         FROM registry_items
         ORDER BY purchased ASC, created_at DESC
     ");
@@ -58,6 +58,9 @@ include __DIR__ . '/includes/header.php';
                             </h3>
                             <?php if ($item['description']): ?>
                                 <p class="registry-item-description"><?php echo htmlspecialchars(toSentenceCase($item['description'])); ?></p>
+                            <?php endif; ?>
+                            <?php if ($item['price']): ?>
+                                <p class="registry-item-price">$<?php echo number_format($item['price'], 2); ?></p>
                             <?php endif; ?>
                             <div class="registry-item-actions">
                                 <a href="<?php echo htmlspecialchars($item['url']); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-registry-link">

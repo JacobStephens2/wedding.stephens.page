@@ -704,6 +704,14 @@ header {
     font-family: 'Crimson Text', serif;
 }
 
+.registry-item-price {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--color-green);
+    margin-bottom: 1rem;
+    font-family: 'Cinzel', serif;
+}
+
 .registry-item-actions {
     display: flex;
     flex-direction: column;
