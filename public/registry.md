@@ -16,3 +16,10 @@ There should be a way on the /admin-registry page to edit registry items.
 
 # Style
 The description of registry items on the registry page should be cased in sentence case. This will require using a different font for the description.
+
+# Sorting the Registry List
+There should be a select element which lets the user viewing the registry page sort the registry items by the following:
+- Price low to high
+- Price high to low
+
+The available registry items should always be displayed first in the list.

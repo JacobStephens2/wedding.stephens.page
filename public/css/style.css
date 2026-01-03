@@ -598,6 +598,42 @@ header {
     font-family: 'Cinzel', serif;
 }
 
+.registry-sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: flex-end;
+}
+
+.registry-sort-controls label {
+    font-family: 'Cinzel', serif;
+    color: var(--color-dark);
+    font-size: 1rem;
+}
+
+.sort-select {
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--color-green);
+    border-radius: 4px;
+    background-color: white;
+    color: var(--color-dark);
+    font-family: 'Crimson Text', serif;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: border-color 0.3s, background-color 0.3s;
+}
+
+.sort-select:hover {
+    border-color: var(--color-gold);
+}
+
+.sort-select:focus {
+    outline: none;
+    border-color: var(--color-gold);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
 .zola-widget-wrapper {
     margin: 2rem 0;
     min-height: 400px;
@@ -823,6 +859,19 @@ header {
 }
 
 @media (max-width: 768px) {
+    .registry-sort-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .registry-sort-controls label {
+        text-align: center;
+    }
+    
+    .sort-select {
+        width: 100%;
+    }
+    
     .registry-items-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;

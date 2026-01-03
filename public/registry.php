@@ -41,9 +41,19 @@ include __DIR__ . '/includes/header.php';
                 </a>
             </p>
         <?php else: ?>
-            <div class="registry-items-grid">
+            <div class="registry-sort-controls">
+                <label for="sort-select">Sort by:</label>
+                <select id="sort-select" class="sort-select">
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                </select>
+            </div>
+            <div class="registry-items-grid" id="registry-items-grid">
                 <?php foreach ($items as $item): ?>
-                    <div class="registry-item-card <?php echo $item['purchased'] ? 'purchased' : ''; ?>" data-item-id="<?php echo $item['id']; ?>">
+                    <div class="registry-item-card <?php echo $item['purchased'] ? 'purchased' : ''; ?>" 
+                         data-item-id="<?php echo $item['id']; ?>"
+                         data-price="<?php echo $item['price'] ?? '0'; ?>"
+                         data-purchased="<?php echo $item['purchased'] ? '1' : '0'; ?>">
                         <?php if ($item['image_url']): ?>
                             <div class="registry-item-image">
                                 <img src="<?php echo htmlspecialchars($item['image_url']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" loading="lazy">
@@ -192,6 +202,44 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Error:', error);
             alert('An error occurred. Please try again.');
+        });
+    }
+    
+    // Sorting functionality
+    const sortSelect = document.getElementById('sort-select');
+    const itemsGrid = document.getElementById('registry-items-grid');
+    
+    if (sortSelect && itemsGrid) {
+        sortSelect.addEventListener('change', function() {
+            const sortValue = this.value;
+            const items = Array.from(itemsGrid.querySelectorAll('.registry-item-card'));
+            
+            items.sort((a, b) => {
+                const priceA = parseFloat(a.getAttribute('data-price')) || 0;
+                const priceB = parseFloat(b.getAttribute('data-price')) || 0;
+                const purchasedA = parseInt(a.getAttribute('data-purchased')) || 0;
+                const purchasedB = parseInt(b.getAttribute('data-purchased')) || 0;
+                
+                switch(sortValue) {
+                    case 'price-low':
+                        // Sort by price low to high, available items first
+                        if (purchasedA !== purchasedB) {
+                            return purchasedA - purchasedB; // Available (0) before purchased (1)
+                        }
+                        return priceA - priceB;
+                    
+                    case 'price-high':
+                    default:
+                        // Sort by price high to low, available items first
+                        if (purchasedA !== purchasedB) {
+                            return purchasedA - purchasedB; // Available (0) before purchased (1)
+                        }
+                        return priceB - priceA;
+                }
+            });
+            
+            // Clear and re-append sorted items
+            items.forEach(item => itemsGrid.appendChild(item));
         });
     }
 });
