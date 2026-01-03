@@ -57,7 +57,7 @@ include __DIR__ . '/includes/header.php';
                          data-purchased="<?php echo $item['purchased'] ? '1' : '0'; ?>">
                         <?php if ($item['image_url']): ?>
                             <div class="registry-item-image">
-                                <img src="<?php echo htmlspecialchars($item['image_url']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" loading="lazy">
+                                <img src="<?php echo htmlspecialchars($item['image_url']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" loading="lazy" class="registry-item-image-clickable">
                             </div>
                         <?php endif; ?>
                         <div class="registry-item-content">
@@ -248,8 +248,57 @@ document.addEventListener('DOMContentLoaded', function() {
             items.forEach(item => itemsGrid.appendChild(item));
         });
     }
+    
+    // Lightbox functionality for registry item images
+    const registryImages = document.querySelectorAll('.registry-item-image-clickable');
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImage = document.getElementById('lightbox-image');
+    const lightboxClose = document.querySelector('.lightbox-close');
+    
+    if (registryImages.length > 0 && lightbox && lightboxImage) {
+        // Open lightbox when clicking a registry image
+        registryImages.forEach(img => {
+            img.addEventListener('click', function() {
+                lightboxImage.src = this.src;
+                lightboxImage.alt = this.alt;
+                lightbox.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        });
+        
+        // Close lightbox function
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Close on X button click
+        if (lightboxClose) {
+            lightboxClose.addEventListener('click', closeLightbox);
+        }
+        
+        // Close on background click
+        lightbox.addEventListener('click', function(e) {
+            if (e.target === lightbox) {
+                closeLightbox();
+            }
+        });
+        
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+                closeLightbox();
+            }
+        });
+    }
 });
 </script>
+
+<!-- Lightbox Modal -->
+<div id="lightbox" class="lightbox">
+    <span class="lightbox-close">&times;</span>
+    <img class="lightbox-content" id="lightbox-image" src="" alt="">
+</div>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
 
