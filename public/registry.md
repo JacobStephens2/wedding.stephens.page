@@ -33,3 +33,10 @@ The available registry items should always be displayed first in the list.
 The full images for the items should be displayed, not cut off. The image display should be able to display full portrait or landscape shaped images, while maintaining a consistent overall registry item container size. This means some images will have to be shrunk to fully display in the image box.
 
 If a user clicks the image of a registry item, the image should appear full screen in a pop up modal that they can close by clicking out of it, clicking an x in the corner of it, or clicking escape on their keyboard.
+
+## House Fund
+Above the registry list should be a house fund section. This should notify the user that they can contribute to our house fund as a wedding gift. The section should list a few payment methods: 
+- Venmo to Melissa @Melissa-Longua
+- Check addressed to Melissa Longua, if mailing, send to 3815 Haverford Ave, Unit 1, Philadelphia, PA 19104
+
+This section should let the user enter how much they contributed, so visitors to the page can see how much total has so far been contributed to the house fund.

@@ -14,6 +14,7 @@ function toSentenceCase($text) {
 }
 
 $items = [];
+$houseFundTotal = 0;
 try {
     $pdo = getDbConnection();
     $stmt = $pdo->query("
@@ -22,6 +23,14 @@ try {
         ORDER BY purchased ASC, created_at DESC
     ");
     $items = $stmt->fetchAll();
+    
+    // Get total house fund contributions
+    $stmt = $pdo->query("
+        SELECT COALESCE(SUM(amount), 0) as total
+        FROM house_fund_contributions
+    ");
+    $result = $stmt->fetch();
+    $houseFundTotal = $result['total'] ?? 0;
 } catch (Exception $e) {
     error_log("Error loading registry items: " . $e->getMessage());
 }
@@ -33,6 +42,43 @@ include __DIR__ . '/includes/header.php';
 <main class="page-container">
     <div class="registry-container">
         <h2>Our Wedding Registry</h2>
+
+        <!-- House Fund Section -->
+        <div class="house-fund-section">
+            <h3>House Fund</h3>
+            <p>We would be honored if you would like to contribute to our house fund as a wedding gift.</p>
+            
+            <div class="house-fund-payment-methods">
+                <div class="payment-method">
+                    <strong>Venmo:</strong> @Melissa-Longua
+                </div>
+                <div class="payment-method">
+                    <strong>Check:</strong> Please make checks payable to Melissa Longua. If mailing, send to:<br>
+                    <span class="address">3815 Haverford Ave, Unit 1<br>Philadelphia, PA 19104</span>
+                </div>
+            </div>
+            
+            <div class="house-fund-total">
+                <p class="total-label">Total Contributed:</p>
+                <p class="total-amount">$<?php echo number_format($houseFundTotal, 2); ?></p>
+            </div>
+            
+            <div class="house-fund-form-container">
+                <p>If you've contributed, please let us know the amount (optional):</p>
+                <form id="house-fund-form" class="house-fund-form">
+                    <div class="form-group">
+                        <label for="contribution-amount">Amount</label>
+                        <input type="number" id="contribution-amount" name="amount" step="0.01" min="0" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contributor-name">Your Name (optional)</label>
+                        <input type="text" id="contributor-name" name="contributor_name" placeholder="Enter your name">
+                    </div>
+                    <button type="submit" class="btn">Submit Contribution</button>
+                </form>
+                <div id="house-fund-message" class="house-fund-message" style="display: none;"></div>
+            </div>
+        </div>
 
         <?php if (empty($items)): ?>
             <p class="registry-fallback">
@@ -290,6 +336,76 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeLightbox();
             }
         });
+    }
+    
+    // House Fund form submission
+    const houseFundForm = document.getElementById('house-fund-form');
+    const houseFundMessage = document.getElementById('house-fund-message');
+    const totalAmountElement = document.querySelector('.total-amount');
+    
+    if (houseFundForm) {
+        houseFundForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const amount = parseFloat(document.getElementById('contribution-amount').value);
+            const contributorName = document.getElementById('contributor-name').value.trim();
+            
+            if (!amount || amount <= 0) {
+                showHouseFundMessage('Please enter a valid amount.', 'error');
+                return;
+            }
+            
+            // Disable form during submission
+            const submitBtn = houseFundForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            fetch('/api/submit-contribution.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    amount: amount,
+                    contributor_name: contributorName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update total amount
+                    if (totalAmountElement) {
+                        totalAmountElement.textContent = '$' + parseFloat(data.total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    }
+                    // Reset form
+                    houseFundForm.reset();
+                    showHouseFundMessage(data.message || 'Thank you for your contribution!', 'success');
+                } else {
+                    showHouseFundMessage(data.error || 'An error occurred. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showHouseFundMessage('An error occurred. Please try again.', 'error');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Contribution';
+            });
+        });
+    }
+    
+    function showHouseFundMessage(message, type) {
+        if (!houseFundMessage) return;
+        
+        houseFundMessage.textContent = message;
+        houseFundMessage.className = 'house-fund-message ' + (type === 'success' ? 'success' : 'error');
+        houseFundMessage.style.display = 'block';
+        
+        // Hide message after 5 seconds
+        setTimeout(() => {
+            houseFundMessage.style.display = 'none';
+        }, 5000);
     }
 });
 </script>
