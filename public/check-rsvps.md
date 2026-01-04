@@ -1,0 +1,1 @@
+Admins should be able to edit and delete RSVPs on the check-rsvps page.
