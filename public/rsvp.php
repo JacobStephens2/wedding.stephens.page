@@ -14,6 +14,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dietary = trim($_POST['dietary'] ?? '');
     $message = trim($_POST['message'] ?? '');
     
+    // Collect guest names
+    $guestNames = [];
+    if ($guests > 1) {
+        for ($i = 1; $i < $guests; $i++) {
+            $guestName = trim($_POST['guest_name_' . $i] ?? '');
+            if (!empty($guestName)) {
+                $guestNames[] = $guestName;
+            }
+        }
+    }
+    $guestNamesJson = !empty($guestNames) ? json_encode($guestNames) : null;
+    
     // Validation
     if (empty($name) || empty($email) || empty($attending)) {
         $error = 'Please fill in all required fields.';
@@ -27,8 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $pdo = getDbConnection();
             $stmt = $pdo->prepare("
-                INSERT INTO rsvps (name, email, attending, guests, dietary, message)
-                VALUES (:name, :email, :attending, :guests, :dietary, :message)
+                INSERT INTO rsvps (name, email, attending, guests, guest_names, dietary, message)
+                VALUES (:name, :email, :attending, :guests, :guest_names, :dietary, :message)
             ");
             
             $stmt->execute([
@@ -36,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':email' => $email,
                 ':attending' => $attending,
                 ':guests' => $guests,
+                ':guest_names' => $guestNamesJson,
                 ':dietary' => !empty($dietary) ? $dietary : null,
                 ':message' => !empty($message) ? $message : null,
             ]);
@@ -46,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Continue to try email even if database fails
         }
         
-        // Send email notification
+        // Send email notification to both recipients
         require_once __DIR__ . '/../private/email_handler.php';
         
         $emailBody = "New RSVP Submission\n\n";
@@ -54,6 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $emailBody .= "Email: $email\n";
         $emailBody .= "Attending: $attending\n";
         $emailBody .= "Number of Guests: $guests\n";
+        if (!empty($guestNames)) {
+            $emailBody .= "Guest Names: " . implode(', ', $guestNames) . "\n";
+        }
         if (!empty($dietary)) {
             $emailBody .= "Dietary Restrictions: $dietary\n";
         }
@@ -62,11 +78,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $emailBody .= "Check RSVPs at https://wedding.stephens.page/check-rsvps with password 'song'";
         
-        $emailSent = sendEmail(
-            $_ENV['RSVP_EMAIL'],
-            'New RSVP - ' . $name,
-            $emailBody
-        );
+        $subject = 'New RSVP - ' . $name;
+        
+        // Send to both email addresses
+        $rsvpEmails = [
+            'melissa.longua@gmail.com',
+            'jacob@stephens.page'
+        ];
+        
+        $emailSent = false;
+        foreach ($rsvpEmails as $emailAddress) {
+            if (sendEmail($emailAddress, $subject, $emailBody)) {
+                $emailSent = true;
+            }
+        }
         
         // Success if either database or email succeeded (prefer database)
         if ($dbSaved || $emailSent) {
@@ -134,6 +159,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="number" id="guests" name="guests" min="1" value="<?php echo htmlspecialchars($_POST['guests'] ?? '1'); ?>">
                 </div>
                 
+                <div id="guest-names-container" class="form-group" style="display: none;">
+                    <label>Additional Guest Names</label>
+                    <div id="guest-names-fields"></div>
+                </div>
+                
                 <div class="form-group">
                     <label for="dietary">Dietary Restrictions or Allergies</label>
                     <textarea id="dietary" name="dietary" placeholder="Please let us know about any dietary restrictions or allergies..."><?php echo htmlspecialchars($_POST['dietary'] ?? ''); ?></textarea>
@@ -149,6 +179,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     <?php endif; ?>
 </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const guestsInput = document.getElementById('guests');
+    const guestNamesContainer = document.getElementById('guest-names-container');
+    const guestNamesFields = document.getElementById('guest-names-fields');
+    
+    // Store existing guest name values from form submission
+    const existingGuestNames = {};
+    <?php
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guests'])) {
+        $guests = intval($_POST['guests'] ?? 1);
+        for ($i = 1; $i < $guests; $i++) {
+            $guestName = trim($_POST['guest_name_' . $i] ?? '');
+            if (!empty($guestName)) {
+                echo "existingGuestNames[" . $i . "] = " . json_encode($guestName) . ";\n";
+            }
+        }
+    }
+    ?>
+    
+    function updateGuestNameFields() {
+        const guests = parseInt(guestsInput.value) || 1;
+        
+        if (guests > 1) {
+            guestNamesContainer.style.display = 'block';
+            guestNamesFields.innerHTML = '';
+            
+            // Create input fields for additional guests (guests - 1, since the first guest is the RSVP submitter)
+            for (let i = 1; i < guests; i++) {
+                const fieldGroup = document.createElement('div');
+                fieldGroup.style.marginBottom = '0.75rem';
+                
+                const label = document.createElement('label');
+                label.setAttribute('for', 'guest_name_' + i);
+                label.textContent = 'Guest ' + i + ' Name';
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = 'guest_name_' + i;
+                input.name = 'guest_name_' + i;
+                input.placeholder = 'Enter guest name';
+                input.style.width = '100%';
+                input.className = 'form-control';
+                if (existingGuestNames[i]) {
+                    input.value = existingGuestNames[i];
+                }
+                
+                fieldGroup.appendChild(label);
+                fieldGroup.appendChild(input);
+                guestNamesFields.appendChild(fieldGroup);
+            }
+        } else {
+            guestNamesContainer.style.display = 'none';
+            guestNamesFields.innerHTML = '';
+        }
+    }
+    
+    // Initialize on page load
+    updateGuestNameFields();
+    
+    // Update when guests number changes
+    guestsInput.addEventListener('change', updateGuestNameFields);
+    guestsInput.addEventListener('input', updateGuestNameFields);
+});
+</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
 
