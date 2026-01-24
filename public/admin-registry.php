@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../private/config.php';
 require_once __DIR__ . '/../private/db.php';
+require_once __DIR__ . '/../private/admin_auth.php';
 
 session_start();
 
@@ -8,21 +9,34 @@ $error = '';
 $success = '';
 $authenticated = false;
 
-// Check if already authenticated
-if (isset($_SESSION['registry_admin_authenticated']) && $_SESSION['registry_admin_authenticated'] === true) {
+// Check unified admin auth first
+if (isAdminAuthenticated()) {
     $authenticated = true;
+} else {
+    // Fallback to old auth system for backward compatibility
+    if (isset($_SESSION['registry_admin_authenticated']) && $_SESSION['registry_admin_authenticated'] === true) {
+        $authenticated = true;
+    }
 }
 
-// Handle login
+// Handle login - try unified admin auth first
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && !isset($_POST['title'])) {
     $password = trim($_POST['password'] ?? '');
-    $correctPassword = $_ENV['REGISTRY_ADMIN_PASSWORD'] ?? '';
     
-    if ($password === $correctPassword) {
-        $_SESSION['registry_admin_authenticated'] = true;
+    // Try unified admin password first
+    $adminPassword = $_ENV['ADMIN_PASSWORD'] ?? '';
+    if ($password === $adminPassword) {
+        $_SESSION['admin_authenticated'] = true;
         $authenticated = true;
     } else {
-        $error = 'Incorrect password. Please try again.';
+        // Fallback to old password
+        $correctPassword = $_ENV['REGISTRY_ADMIN_PASSWORD'] ?? '';
+        if ($password === $correctPassword) {
+            $_SESSION['registry_admin_authenticated'] = true;
+            $authenticated = true;
+        } else {
+            $error = 'Incorrect password. Please try again.';
+        }
     }
 }
 
@@ -339,6 +353,7 @@ $page_title = "Manage Registry - Jacob & Melissa";
     </style>
 </head>
 <body>
+    <?php include __DIR__ . '/includes/admin_menu.php'; ?>
     <main class="page-container">
         <div class="back-to-site">
             <a href="/">← Back to Main Site</a>
