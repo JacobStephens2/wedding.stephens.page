@@ -1,0 +1,1 @@
+There should be an admin menu which links to the admin pages. Accessing the menu on the admin page should be password protected. There should be a link in the footer of the website to access the admin area.
