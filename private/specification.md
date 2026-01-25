@@ -108,6 +108,9 @@ It's been quite the journey of faith and hope. God has been present every step o
 ## Registry
 There should be a page that displays Jacob and Melissa's registry. They have not created a registry yet, so this is coming soon.
 
+## About
+There should be an "about" page linked to from the menu. This page should have info about how kids are allowed and about the nuptial Mass and Communion. We can borrow wording from Kiera and Brett's wedding website if they have any relevant wording: https://www.zola.com/wedding/brettandkiera
+
 ## Contact
 There should be a form that lets users send emails to Jacob and Melissa at melissa.longua@gmail.com. Mandrill SMTP can be used to send these emails, with credentials in the private .env file.
 
@@ -148,6 +151,7 @@ If the paragraph is written in the first person, it should be italicized.
 Our wedding colors are green and gold. Further, we like these naturally inspired colors for our published materials:
 - Cloudy Sky Lavendar: #9597a3
 - Thin Matcha: #7f8f65
+- Blush: hsl(13 37% 68% / 1)
 
 ## Elements
 We like floral and leafy accents.
