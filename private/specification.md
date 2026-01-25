@@ -50,6 +50,10 @@ Bala Golf Club
 
 By the message field, ask if the filler has a request for a song which would get them on the dance floor.
 
+There should be a prompt on the registry page requesting the user to mark if something was purchased. I can imagine people forgetting to do this. The prompt should be small and stick to the top of the user's display after they scroll past it.
+
+After the user clicks a view item link and then navigates away from the page, after they then return back to this registry tab a pop up should display prompting them to mark the item as purchased if they purchased it. The user should not have to reload the page to see this prompt, so the prompt can display as soon as the user clicks a View Item link, that way it will be visible when they return to the tab if they haven't closed the page.
+
 ### Storing RSVPs
 In addition to emailing notice of RSVP's, RSVP's should be stored in a MySQL database.
 
@@ -65,7 +69,7 @@ The carousels with only landscape photos (proposal and blessing) should not have
 
 Clicking on a photo in the carousel should show the photo that is being displayed.
 
-### Meet Cute
+### Meeting
 Jacob and I met fusion dancing in Old City, Philadelphia, and kept meeting at various dance events in the city in October-November of 2024.
 
 Carousel of these two photos. The first photo is portrait, make sure it entirely displays in the carousel, even if that means showing black bars on either side of it.
