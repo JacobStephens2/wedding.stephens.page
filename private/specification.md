@@ -48,6 +48,8 @@ St. Agatha St. James Parish
 Bala Golf Club
 2200 Belmont Ave, Philadelphia, PA 19131
 
+By the message field, ask if the filler has a request for a song which would get them on the dance floor.
+
 ### Storing RSVPs
 In addition to emailing notice of RSVP's, RSVP's should be stored in a MySQL database.
 

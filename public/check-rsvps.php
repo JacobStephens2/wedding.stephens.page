@@ -89,6 +89,7 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upd
         $guests = intval($_POST['guests'] ?? 1);
         $dietary = trim($_POST['dietary'] ?? '');
         $message = trim($_POST['message'] ?? '');
+        $songRequest = trim($_POST['song_request'] ?? '');
         
         // Collect guest names
         $guestNames = [];
@@ -110,7 +111,7 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upd
             $pdo = getDbConnection();
             $stmt = $pdo->prepare("
                 UPDATE rsvps 
-                SET name = ?, email = ?, attending = ?, guests = ?, guest_names = ?, dietary = ?, message = ?
+                SET name = ?, email = ?, attending = ?, guests = ?, guest_names = ?, dietary = ?, message = ?, song_request = ?
                 WHERE id = ?
             ");
             $stmt->execute([
@@ -121,6 +122,7 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upd
                 $guestNamesJson,
                 !empty($dietary) ? $dietary : null,
                 !empty($message) ? $message : null,
+                !empty($songRequest) ? $songRequest : null,
                 $id
             ]);
             $success = 'RSVP updated successfully.';
@@ -138,7 +140,7 @@ if ($authenticated) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->query("
-            SELECT id, name, email, attending, guests, guest_names, dietary, message, created_at
+            SELECT id, name, email, attending, guests, guest_names, dietary, message, song_request, created_at
             FROM rsvps
             ORDER BY created_at DESC
         ");
@@ -386,6 +388,7 @@ $page_title = "Check RSVPs - Jacob & Melissa";
                                 <th>Guest Names</th>
                                 <th>Dietary Restrictions</th>
                                 <th>Message</th>
+                                <th>Song Request</th>
                                 <th>Submitted</th>
                                 <th>Actions</th>
                             </tr>
@@ -416,6 +419,7 @@ $page_title = "Check RSVPs - Jacob & Melissa";
                                     </td>
                                     <td><?php echo htmlspecialchars($rsvp['dietary'] ?? ''); ?></td>
                                     <td><?php echo htmlspecialchars($rsvp['message'] ?? ''); ?></td>
+                                    <td><?php echo htmlspecialchars($rsvp['song_request'] ?? ''); ?></td>
                                     <td><?php echo date('M j, Y g:i A', strtotime($rsvp['created_at'])); ?></td>
                                     <td class="actions-cell">
                                         <a href="/check-rsvps?edit=<?php echo $rsvp['id']; ?>" class="btn-edit">Edit</a>
@@ -470,6 +474,11 @@ $page_title = "Check RSVPs - Jacob & Melissa";
                             <div class="form-group">
                                 <label for="edit_message">Message</label>
                                 <textarea id="edit_message" name="message" placeholder="Any additional message..."><?php echo htmlspecialchars($editRsvp['message'] ?? ''); ?></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="edit_song_request">Song Request</label>
+                                <textarea id="edit_song_request" name="song_request" placeholder="Is there a song that would get you on the dance floor?"><?php echo htmlspecialchars($editRsvp['song_request'] ?? ''); ?></textarea>
                             </div>
                             
                             <div class="form-actions">

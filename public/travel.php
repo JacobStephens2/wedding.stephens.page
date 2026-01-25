@@ -13,13 +13,13 @@ include __DIR__ . '/includes/header.php';
         <div class="location-parking">
             <h3>St. Agatha St. James Parish</h3>
             <p class="address">3728 Chestnut St, Philadelphia, PA 19104</p>
-            <p>Street parking nearby is metered and generally available. Additionally, there is a parking garage on the block at <a href="https://facilities.upenn.edu/maps/locations/parking-garage-119-s-38th-street" target="_blank" rel="noopener noreferrer">Walnut 38 Parking Garage</a> (119 S. 38th Street) for approximately $15-19 for all day parking. Further, there are several free spots in the Santander Bank parking lot across the street from the&nbsp;church.</p>
+            <p>Street parking nearby is metered and generally available. Additionally, there is a parking garage on the block at <a href="https://facilities.upenn.edu/maps/locations/parking-garage-119-s-38th-street" target="_blank" rel="noopener noreferrer">Walnut 38 Parking Garage</a> (119 S. 38th Street) for approximately $15-19 for all day parking. There are six free spots after 1p in the Santander Bank parking lot across the street from the&nbsp;church.</p>
         </div>
         
         <div class="location-parking">
             <h3>Bala Golf Club</h3>
             <p class="address">2200 Belmont Ave, Philadelphia, PA 19131</p>
-            <p>The reception venue has free parking available on-site.</p>
+            <p>The reception venue is offering compliementary valet parking.</p>
         </div>
     </section>
     

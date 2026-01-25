@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $guests = intval($_POST['guests'] ?? 1);
     $dietary = trim($_POST['dietary'] ?? '');
     $message = trim($_POST['message'] ?? '');
+    $songRequest = trim($_POST['song_request'] ?? '');
     
     // Collect guest names
     $guestNames = [];
@@ -39,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $pdo = getDbConnection();
             $stmt = $pdo->prepare("
-                INSERT INTO rsvps (name, email, attending, guests, guest_names, dietary, message)
-                VALUES (:name, :email, :attending, :guests, :guest_names, :dietary, :message)
+                INSERT INTO rsvps (name, email, attending, guests, guest_names, dietary, message, song_request)
+                VALUES (:name, :email, :attending, :guests, :guest_names, :dietary, :message, :song_request)
             ");
             
             $stmt->execute([
@@ -51,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':guest_names' => $guestNamesJson,
                 ':dietary' => !empty($dietary) ? $dietary : null,
                 ':message' => !empty($message) ? $message : null,
+                ':song_request' => !empty($songRequest) ? $songRequest : null,
             ]);
             
             $dbSaved = true;
@@ -75,6 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if (!empty($message)) {
             $emailBody .= "Message: $message\n";
+        }
+        if (!empty($songRequest)) {
+            $emailBody .= "Song Request: $songRequest\n";
         }
         $emailBody .= "Check RSVPs at https://wedding.stephens.page/check-rsvps with password 'song'";
         
@@ -172,6 +177,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label for="message">Message (Optional)</label>
                     <textarea id="message" name="message" placeholder="Any additional message for the couple..."><?php echo htmlspecialchars($_POST['message'] ?? ''); ?></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="song_request">Song Request (Optional)</label>
+                    <textarea id="song_request" name="song_request" placeholder="Is there a song that would get you on the dance floor?"><?php echo htmlspecialchars($_POST['song_request'] ?? ''); ?></textarea>
                 </div>
                 
                 <button type="submit" class="btn">Submit RSVP</button>
