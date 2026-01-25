@@ -25,7 +25,7 @@ For mobile view, as this sample wedding site has, there should be a top right bu
 
 Clicking "Jacob & Melissa" in the menu should return the user to the home page.
 
-# Pages
+# Public Pages
 
 ## Home
 This page should have a background video or image behind the entire page with a dark overlay to make the text more ledgible, and a central header saying:
@@ -133,10 +133,17 @@ Further, there is a parking garage on the block at https://facilities.upenn.edu/
 ## Contact
 There should be a form that lets users send emails to Jacob and Melissa at melissa.longua@gmail.com. Mandrill SMTP can be used to send these emails, with credentials in the private .env file.
 
+# Admin Pages
+
 ## Check RSVPs
 There should be a password protected page accessible at https://wedding.stephens.page/check-rsvps, which is not listed in the site menus. The password is the RSVP_CHECK_PASSWORD value in the .env file. This page should show the user the RSVPs stored in the database.
 
 There should be a link on the logged in and logged out view of this page which takes the user back to the main site.
+
+## Manage House Fund
+In the admin area there should be a manage house fund page which allows the user to manage the house fund (CRUD operations on entries).
+
+# Redirects
 
 ## Blessing
 Navigating to https://wedding.stephens.page/blessing should direct visitors to a page on the wedding website which has the content described in the blessing section of the story page.

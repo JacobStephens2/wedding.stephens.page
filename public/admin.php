@@ -116,6 +116,9 @@ $page_title = "Admin - Jacob & Melissa";
                     <li class="admin-menu-item">
                         <a href="/admin-registry">Manage Registry</a>
                     </li>
+                    <li class="admin-menu-item">
+                        <a href="/admin-house-fund">Manage House Fund</a>
+                    </li>
                 </ul>
             </div>
         <?php endif; ?>
