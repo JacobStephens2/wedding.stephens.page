@@ -40,6 +40,7 @@
                 <a href="/story">Story</a>
                 <a href="/rsvp">RSVP</a>
                 <a href="/registry">Registry</a>
+                <a href="/about">About</a>
                 <a href="/contact">Contact</a>
             </nav>
         </div>
@@ -50,6 +51,7 @@
             <a href="/story">Story</a>
             <a href="/rsvp">RSVP</a>
             <a href="/registry">Registry</a>
+            <a href="/about">About</a>
             <a href="/contact">Contact</a>
         </nav>
     </header>

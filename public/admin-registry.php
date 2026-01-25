@@ -321,7 +321,7 @@ $page_title = "Manage Registry - Jacob & Melissa";
             color: white;
         }
         .btn-edit:hover {
-            background-color: #b8860b;
+            background-color: hsl(13 37% 55% / 1);
         }
         .form-actions {
             display: flex;

@@ -1,6 +1,6 @@
 /* CSS Variables for Wedding Colors */
 :root {
-    --color-gold: #d4af37;
+    --color-gold: hsl(13 37% 68% / 1);
     --color-green: #7f8f65; /* Thin Matcha */
     --color-lavender: #9597a3; /* Cloudy Sky Lavender */
     --color-dark: #2c2c2c;
@@ -301,6 +301,34 @@ header {
     line-height: 1.8;
     margin-bottom: 1.5rem;
     text-align: justify;
+    max-width: 80ch;
+    margin-left: auto;
+    margin-right: auto;
+    text-transform: none;
+}
+
+/* About Page Styles */
+.about-section {
+    margin-bottom: 4rem;
+    padding: 2rem;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.about-section h2 {
+    font-size: 2.5rem;
+    color: var(--color-green);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.about-section p {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+    text-align: left;
     max-width: 80ch;
     margin-left: auto;
     margin-right: auto;
@@ -753,7 +781,7 @@ header {
 .sort-select:focus {
     outline: none;
     border-color: var(--color-gold);
-    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+    box-shadow: 0 0 0 3px hsla(13, 37%, 68%, 0.1);
 }
 
 .zola-widget-wrapper {
@@ -900,7 +928,7 @@ header {
 }
 
 .btn-registry-link:hover {
-    background-color: #b8860b;
+    background-color: hsl(13 37% 55% / 1);
     color: white;
 }
 
