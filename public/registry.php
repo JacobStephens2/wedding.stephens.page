@@ -46,6 +46,9 @@ include __DIR__ . '/includes/header.php';
         <!-- House Fund Section -->
         <div class="house-fund-section">
             <h3>House Fund</h3>
+            <div class="house-fund-image">
+                <img src="/images/house-fund.jpg" alt="House Fund">
+            </div>
             <p>We would be honored if you would like to contribute to our house fund as a wedding gift.</p>
             
             <div class="house-fund-info-container">

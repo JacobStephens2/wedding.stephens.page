@@ -738,6 +738,18 @@ header {
     text-align: center;
 }
 
+.house-fund-image {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.house-fund-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
 .house-fund-section > p {
     text-align: center;
     margin-bottom: 1.5rem;

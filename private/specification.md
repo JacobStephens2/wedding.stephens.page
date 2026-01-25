@@ -50,9 +50,6 @@ Bala Golf Club
 
 By the message field, ask if the filler has a request for a song which would get them on the dance floor.
 
-There should be a prompt on the registry page requesting the user to mark if something was purchased. I can imagine people forgetting to do this. The prompt should be small and stick to the top of the user's display after they scroll past it.
-
-After the user clicks a view item link and then navigates away from the page, after they then return back to this registry tab a pop up should display prompting them to mark the item as purchased if they purchased it. The user should not have to reload the page to see this prompt, so the prompt can display as soon as the user clicks a View Item link, that way it will be visible when they return to the tab if they haven't closed the page.
 
 ### Storing RSVPs
 In addition to emailing notice of RSVP's, RSVP's should be stored in a MySQL database.
@@ -112,7 +109,14 @@ It's been quite the journey of faith and hope. God has been present every step o
 
 
 ## Registry
-There should be a page that displays Jacob and Melissa's registry. They have not created a registry yet, so this is coming soon.
+There should be a page that displays Jacob and Melissa's registry.
+
+There should be a prompt on the registry page requesting the user to mark if something was purchased. I can imagine people forgetting to do this. The prompt should be small and stick to the top of the user's display after they scroll past it.
+
+After the user clicks a view item link and then navigates away from the page, after they then return back to this registry tab a pop up should display prompting them to mark the item as purchased if they purchased it. The user should not have to reload the page to see this prompt, so the prompt can display as soon as the user clicks a View Item link, that way it will be visible when they return to the tab if they haven't closed the page.
+
+### House Fund
+The image for the house fund is public/images/house-fund.jpg
 
 ## About
 There should be an "about" page linked to from the menu. This page should have info about how kids are allowed and about the nuptial Mass and Communion. We can borrow wording from Kiera and Brett's wedding website if they have any relevant wording: https://www.zola.com/wedding/brettandkiera
