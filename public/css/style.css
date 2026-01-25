@@ -335,6 +335,100 @@ header {
     text-transform: none;
 }
 
+/* Travel Page Styles */
+.travel-section {
+    margin-bottom: 4rem;
+    padding: 2rem;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.travel-section h2 {
+    font-size: 2.5rem;
+    color: var(--color-green);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.travel-section > p {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+    text-align: left;
+    max-width: 80ch;
+    margin-left: auto;
+    margin-right: auto;
+    text-transform: none;
+}
+
+.location-parking {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid var(--color-lavender);
+}
+
+.location-parking:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.location-parking h3 {
+    font-size: 1.8rem;
+    color: var(--color-green);
+    margin-bottom: 0.5rem;
+    text-align: left;
+}
+
+.location-parking .address {
+    font-family: 'Crimson Text', serif;
+    font-size: 1rem;
+    color: var(--color-dark);
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.location-parking p:not(.address) {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 0;
+    text-align: left;
+    max-width: 80ch;
+    text-transform: none;
+}
+
+.transportation-option {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--color-lavender);
+}
+
+.transportation-option:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.transportation-option h3 {
+    font-size: 1.8rem;
+    color: var(--color-green);
+    margin-bottom: 0.75rem;
+    text-align: left;
+}
+
+.transportation-option p {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 0;
+    text-align: left;
+    max-width: 80ch;
+    text-transform: none;
+}
+
 .story-media {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

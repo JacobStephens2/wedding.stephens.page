@@ -111,6 +111,15 @@ There should be a page that displays Jacob and Melissa's registry. They have not
 ## About
 There should be an "about" page linked to from the menu. This page should have info about how kids are allowed and about the nuptial Mass and Communion. We can borrow wording from Kiera and Brett's wedding website if they have any relevant wording: https://www.zola.com/wedding/brettandkiera
 
+## Travel
+This page should have information about parking and transportation as well as information about our hotel block. We haven't reserved a hotel block yet, but will soon and will update the section with this information when we have it.
+
+Here is information from Saint AJ's website about parking near the church: "Free parking is available for all Sunday Masses in the Santander Bank parking lot across the street from the Church."
+
+For St. AJ's, Street parking nearby is metered and generally available.
+
+Further, there is a parking garage on the block at https://facilities.upenn.edu/maps/locations/parking-garage-119-s-38th-street for about $15-19 for all day parking.
+
 ## Contact
 There should be a form that lets users send emails to Jacob and Melissa at melissa.longua@gmail.com. Mandrill SMTP can be used to send these emails, with credentials in the private .env file.
 
