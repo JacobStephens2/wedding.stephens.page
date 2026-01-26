@@ -19,7 +19,7 @@ include __DIR__ . '/includes/header.php';
         <div class="location-parking">
             <h3>Bala Golf Club</h3>
             <p class="address">2200 Belmont Ave, Philadelphia, PA 19131</p>
-            <p>The reception venue is offering compliementary valet parking.</p>
+            <p>The reception venue is offering complementary valet parking.</p>
         </div>
     </section>
     
