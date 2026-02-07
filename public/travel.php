@@ -47,6 +47,11 @@ include __DIR__ . '/includes/header.php';
         <h2>Hotel Block</h2>
         <p>We are currently working on securing a hotel block for our wedding guests. Information about the hotel block, including booking details and special rates, will be posted here once it becomes available. Please check back soon!</p>
     </section>
+    
+    <section class="travel-section">
+        <h2>Coordinating Out-of-Town Guests</h2>
+        <p>We're happy to help coordinate travel arrangements for out-of-town guests. If you're traveling from out of town and need assistance with travel planning, group accommodations, or have questions about getting to Philadelphia, please reach out to us through the <a href="/contact">contact form</a> or email <a href="mailto:melissa.longua@gmail.com">melissa.longua@gmail.com</a>. We can help coordinate shared transportation, group hotel bookings, and provide recommendations for the best ways to get to the wedding venues.</p>
+    </section>
 </main>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
