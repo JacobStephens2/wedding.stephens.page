@@ -216,6 +216,45 @@ if ($authenticated && isset($_GET['move_down'], $_GET['id']) && is_numeric($_GET
     }
 }
 
+// Handle bulk reorder
+if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_reorder']) && isset($_POST['positions'])) {
+    try {
+        $pdo = getDbConnection();
+        $positions = $_POST['positions']; // array of id => new position number
+        
+        // Collect and validate: id => desired position (1-based)
+        $desired = [];
+        foreach ($positions as $id => $pos) {
+            $id = (int) $id;
+            $pos = (int) $pos;
+            if ($id > 0 && $pos > 0) {
+                $desired[$id] = $pos;
+            }
+        }
+        
+        if (!empty($desired)) {
+            // Sort by desired position, then by id when positions tie (so duplicate positions are deterministic)
+            $pairs = [];
+            foreach ($desired as $id => $pos) {
+                $pairs[] = [$pos, $id];
+            }
+            usort($pairs, function ($a, $b) {
+                if ($a[0] !== $b[0]) return $a[0] - $b[0];
+                return $a[1] - $b[1];
+            });
+            $stmt = $pdo->prepare("UPDATE registry_items SET sort_order = ? WHERE id = ?");
+            foreach ($pairs as $i => $pair) {
+                $stmt->execute([$i + 1, $pair[1]]);
+            }
+        }
+        
+        header('Location: /admin-registry?reordered=1');
+        exit;
+    } catch (Exception $e) {
+        $error = 'Error reordering: ' . htmlspecialchars($e->getMessage());
+    }
+}
+
 // Fetch registry items if authenticated
 $items = [];
 if ($authenticated) {
@@ -487,6 +526,58 @@ $page_title = "Manage Registry - Jacob & Melissa";
             font-size: 0.85rem;
             margin-left: 0.5rem;
         }
+        .reorder-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .reorder-hint {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0;
+            font-family: 'Crimson Text', serif;
+        }
+        .btn-save-order {
+            white-space: nowrap;
+        }
+        .btn-save-order:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .item-position {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+        .item-position label {
+            color: #666;
+            font-family: 'Crimson Text', serif;
+            margin: 0;
+        }
+        .position-input {
+            width: 4rem;
+            padding: 0.25rem 0.4rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        .position-input:focus {
+            border-color: var(--color-green);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(127, 143, 101, 0.25);
+        }
+        .position-input.changed {
+            border-color: var(--color-gold);
+            background-color: #fff9e6;
+        }
     </style>
 </head>
 <body>
@@ -588,62 +679,100 @@ $page_title = "Manage Registry - Jacob & Melissa";
                     <?php if (empty($items)): ?>
                         <p>No registry items yet. Add one above!</p>
                     <?php else: ?>
-                        <div class="items-list-grid">
-                            <?php foreach ($items as $item): ?>
-                                <div class="item-card <?php echo $item['purchased'] ? 'purchased' : ''; ?>">
-                                    <?php if ($item['image_url']): ?>
-                                        <img src="<?php echo htmlspecialchars($item['image_url']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" class="item-image">
-                                    <?php endif; ?>
-                                    <div class="item-content">
-                                        <div class="item-title">
-                                            <?php echo htmlspecialchars($item['title']); ?>
-                                            <?php if ($item['purchased']): ?>
-                                                <span class="purchased-badge">Purchased</span>
-                                            <?php endif; ?>
-                                            <?php if (!$item['published']): ?>
-                                                <span class="unpublished-badge">Unpublished</span>
-                                            <?php endif; ?>
+                        <form method="POST" action="/admin-registry" id="reorder-form">
+                            <input type="hidden" name="bulk_reorder" value="1">
+                            <div class="reorder-controls">
+                                <p class="reorder-hint">Change position numbers and click "Save Order" to rearrange items. Use ↑↓ for single-step moves.</p>
+                                <button type="submit" class="btn btn-save-order" id="save-order-btn" disabled>Save Order</button>
+                            </div>
+                            <div class="items-list-grid">
+                                <?php $position = 1; ?>
+                                <?php foreach ($items as $item): ?>
+                                    <div class="item-card <?php echo $item['purchased'] ? 'purchased' : ''; ?>">
+                                        <div class="item-position">
+                                            <label for="pos-<?php echo $item['id']; ?>">Position</label>
+                                            <input type="number" name="positions[<?php echo $item['id']; ?>]" id="pos-<?php echo $item['id']; ?>" value="<?php echo $position; ?>" min="1" max="<?php echo count($items); ?>" class="position-input" data-original="<?php echo $position; ?>">
                                         </div>
-                                        <?php if ($item['description']): ?>
-                                            <div class="item-description"><?php echo htmlspecialchars($item['description']); ?></div>
+                                        <?php if ($item['image_url']): ?>
+                                            <img src="<?php echo htmlspecialchars($item['image_url']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" class="item-image">
                                         <?php endif; ?>
-                                        <?php if ($item['price']): ?>
-                                            <div class="item-price">$<?php echo number_format($item['price'], 2); ?></div>
-                                        <?php endif; ?>
-                                        <div class="item-url">
-                                            <a href="<?php echo htmlspecialchars($item['url']); ?>" target="_blank" rel="noopener noreferrer">
-                                                View Item →
-                                            </a>
-                                        </div>
-                                        <div class="item-meta">
-                                            Added: <?php echo date('M j, Y', strtotime($item['created_at'])); ?>
-                                            <?php if ($item['purchased_by']): ?>
-                                                | Purchased by: <?php echo htmlspecialchars($item['purchased_by']); ?>
+                                        <div class="item-content">
+                                            <div class="item-title">
+                                                <?php echo htmlspecialchars($item['title']); ?>
+                                                <?php if ($item['purchased']): ?>
+                                                    <span class="purchased-badge">Purchased</span>
+                                                <?php endif; ?>
+                                                <?php if (!$item['published']): ?>
+                                                    <span class="unpublished-badge">Unpublished</span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php if ($item['description']): ?>
+                                                <div class="item-description"><?php echo htmlspecialchars($item['description']); ?></div>
                                             <?php endif; ?>
-                                        </div>
-                                        <div class="item-actions">
-                                            <a href="/admin-registry?move_up=1&id=<?php echo $item['id']; ?>" class="btn-small btn-move" title="Move earlier">↑</a>
-                                            <a href="/admin-registry?move_down=1&id=<?php echo $item['id']; ?>" class="btn-small btn-move" title="Move later">↓</a>
-                                            <a href="/admin-registry?edit=<?php echo $item['id']; ?>" class="btn-small btn-edit">
-                                                Edit
-                                            </a>
-                                            <a href="/admin-registry?toggle_purchased=<?php echo $item['id']; ?>" class="btn-small btn-toggle">
-                                                <?php echo $item['purchased'] ? 'Mark as Available' : 'Mark as Purchased'; ?>
-                                            </a>
-                                            <a href="/admin-registry?delete=<?php echo $item['id']; ?>" class="btn-small btn-delete" onclick="return confirm('Are you sure you want to delete this item?');">
-                                                Delete
-                                            </a>
+                                            <?php if ($item['price']): ?>
+                                                <div class="item-price">$<?php echo number_format($item['price'], 2); ?></div>
+                                            <?php endif; ?>
+                                            <div class="item-url">
+                                                <a href="<?php echo htmlspecialchars($item['url']); ?>" target="_blank" rel="noopener noreferrer">
+                                                    View Item →
+                                                </a>
+                                            </div>
+                                            <div class="item-meta">
+                                                Added: <?php echo date('M j, Y', strtotime($item['created_at'])); ?>
+                                                <?php if ($item['purchased_by']): ?>
+                                                    | Purchased by: <?php echo htmlspecialchars($item['purchased_by']); ?>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="item-actions">
+                                                <a href="/admin-registry?move_up=1&id=<?php echo $item['id']; ?>" class="btn-small btn-move" title="Move earlier">↑</a>
+                                                <a href="/admin-registry?move_down=1&id=<?php echo $item['id']; ?>" class="btn-small btn-move" title="Move later">↓</a>
+                                                <a href="/admin-registry?edit=<?php echo $item['id']; ?>" class="btn-small btn-edit">
+                                                    Edit
+                                                </a>
+                                                <a href="/admin-registry?toggle_purchased=<?php echo $item['id']; ?>" class="btn-small btn-toggle">
+                                                    <?php echo $item['purchased'] ? 'Mark as Available' : 'Mark as Purchased'; ?>
+                                                </a>
+                                                <a href="/admin-registry?delete=<?php echo $item['id']; ?>" class="btn-small btn-delete" onclick="return confirm('Are you sure you want to delete this item?');">
+                                                    Delete
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
+                                    <?php $position++; ?>
+                                <?php endforeach; ?>
                             </div>
-                            <?php endforeach; ?>
-                        </div>
+                        </form>
                     <?php endif; ?>
                 </div>
             </div>
         <?php endif; ?>
     </main>
     <script>
+        // Reorder position inputs
+        (function() {
+            const saveBtn = document.getElementById('save-order-btn');
+            const positionInputs = document.querySelectorAll('.position-input');
+            if (!saveBtn || positionInputs.length === 0) return;
+
+            function checkChanges() {
+                let hasChanges = false;
+                positionInputs.forEach(input => {
+                    if (input.value !== input.dataset.original) {
+                        input.classList.add('changed');
+                        hasChanges = true;
+                    } else {
+                        input.classList.remove('changed');
+                    }
+                });
+                saveBtn.disabled = !hasChanges;
+            }
+
+            positionInputs.forEach(input => {
+                input.addEventListener('input', checkChanges);
+                input.addEventListener('change', checkChanges);
+            });
+        })();
+
         // Form data persistence to prevent data loss on session timeout
         (function() {
             const FORM_STORAGE_KEY = 'admin-registry-form-data';
