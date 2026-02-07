@@ -120,6 +120,8 @@ The font for descriptions on registry items should maintain the casing the user 
 ### House Fund
 The image for the house fund is public/images/house-fund.jpg
 
+There should be an arrow the user can click on the house fund section to fold up and hide most of the house fund section, leaving only the title of the section and the clickable unfold icon. The chevron should be on the top right of the house fund container.
+
 ## About
 There should be an "about" page linked to from the menu. This page should have info about how kids are allowed and about the nuptial Mass and Communion. We can borrow wording from Kiera and Brett's wedding website if they have any relevant wording: https://www.zola.com/wedding/brettandkiera
 
@@ -150,6 +152,13 @@ In the admin area there should be a manage house fund page which allows the user
 
 ## Manage Registry
 The font used in the description field for registry item management should display the casing the user entered, like the description display on the registry display page. The font here should display both upper and lower case letters, not just upper case letters that are taller or shorter.
+
+On a wide enough viewport, the list of registry items below the entry form should display in a grid like the list on the public registry page.
+
+The font for the descriptions in this view in the list should be user case as well, like on the public registry view page.
+
+### Publishing Status for Registry Items
+There should be a way to set the publishing status of registry items. By default new items should have a published status of "Published", meaning they display on the public registry page, but in editing registry items, admins should be able to set the registry item status to "Unpublished", which makes the registry item only visible in the registry management area, but not in the public list.
 
 # Redirects
 
@@ -215,3 +224,6 @@ Here is the Google Tag for this site's Analytics:
 
   gtag('config', 'G-DQN0TVHB1Z');
 </script>
+
+# Handling Expired Sessions
+There should be a way to preserve data entered into the registry new item form such that when enter clicked to save, even if the user's session has expired, the data they entered is preserved through their login.

@@ -48,48 +48,57 @@ if (isset($_GET['logout'])) {
 }
 
 // Handle adding new item or updating existing item
-if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title'])) {
-    try {
-        $pdo = getDbConnection();
-        $itemId = $_POST['item_id'] ?? null;
-        
-        if ($itemId) {
-            // Update existing item
-            $price = !empty($_POST['price']) ? $_POST['price'] : null;
-            $stmt = $pdo->prepare("
-                UPDATE registry_items 
-                SET title = ?, description = ?, url = ?, image_url = ?, price = ?
-                WHERE id = ?
-            ");
-            $stmt->execute([
-                trim($_POST['title'] ?? ''),
-                trim($_POST['description'] ?? ''),
-                trim($_POST['url'] ?? ''),
-                trim($_POST['image_url'] ?? ''),
-                $price,
-                $itemId
-            ]);
-            // Redirect to clear edit parameter and show success
-            header('Location: /admin-registry?updated=1');
-            exit;
-        } else {
-            // Insert new item
-            $price = !empty($_POST['price']) ? $_POST['price'] : null;
-            $stmt = $pdo->prepare("
-                INSERT INTO registry_items (title, description, url, image_url, price)
-                VALUES (?, ?, ?, ?, ?)
-            ");
-            $stmt->execute([
-                trim($_POST['title'] ?? ''),
-                trim($_POST['description'] ?? ''),
-                trim($_POST['url'] ?? ''),
-                trim($_POST['image_url'] ?? ''),
-                $price
-            ]);
-            $success = 'Registry item added successfully!';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title'])) {
+    if (!$authenticated) {
+        // Session expired - show error message
+        $error = 'Your session has expired. Please log in again. Your form data has been saved and will be restored after you log in.';
+    } else {
+        try {
+            $pdo = getDbConnection();
+            $itemId = $_POST['item_id'] ?? null;
+            
+            if ($itemId) {
+                // Update existing item
+                $price = !empty($_POST['price']) ? $_POST['price'] : null;
+                $published = isset($_POST['published']) && $_POST['published'] === '1' ? 1 : 0;
+                $stmt = $pdo->prepare("
+                    UPDATE registry_items 
+                    SET title = ?, description = ?, url = ?, image_url = ?, price = ?, published = ?
+                    WHERE id = ?
+                ");
+                $stmt->execute([
+                    trim($_POST['title'] ?? ''),
+                    trim($_POST['description'] ?? ''),
+                    trim($_POST['url'] ?? ''),
+                    trim($_POST['image_url'] ?? ''),
+                    $price,
+                    $published,
+                    $itemId
+                ]);
+                // Redirect to clear edit parameter and show success
+                header('Location: /admin-registry?updated=1');
+                exit;
+            } else {
+                // Insert new item - default to published (1)
+                $price = !empty($_POST['price']) ? $_POST['price'] : null;
+                $published = isset($_POST['published']) && $_POST['published'] === '1' ? 1 : 1; // Default to published
+                $stmt = $pdo->prepare("
+                    INSERT INTO registry_items (title, description, url, image_url, price, published)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ");
+                $stmt->execute([
+                    trim($_POST['title'] ?? ''),
+                    trim($_POST['description'] ?? ''),
+                    trim($_POST['url'] ?? ''),
+                    trim($_POST['image_url'] ?? ''),
+                    $price,
+                    $published
+                ]);
+                $success = 'Registry item added successfully!';
+            }
+        } catch (Exception $e) {
+            $error = 'Error saving item: ' . htmlspecialchars($e->getMessage());
         }
-    } catch (Exception $e) {
-        $error = 'Error saving item: ' . htmlspecialchars($e->getMessage());
     }
 }
 
@@ -99,7 +108,7 @@ if ($authenticated && isset($_GET['edit'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("
-            SELECT id, title, description, url, image_url, price
+            SELECT id, title, description, url, image_url, price, published
             FROM registry_items
             WHERE id = ?
         ");
@@ -157,7 +166,7 @@ if ($authenticated) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->query("
-            SELECT id, title, description, url, image_url, price, purchased, purchased_by, created_at
+            SELECT id, title, description, url, image_url, price, purchased, purchased_by, created_at, published
             FROM registry_items
             ORDER BY created_at DESC
         ");
@@ -235,6 +244,12 @@ $page_title = "Manage Registry - Jacob & Melissa";
             color: var(--color-green);
             margin-bottom: 1.5rem;
         }
+        .items-list-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
         .item-card {
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -242,6 +257,8 @@ $page_title = "Manage Registry - Jacob & Melissa";
             margin-bottom: 1rem;
             display: flex;
             gap: 1.5rem;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         .item-card.purchased {
             opacity: 0.6;
@@ -257,6 +274,42 @@ $page_title = "Manage Registry - Jacob & Melissa";
         .item-content {
             flex: 1;
         }
+        /* Grid layout for wide viewports */
+        @media (min-width: 768px) {
+            .items-list-grid {
+                display: grid;
+            }
+            .items-list-grid .item-card {
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 0;
+                padding: 0;
+                overflow: hidden;
+                transition: transform 0.3s, box-shadow 0.3s;
+            }
+            .items-list-grid .item-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            }
+            .items-list-grid .item-image {
+                width: 100%;
+                height: 250px;
+                object-fit: contain;
+                border-radius: 0;
+                background-color: #f5f5f5;
+                padding: 1rem;
+            }
+            .items-list-grid .item-content {
+                padding: 1.5rem;
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+            }
+            .items-list-grid .item-actions {
+                margin-top: auto;
+                padding-top: 1rem;
+            }
+        }
         .item-title {
             font-size: 1.3rem;
             font-weight: bold;
@@ -267,6 +320,8 @@ $page_title = "Manage Registry - Jacob & Melissa";
             color: #666;
             margin-bottom: 0.5rem;
             text-transform: none;
+            font-family: 'Crimson Text', serif;
+            line-height: 1.6;
         }
         #description {
             text-transform: none;
@@ -356,6 +411,15 @@ $page_title = "Manage Registry - Jacob & Melissa";
             font-size: 0.85rem;
             margin-left: 0.5rem;
         }
+        .unpublished-badge {
+            display: inline-block;
+            background-color: #6c757d;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin-left: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -430,6 +494,14 @@ $page_title = "Manage Registry - Jacob & Melissa";
                             <label for="price">Price (optional)</label>
                             <input type="number" id="price" name="price" step="0.01" min="0" value="<?php echo $editItem && $editItem['price'] ? htmlspecialchars($editItem['price']) : ''; ?>" placeholder="0.00">
                         </div>
+                        <div class="form-group">
+                            <label for="published">Publishing Status</label>
+                            <select id="published" name="published">
+                                <option value="1" <?php echo (!$editItem || ($editItem && $editItem['published'])) ? 'selected' : ''; ?>>Published</option>
+                                <option value="0" <?php echo ($editItem && !$editItem['published']) ? 'selected' : ''; ?>>Unpublished</option>
+                            </select>
+                            <small style="display: block; margin-top: 0.5rem; color: #666;">Published items appear on the public registry page. Unpublished items are only visible in the admin area.</small>
+                        </div>
                         <div class="form-actions">
                             <button type="submit" class="btn" id="submit-btn"><?php echo $editItem ? 'Update Item' : 'Add Item'; ?></button>
                             <?php if ($editItem): ?>
@@ -444,69 +516,198 @@ $page_title = "Manage Registry - Jacob & Melissa";
                     <?php if (empty($items)): ?>
                         <p>No registry items yet. Add one above!</p>
                     <?php else: ?>
-                        <?php foreach ($items as $item): ?>
-                            <div class="item-card <?php echo $item['purchased'] ? 'purchased' : ''; ?>">
-                                <?php if ($item['image_url']): ?>
-                                    <img src="<?php echo htmlspecialchars($item['image_url']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" class="item-image">
-                                <?php endif; ?>
-                                <div class="item-content">
-                                    <div class="item-title">
-                                        <?php echo htmlspecialchars($item['title']); ?>
-                                        <?php if ($item['purchased']): ?>
-                                            <span class="purchased-badge">Purchased</span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <?php if ($item['description']): ?>
-                                        <div class="item-description"><?php echo htmlspecialchars($item['description']); ?></div>
+                        <div class="items-list-grid">
+                            <?php foreach ($items as $item): ?>
+                                <div class="item-card <?php echo $item['purchased'] ? 'purchased' : ''; ?>">
+                                    <?php if ($item['image_url']): ?>
+                                        <img src="<?php echo htmlspecialchars($item['image_url']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" class="item-image">
                                     <?php endif; ?>
-                                    <?php if ($item['price']): ?>
-                                        <div class="item-price">$<?php echo number_format($item['price'], 2); ?></div>
-                                    <?php endif; ?>
-                                    <div class="item-url">
-                                        <a href="<?php echo htmlspecialchars($item['url']); ?>" target="_blank" rel="noopener noreferrer">
-                                            View Item →
-                                        </a>
-                                    </div>
-                                    <div class="item-meta">
-                                        Added: <?php echo date('M j, Y', strtotime($item['created_at'])); ?>
-                                        <?php if ($item['purchased_by']): ?>
-                                            | Purchased by: <?php echo htmlspecialchars($item['purchased_by']); ?>
+                                    <div class="item-content">
+                                        <div class="item-title">
+                                            <?php echo htmlspecialchars($item['title']); ?>
+                                            <?php if ($item['purchased']): ?>
+                                                <span class="purchased-badge">Purchased</span>
+                                            <?php endif; ?>
+                                            <?php if (!$item['published']): ?>
+                                                <span class="unpublished-badge">Unpublished</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <?php if ($item['description']): ?>
+                                            <div class="item-description"><?php echo htmlspecialchars($item['description']); ?></div>
                                         <?php endif; ?>
+                                        <?php if ($item['price']): ?>
+                                            <div class="item-price">$<?php echo number_format($item['price'], 2); ?></div>
+                                        <?php endif; ?>
+                                        <div class="item-url">
+                                            <a href="<?php echo htmlspecialchars($item['url']); ?>" target="_blank" rel="noopener noreferrer">
+                                                View Item →
+                                            </a>
+                                        </div>
+                                        <div class="item-meta">
+                                            Added: <?php echo date('M j, Y', strtotime($item['created_at'])); ?>
+                                            <?php if ($item['purchased_by']): ?>
+                                                | Purchased by: <?php echo htmlspecialchars($item['purchased_by']); ?>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="item-actions">
+                                            <a href="/admin-registry?edit=<?php echo $item['id']; ?>" class="btn-small btn-edit">
+                                                Edit
+                                            </a>
+                                            <a href="/admin-registry?toggle_purchased=<?php echo $item['id']; ?>" class="btn-small btn-toggle">
+                                                <?php echo $item['purchased'] ? 'Mark as Available' : 'Mark as Purchased'; ?>
+                                            </a>
+                                            <a href="/admin-registry?delete=<?php echo $item['id']; ?>" class="btn-small btn-delete" onclick="return confirm('Are you sure you want to delete this item?');">
+                                                Delete
+                                            </a>
+                                        </div>
                                     </div>
-                                    <div class="item-actions">
-                                        <a href="/admin-registry?edit=<?php echo $item['id']; ?>" class="btn-small btn-edit">
-                                            Edit
-                                        </a>
-                                        <a href="/admin-registry?toggle_purchased=<?php echo $item['id']; ?>" class="btn-small btn-toggle">
-                                            <?php echo $item['purchased'] ? 'Mark as Available' : 'Mark as Purchased'; ?>
-                                        </a>
-                                        <a href="/admin-registry?delete=<?php echo $item['id']; ?>" class="btn-small btn-delete" onclick="return confirm('Are you sure you want to delete this item?');">
-                                            Delete
-                                        </a>
-                                    </div>
-                                </div>
                             </div>
-                        <?php endforeach; ?>
+                            <?php endforeach; ?>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
         <?php endif; ?>
     </main>
     <script>
-        // Scroll to form when editing
-        <?php if ($editItem): ?>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Form data persistence to prevent data loss on session timeout
+        (function() {
+            const FORM_STORAGE_KEY = 'admin-registry-form-data';
             const form = document.getElementById('item-form');
-            if (form) {
-                form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                // Focus on first input
-                const firstInput = form.querySelector('input[type="text"]');
-                if (firstInput) {
-                    firstInput.focus();
+            
+            if (!form) return;
+            
+            // Don't auto-save if editing an existing item (it's already saved)
+            const isEditing = form.querySelector('input[name="item_id"]') !== null;
+            
+            // Save form data to localStorage
+            function saveFormData() {
+                if (isEditing) return; // Don't save when editing
+                
+                const formData = {
+                    title: document.getElementById('title')?.value || '',
+                    description: document.getElementById('description')?.value || '',
+                    url: document.getElementById('url')?.value || '',
+                    image_url: document.getElementById('image_url')?.value || '',
+                    price: document.getElementById('price')?.value || '',
+                    published: document.getElementById('published')?.value || '1'
+                };
+                
+                // Only save if at least one field has content
+                const hasContent = Object.values(formData).some(val => val.trim() !== '');
+                if (hasContent) {
+                    localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formData));
+                } else {
+                    localStorage.removeItem(FORM_STORAGE_KEY);
                 }
             }
-        });
-        <?php endif; ?>
+            
+            // Restore form data from localStorage
+            function restoreFormData() {
+                if (isEditing) return; // Don't restore when editing
+                
+                const saved = localStorage.getItem(FORM_STORAGE_KEY);
+                if (!saved) return;
+                
+                try {
+                    const formData = JSON.parse(saved);
+                    const hasContent = Object.entries(formData).some(([key, val]) => {
+                        if (key === 'published') return val !== undefined && val !== '';
+                        return val && typeof val === 'string' && val.trim() !== '';
+                    });
+                    
+                    if (hasContent) {
+                        // Check if form is already filled (user might have manually entered data)
+                        const title = document.getElementById('title')?.value || '';
+                        const url = document.getElementById('url')?.value || '';
+                        
+                        // Only restore if form is empty
+                        if (!title && !url) {
+                            if (formData.title) document.getElementById('title').value = formData.title;
+                            if (formData.description) document.getElementById('description').value = formData.description;
+                            if (formData.url) document.getElementById('url').value = formData.url;
+                            if (formData.image_url) document.getElementById('image_url').value = formData.image_url;
+                            if (formData.price) document.getElementById('price').value = formData.price;
+                            if (formData.published) {
+                                const publishedSelect = document.getElementById('published');
+                                if (publishedSelect) publishedSelect.value = formData.published;
+                            }
+                            
+                            // Show a notice that data was restored
+                            const notice = document.createElement('div');
+                            notice.className = 'alert alert-info';
+                            notice.style.marginTop = '1rem';
+                            notice.style.padding = '0.75rem 1rem';
+                            notice.style.backgroundColor = '#d1ecf1';
+                            notice.style.border = '1px solid #bee5eb';
+                            notice.style.borderRadius = '4px';
+                            notice.style.color = '#0c5460';
+                            notice.innerHTML = '<p>⚠️ Your previous form data has been restored. Your session may have expired - please verify your data before submitting.</p>';
+                            form.parentElement.insertBefore(notice, form);
+                            
+                            // Auto-remove notice after 10 seconds
+                            setTimeout(() => {
+                                if (notice.parentElement) {
+                                    notice.remove();
+                                }
+                            }, 10000);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error restoring form data:', e);
+                    localStorage.removeItem(FORM_STORAGE_KEY);
+                }
+            }
+            
+            // Clear saved form data
+            function clearFormData() {
+                localStorage.removeItem(FORM_STORAGE_KEY);
+            }
+            
+            // Auto-save on input changes (debounced)
+            let saveTimeout;
+            const inputs = form.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    clearTimeout(saveTimeout);
+                    saveTimeout = setTimeout(saveFormData, 500); // Debounce 500ms
+                });
+                input.addEventListener('change', () => {
+                    clearTimeout(saveTimeout);
+                    saveTimeout = setTimeout(saveFormData, 500); // Debounce 500ms
+                });
+            });
+            
+            // Clear saved data on successful submission
+            form.addEventListener('submit', function(e) {
+                // Don't prevent submission, just clear saved data
+                clearFormData();
+            });
+            
+            // Restore on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                restoreFormData();
+                
+                // Scroll to form when editing
+                <?php if ($editItem): ?>
+                if (form) {
+                    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // Focus on first input
+                    const firstInput = form.querySelector('input[type="text"]');
+                    if (firstInput) {
+                        firstInput.focus();
+                    }
+                }
+                <?php endif; ?>
+            });
+            
+            // Also restore immediately if DOM is already loaded
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', restoreFormData);
+            } else {
+                restoreFormData();
+            }
+        })();
     </script>
 </body>
 </html>

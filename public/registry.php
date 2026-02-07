@@ -20,6 +20,7 @@ try {
     $stmt = $pdo->query("
         SELECT id, title, description, url, image_url, price, purchased, purchased_by, created_at
         FROM registry_items
+        WHERE published = TRUE
         ORDER BY purchased ASC, created_at DESC
     ");
     $items = $stmt->fetchAll();
@@ -44,111 +45,109 @@ include __DIR__ . '/includes/header.php';
         <h2>Our Wedding Registry</h2>
 
         <!-- House Fund Section -->
-        <div class="house-fund-section">
-            <h3>House Fund</h3>
-            <div class="house-fund-image">
-                <img src="/images/house-fund.jpg" alt="House Fund">
-            </div>
-            <p>We would be honored if you would like to contribute to our house fund as a wedding gift.</p>
-            
-            <div class="house-fund-info-container">
-                <div class="house-fund-payment-methods">
-                    <div class="payment-method">
-                        <strong>Venmo:</strong> @Melissa-Longua
+        <div class="house-fund-section" id="house-fund-section">
+            <button type="button" class="house-fund-header" id="house-fund-toggle" aria-expanded="true" aria-controls="house-fund-body">
+                <h3>House Fund</h3>
+                <span class="house-fund-toggle-icon" aria-hidden="true"></span>
+            </button>
+            <div class="house-fund-body" id="house-fund-body">
+                <div class="house-fund-image">
+                    <img src="/images/house-fund.jpg" alt="House Fund">
+                </div>
+                <p>We would be honored if you would like to contribute to our house fund as a wedding gift.</p>
+                
+                <div class="house-fund-info-container">
+                    <div class="house-fund-payment-methods">
+                        <div class="payment-method">
+                            <strong>Venmo:</strong> @Melissa-Longua
+                        </div>
+                        <div class="payment-method">
+                            <strong>Check:</strong> Please make checks payable to Jacob Stephens. If mailing, send to:<br>
+                            <span class="address">3815 Haverford Ave, Unit 1<br>Philadelphia, PA 19104</span>
+                        </div>
                     </div>
-                    <div class="payment-method">
-                        <strong>Check:</strong> Please make checks payable to Jacob Stephens. If mailing, send to:<br>
-                        <span class="address">3815 Haverford Ave, Unit 1<br>Philadelphia, PA 19104</span>
+                    
+                    <div class="house-fund-total">
+                        <p class="total-label">Total Contributed:</p>
+                        <p class="total-amount">$<?php echo number_format($houseFundTotal, 2); ?></p>
                     </div>
                 </div>
                 
-                <div class="house-fund-total">
-                    <p class="total-label">Total Contributed:</p>
-                    <p class="total-amount">$<?php echo number_format($houseFundTotal, 2); ?></p>
+                <div class="house-fund-form-container">
+                    <p>If you've contributed, please let us know the amount (optional):</p>
+                    <form id="house-fund-form" class="house-fund-form">
+                        <div class="form-group">
+                            <label for="contribution-amount">Amount</label>
+                            <input type="number" id="contribution-amount" name="amount" step="0.01" min="0" placeholder="0.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contributor-name">Your Name (optional)</label>
+                            <input type="text" id="contributor-name" name="contributor_name" placeholder="Enter your name">
+                        </div>
+                        <button type="submit" class="btn">Submit Contribution</button>
+                    </form>
+                    <div id="house-fund-message" class="house-fund-message" style="display: none;"></div>
                 </div>
-            </div>
-            
-            <div class="house-fund-form-container">
-                <p>If you've contributed, please let us know the amount (optional):</p>
-                <form id="house-fund-form" class="house-fund-form">
-                    <div class="form-group">
-                        <label for="contribution-amount">Amount</label>
-                        <input type="number" id="contribution-amount" name="amount" step="0.01" min="0" placeholder="0.00" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="contributor-name">Your Name (optional)</label>
-                        <input type="text" id="contributor-name" name="contributor_name" placeholder="Enter your name">
-                    </div>
-                    <button type="submit" class="btn">Submit Contribution</button>
-                </form>
-                <div id="house-fund-message" class="house-fund-message" style="display: none;"></div>
             </div>
         </div>
 
-        <?php if (empty($items)): ?>
-            <p class="registry-fallback">
-                <a href="https://www.zola.com/registry/jacobandmelissaapril11" target="_blank" rel="noopener noreferrer">
-                    Visit our registry on Zola →
-                </a>
-            </p>
-        <?php else: ?>
-            <div class="registry-prompt" id="registry-prompt">
-                <p><strong>Please remember:</strong> If you've purchased an item, please click "Mark as Purchased" so others know it's been taken.</p>
-            </div>
-            <div class="registry-sort-controls">
-                <label for="sort-select">Sort by:</label>
-                <select id="sort-select" class="sort-select">
-                    <option value="">- Select -</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                </select>
-            </div>
-            <div class="registry-items-grid" id="registry-items-grid">
-                <?php foreach ($items as $item): ?>
-                    <div class="registry-item-card <?php echo $item['purchased'] ? 'purchased' : ''; ?>" 
-                         data-item-id="<?php echo $item['id']; ?>"
-                         data-price="<?php echo $item['price'] ?? '0'; ?>"
-                         data-purchased="<?php echo $item['purchased'] ? '1' : '0'; ?>">
-                        <?php if ($item['image_url']): ?>
-                            <div class="registry-item-image">
-                                <img src="<?php echo htmlspecialchars($item['image_url']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" loading="lazy" class="registry-item-image-clickable">
-                            </div>
+        <div class="registry-prompt" id="registry-prompt">
+            <p><strong>Please remember:</strong> If you've purchased an item, please click "Mark as Purchased" so others know it's been taken.</p>
+        </div>
+        <div class="registry-sort-controls">
+            <label for="sort-select">Sort by:</label>
+            <select id="sort-select" class="sort-select">
+                <option value="">- Select -</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+            </select>
+        </div>
+        <div class="registry-items-grid" id="registry-items-grid">
+            <?php foreach ($items as $item): ?>
+                <div class="registry-item-card <?php echo $item['purchased'] ? 'purchased' : ''; ?>" 
+                        data-item-id="<?php echo $item['id']; ?>"
+                        data-price="<?php echo $item['price'] ?? '0'; ?>"
+                        data-purchased="<?php echo $item['purchased'] ? '1' : '0'; ?>">
+                    <?php if ($item['image_url']): ?>
+                        <div class="registry-item-image">
+                            <img src="<?php echo htmlspecialchars($item['image_url']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" loading="lazy" class="registry-item-image-clickable">
+                        </div>
+                    <?php endif; ?>
+                    <div class="registry-item-content">
+                        <h3 class="registry-item-title">
+                            <?php echo htmlspecialchars($item['title']); ?>
+                            <?php if ($item['purchased']): ?>
+                                <span class="purchased-badge">Purchased</span>
+                            <?php endif; ?>
+                        </h3>
+                        <?php if ($item['description']): ?>
+                            <p class="registry-item-description"><?php echo htmlspecialchars($item['description']); ?></p>
                         <?php endif; ?>
-                        <div class="registry-item-content">
-                            <h3 class="registry-item-title">
-                                <?php echo htmlspecialchars($item['title']); ?>
-                                <?php if ($item['purchased']): ?>
-                                    <span class="purchased-badge">Purchased</span>
-                                <?php endif; ?>
-                            </h3>
-                            <?php if ($item['description']): ?>
-                                <p class="registry-item-description"><?php echo htmlspecialchars($item['description']); ?></p>
-                            <?php endif; ?>
-                            <?php if ($item['price']): ?>
-                                <p class="registry-item-price">$<?php echo number_format($item['price'], 2); ?></p>
-                            <?php endif; ?>
-                            <div class="registry-item-actions">
-                                <a href="<?php echo htmlspecialchars($item['url']); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-registry-link" data-item-id="<?php echo $item['id']; ?>" data-item-title="<?php echo htmlspecialchars($item['title']); ?>">
-                                    View Item →
-                                </a>
-                                <?php if (!$item['purchased']): ?>
-                                    <button class="btn btn-mark-purchased" data-item-id="<?php echo $item['id']; ?>">
-                                        Mark as Purchased
-                                    </button>
-                                <?php else: ?>
-                                    <button class="btn btn-mark-available" data-item-id="<?php echo $item['id']; ?>">
-                                        Mark as Available
-                                    </button>
-                                <?php endif; ?>
-                            </div>
-                            <?php if ($item['purchased'] && $item['purchased_by']): ?>
-                                <p class="registry-item-purchased-by">Purchased by: <?php echo htmlspecialchars($item['purchased_by']); ?></p>
+                        <?php if ($item['price']): ?>
+                            <p class="registry-item-price">$<?php echo number_format($item['price'], 2); ?></p>
+                        <?php endif; ?>
+                        <div class="registry-item-actions">
+                            <a href="<?php echo htmlspecialchars($item['url']); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-registry-link" data-item-id="<?php echo $item['id']; ?>" data-item-title="<?php echo htmlspecialchars($item['title']); ?>">
+                                View Item →
+                            </a>
+                            <?php if (!$item['purchased']): ?>
+                                <button class="btn btn-mark-purchased" data-item-id="<?php echo $item['id']; ?>">
+                                    Mark as Purchased
+                                </button>
+                            <?php else: ?>
+                                <button class="btn btn-mark-available" data-item-id="<?php echo $item['id']; ?>">
+                                    Mark as Available
+                                </button>
                             <?php endif; ?>
                         </div>
+                        <?php if ($item['purchased'] && $item['purchased_by']): ?>
+                            <p class="registry-item-purchased-by">Purchased by: <?php echo htmlspecialchars($item['purchased_by']); ?></p>
+                        <?php endif; ?>
                     </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        
     </div>
 </main>
 
@@ -188,6 +187,32 @@ include __DIR__ . '/includes/header.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // House fund section fold/unfold
+    const HOUSE_FUND_COLLAPSED_KEY = 'registry-house-fund-collapsed';
+    const houseFundSection = document.getElementById('house-fund-section');
+    const houseFundToggle = document.getElementById('house-fund-toggle');
+    const houseFundBody = document.getElementById('house-fund-body');
+    if (houseFundSection && houseFundToggle && houseFundBody) {
+        const setCollapsed = function(collapsed) {
+            houseFundSection.classList.toggle('collapsed', collapsed);
+            houseFundToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            try {
+                localStorage.setItem(HOUSE_FUND_COLLAPSED_KEY, collapsed ? '1' : '0');
+            } catch (e) {}
+        };
+        const isCollapsed = function() {
+            try {
+                return localStorage.getItem(HOUSE_FUND_COLLAPSED_KEY) === '1';
+            } catch (e) {
+                return false;
+            }
+        };
+        setCollapsed(isCollapsed());
+        houseFundToggle.addEventListener('click', function() {
+            setCollapsed(!houseFundSection.classList.contains('collapsed'));
+        });
+    }
+
     // Sticky prompt functionality
     const registryPrompt = document.getElementById('registry-prompt');
     if (registryPrompt) {
