@@ -266,6 +266,12 @@ $page_title = "Manage Registry - Jacob & Melissa";
         .item-description {
             color: #666;
             margin-bottom: 0.5rem;
+            text-transform: none;
+        }
+        #description {
+            text-transform: none;
+            font-variant: normal;
+            font-family: 'Crimson Text', serif;
         }
         .item-price {
             font-size: 1.2rem;

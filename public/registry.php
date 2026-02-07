@@ -122,7 +122,7 @@ include __DIR__ . '/includes/header.php';
                                 <?php endif; ?>
                             </h3>
                             <?php if ($item['description']): ?>
-                                <p class="registry-item-description"><?php echo htmlspecialchars(toSentenceCase($item['description'])); ?></p>
+                                <p class="registry-item-description"><?php echo htmlspecialchars($item['description']); ?></p>
                             <?php endif; ?>
                             <?php if ($item['price']): ?>
                                 <p class="registry-item-price">$<?php echo number_format($item['price'], 2); ?></p>

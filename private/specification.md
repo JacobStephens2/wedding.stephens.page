@@ -115,6 +115,8 @@ There should be a prompt on the registry page requesting the user to mark if som
 
 After the user clicks a view item link and then navigates away from the page, after they then return back to this registry tab a pop up should display prompting them to mark the item as purchased if they purchased it. The user should not have to reload the page to see this prompt, so the prompt can display as soon as the user clicks a View Item link, that way it will be visible when they return to the tab if they haven't closed the page.
 
+The font for descriptions on registry items should maintain the casing the user entered into the description as they created the registry item.
+
 ### House Fund
 The image for the house fund is public/images/house-fund.jpg
 
@@ -130,6 +132,9 @@ For St. AJ's, Street parking nearby is metered and generally available.
 
 Further, there is a parking garage on the block at https://facilities.upenn.edu/maps/locations/parking-garage-119-s-38th-street for about $15-19 for all day parking.
 
+### Coordinating Out-of-Town Guests
+We're happy to help coordinate travel arrangements for out-of-town guests. If you're traveling from out of town and need assistance with travel planning, group accommodations, or have questions about getting to Philadelphia, please reach out to us through the contact form or email melissa.longua@gmail.com. We can help coordinate shared transportation, group hotel bookings, and provide recommendations for the best ways to get to the wedding venues.
+
 ## Contact
 There should be a form that lets users send emails to Jacob and Melissa at melissa.longua@gmail.com. Mandrill SMTP can be used to send these emails, with credentials in the private .env file.
 
@@ -142,6 +147,9 @@ There should be a link on the logged in and logged out view of this page which t
 
 ## Manage House Fund
 In the admin area there should be a manage house fund page which allows the user to manage the house fund (CRUD operations on entries).
+
+## Manage Registry
+The font used in the description field for registry item management should display the casing the user entered, like the description display on the registry display page. The font here should display both upper and lower case letters, not just upper case letters that are taller or shorter.
 
 # Redirects
 
