@@ -407,7 +407,8 @@ $page_title = "Manage Registry - Jacob & Melissa";
         }
         .item-actions {
             display: flex;
-            gap: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
         }
         .btn-small {
             padding: 0.5rem 1rem;
