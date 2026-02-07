@@ -82,9 +82,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title'])) {
                 // Insert new item - default to published (1)
                 $price = !empty($_POST['price']) ? $_POST['price'] : null;
                 $published = isset($_POST['published']) && $_POST['published'] === '1' ? 1 : 1; // Default to published
+                $maxOrder = (int) $pdo->query("SELECT COALESCE(MAX(sort_order), 0) + 1 FROM registry_items")->fetchColumn();
                 $stmt = $pdo->prepare("
-                    INSERT INTO registry_items (title, description, url, image_url, price, published)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO registry_items (title, description, url, image_url, price, published, sort_order)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                 ");
                 $stmt->execute([
                     trim($_POST['title'] ?? ''),
@@ -92,7 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title'])) {
                     trim($_POST['url'] ?? ''),
                     trim($_POST['image_url'] ?? ''),
                     $price,
-                    $published
+                    $published,
+                    $maxOrder
                 ]);
                 $success = 'Registry item added successfully!';
             }
@@ -160,15 +162,69 @@ if ($authenticated && isset($_GET['toggle_purchased'])) {
     }
 }
 
+// Handle move order (move up / move down)
+if ($authenticated && isset($_GET['move_up'], $_GET['id']) && is_numeric($_GET['id'])) {
+    $moveId = (int) $_GET['id'];
+    try {
+        $pdo = getDbConnection();
+        $stmt = $pdo->prepare("SELECT id, sort_order FROM registry_items WHERE id = ?");
+        $stmt->execute([$moveId]);
+        $current = $stmt->fetch();
+        if ($current) {
+            $stmt = $pdo->prepare("
+                SELECT id, sort_order FROM registry_items
+                WHERE sort_order < ? OR (sort_order = ? AND id < ?)
+                ORDER BY sort_order DESC, id DESC LIMIT 1
+            ");
+            $stmt->execute([$current['sort_order'], $current['sort_order'], $moveId]);
+            $prev = $stmt->fetch();
+            if ($prev) {
+                $pdo->prepare("UPDATE registry_items SET sort_order = ? WHERE id = ?")->execute([$prev['sort_order'], $moveId]);
+                $pdo->prepare("UPDATE registry_items SET sort_order = ? WHERE id = ?")->execute([$current['sort_order'], $prev['id']]);
+            }
+        }
+        header('Location: /admin-registry?reordered=1');
+        exit;
+    } catch (Exception $e) {
+        $error = 'Error reordering: ' . htmlspecialchars($e->getMessage());
+    }
+}
+if ($authenticated && isset($_GET['move_down'], $_GET['id']) && is_numeric($_GET['id'])) {
+    $moveId = (int) $_GET['id'];
+    try {
+        $pdo = getDbConnection();
+        $stmt = $pdo->prepare("SELECT id, sort_order FROM registry_items WHERE id = ?");
+        $stmt->execute([$moveId]);
+        $current = $stmt->fetch();
+        if ($current) {
+            $stmt = $pdo->prepare("
+                SELECT id, sort_order FROM registry_items
+                WHERE sort_order > ? OR (sort_order = ? AND id > ?)
+                ORDER BY sort_order ASC, id ASC LIMIT 1
+            ");
+            $stmt->execute([$current['sort_order'], $current['sort_order'], $moveId]);
+            $next = $stmt->fetch();
+            if ($next) {
+                $pdo->prepare("UPDATE registry_items SET sort_order = ? WHERE id = ?")->execute([$next['sort_order'], $moveId]);
+                $pdo->prepare("UPDATE registry_items SET sort_order = ? WHERE id = ?")->execute([$current['sort_order'], $next['id']]);
+            }
+        }
+        header('Location: /admin-registry?reordered=1');
+        exit;
+    } catch (Exception $e) {
+        $error = 'Error reordering: ' . htmlspecialchars($e->getMessage());
+    }
+}
+
 // Fetch registry items if authenticated
 $items = [];
 if ($authenticated) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->query("
-            SELECT id, title, description, url, image_url, price, purchased, purchased_by, created_at, published
+            SELECT id, title, description, url, image_url, price, purchased, purchased_by, created_at, published, sort_order
             FROM registry_items
-            ORDER BY created_at DESC
+            ORDER BY sort_order ASC, id ASC
         ");
         $items = $stmt->fetchAll();
     } catch (Exception $e) {
@@ -377,6 +433,16 @@ $page_title = "Manage Registry - Jacob & Melissa";
         .btn-delete:hover {
             background-color: #c82333;
         }
+        .btn-move {
+            background-color: #e9ecef;
+            color: var(--color-dark);
+            min-width: 2rem;
+            text-align: center;
+        }
+        .btn-move:hover {
+            background-color: #dee2e6;
+            color: var(--color-green);
+        }
         .btn-edit {
             background-color: var(--color-gold);
             color: white;
@@ -460,6 +526,11 @@ $page_title = "Manage Registry - Jacob & Melissa";
                 <?php if (isset($_GET['updated'])): ?>
                     <div class="alert alert-success">
                         <p>Registry item updated successfully!</p>
+                    </div>
+                <?php endif; ?>
+                <?php if (isset($_GET['reordered'])): ?>
+                    <div class="alert alert-success">
+                        <p>Order updated.</p>
                     </div>
                 <?php endif; ?>
                 <?php if ($success): ?>
@@ -550,6 +621,8 @@ $page_title = "Manage Registry - Jacob & Melissa";
                                             <?php endif; ?>
                                         </div>
                                         <div class="item-actions">
+                                            <a href="/admin-registry?move_up=1&id=<?php echo $item['id']; ?>" class="btn-small btn-move" title="Move earlier">↑</a>
+                                            <a href="/admin-registry?move_down=1&id=<?php echo $item['id']; ?>" class="btn-small btn-move" title="Move later">↓</a>
                                             <a href="/admin-registry?edit=<?php echo $item['id']; ?>" class="btn-small btn-edit">
                                                 Edit
                                             </a>

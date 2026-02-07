@@ -21,7 +21,7 @@ try {
         SELECT id, title, description, url, image_url, price, purchased, purchased_by, created_at
         FROM registry_items
         WHERE published = TRUE
-        ORDER BY purchased ASC, created_at DESC
+        ORDER BY purchased ASC, sort_order ASC, id ASC
     ");
     $items = $stmt->fetchAll();
     

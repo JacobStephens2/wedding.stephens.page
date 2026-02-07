@@ -122,6 +122,8 @@ The image for the house fund is public/images/house-fund.jpg
 
 There should be an arrow the user can click on the house fund section to fold up and hide most of the house fund section, leaving only the title of the section and the clickable unfold icon. The chevron should be on the top right of the house fund container.
 
+The default state of the house fund section should be open on page load.
+
 ## About
 There should be an "about" page linked to from the menu. This page should have info about how kids are allowed and about the nuptial Mass and Communion. We can borrow wording from Kiera and Brett's wedding website if they have any relevant wording: https://www.zola.com/wedding/brettandkiera
 
@@ -156,6 +158,9 @@ The font used in the description field for registry item management should displ
 On a wide enough viewport, the list of registry items below the entry form should display in a grid like the list on the public registry page.
 
 The font for the descriptions in this view in the list should be user case as well, like on the public registry view page.
+
+### Registry Item Ordering
+There should be a way that we can manually order the default order the registry items appear in on the public registry page.
 
 ### Publishing Status for Registry Items
 There should be a way to set the publishing status of registry items. By default new items should have a published status of "Published", meaning they display on the public registry page, but in editing registry items, admins should be able to set the registry item status to "Unpublished", which makes the registry item only visible in the registry management area, but not in the public list.
