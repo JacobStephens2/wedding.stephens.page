@@ -2,117 +2,13 @@
 require_once __DIR__ . '/../private/config.php';
 $page_title = "RSVP - Jacob & Melissa";
 include __DIR__ . '/includes/header.php';
-
-$success = false;
-$error = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = trim($_POST['name'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $attending = $_POST['attending'] ?? '';
-    $guests = intval($_POST['guests'] ?? 1);
-    $dietary = trim($_POST['dietary'] ?? '');
-    $message = trim($_POST['message'] ?? '');
-    $songRequest = trim($_POST['song_request'] ?? '');
-    
-    // Collect guest names
-    $guestNames = [];
-    if ($guests > 1) {
-        for ($i = 1; $i < $guests; $i++) {
-            $guestName = trim($_POST['guest_name_' . $i] ?? '');
-            if (!empty($guestName)) {
-                $guestNames[] = $guestName;
-            }
-        }
-    }
-    $guestNamesJson = !empty($guestNames) ? json_encode($guestNames) : null;
-    
-    // Validation
-    if (empty($name) || empty($email) || empty($attending)) {
-        $error = 'Please fill in all required fields.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Please enter a valid email address.';
-    } else {
-        // Store in database
-        require_once __DIR__ . '/../private/db.php';
-        $dbSaved = false;
-        
-        try {
-            $pdo = getDbConnection();
-            $stmt = $pdo->prepare("
-                INSERT INTO rsvps (name, email, attending, guests, guest_names, dietary, message, song_request)
-                VALUES (:name, :email, :attending, :guests, :guest_names, :dietary, :message, :song_request)
-            ");
-            
-            $stmt->execute([
-                ':name' => $name,
-                ':email' => $email,
-                ':attending' => $attending,
-                ':guests' => $guests,
-                ':guest_names' => $guestNamesJson,
-                ':dietary' => !empty($dietary) ? $dietary : null,
-                ':message' => !empty($message) ? $message : null,
-                ':song_request' => !empty($songRequest) ? $songRequest : null,
-            ]);
-            
-            $dbSaved = true;
-        } catch (Exception $e) {
-            error_log("Database save failed: " . $e->getMessage());
-            // Continue to try email even if database fails
-        }
-        
-        // Send email notification to both recipients
-        require_once __DIR__ . '/../private/email_handler.php';
-        
-        $emailBody = "New RSVP Submission\n\n";
-        $emailBody .= "Name: $name\n";
-        $emailBody .= "Email: $email\n";
-        $emailBody .= "Attending: $attending\n";
-        $emailBody .= "Number of Guests: $guests\n";
-        if (!empty($guestNames)) {
-            $emailBody .= "Guest Names: " . implode(', ', $guestNames) . "\n";
-        }
-        if (!empty($dietary)) {
-            $emailBody .= "Dietary Restrictions: $dietary\n";
-        }
-        if (!empty($message)) {
-            $emailBody .= "Message: $message\n";
-        }
-        if (!empty($songRequest)) {
-            $emailBody .= "Song Request: $songRequest\n";
-        }
-        $emailBody .= "Check RSVPs at https://wedding.stephens.page/check-rsvps with password 'song'";
-        
-        $subject = 'New RSVP - ' . $name;
-        
-        // Send to both email addresses
-        $rsvpEmails = [
-            'melissa.longua@gmail.com',
-            'jacob@stephens.page'
-        ];
-        
-        $emailSent = false;
-        foreach ($rsvpEmails as $emailAddress) {
-            if (sendEmail($emailAddress, $subject, $emailBody)) {
-                $emailSent = true;
-            }
-        }
-        
-        // Success if either database or email succeeded (prefer database)
-        if ($dbSaved || $emailSent) {
-            $success = true;
-        } else {
-            $error = 'There was an error submitting your RSVP. Please try again later.';
-        }
-    }
-}
 ?>
 
 <main class="page-container">
     <h1 class="page-title">RSVP</h1>
     
     <div class="locations-info">
-        <h2>Wedding Locations</h2>
+        <h2>Wedding and Reception</h2>
         <div class="location-item">
             <h3>St. Agatha St. James Parish</h3>
             <p>3728 Chestnut St, Philadelphia, PA 19104</p>
@@ -123,138 +19,560 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
     
-    <?php if ($success): ?>
-        <div class="form-container">
-            <div class="alert alert-success">
-                <p>Thank you for your RSVP! We've received your response and look forward to celebrating with you.</p>
-            </div>
+    <!-- Step 1: Name Lookup -->
+    <div class="form-container" id="step-lookup">
+        <h2 class="rsvp-step-title">Find Your Invitation</h2>
+        <p class="rsvp-step-desc">Please enter your first and/or last name to find your invitation.</p>
+        <div class="form-group">
+            <label for="guest-search">Your Name</label>
+            <input type="text" id="guest-search" placeholder="Enter your first or last name..." autocomplete="off">
         </div>
-    <?php else: ?>
-        <?php if ($error): ?>
-            <div class="form-container">
-                <div class="alert alert-error">
-                    <p><?php echo htmlspecialchars($error); ?></p>
-                </div>
-            </div>
-        <?php endif; ?>
+        <button type="button" class="btn" id="btn-search">Find My Invite</button>
         
-        <div class="form-container">
-            <form method="POST" action="/rsvp">
-                <div class="form-group required">
-                    <label for="name">Name</label>
-                    <input type="text" id="name" name="name" required value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>">
-                </div>
-                
-                <div class="form-group required">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
-                </div>
-                
-                <div class="form-group required">
-                    <label for="attending">Will you be attending?</label>
-                    <select id="attending" name="attending" required>
-                        <option value="">Please select...</option>
-                        <option value="Yes" <?php echo (($_POST['attending'] ?? '') === 'Yes') ? 'selected' : ''; ?>>Yes, I'll be there!</option>
-                        <option value="No" <?php echo (($_POST['attending'] ?? '') === 'No') ? 'selected' : ''; ?>>Sorry, I can't make it</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="guests">Number of Guests</label>
-                    <input type="number" id="guests" name="guests" min="1" value="<?php echo htmlspecialchars($_POST['guests'] ?? '1'); ?>">
-                </div>
-                
-                <div id="guest-names-container" class="form-group" style="display: none;">
-                    <label>Additional Guest Names</label>
-                    <div id="guest-names-fields"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="dietary">Dietary Restrictions or Allergies</label>
-                    <textarea id="dietary" name="dietary" placeholder="Please let us know about any dietary restrictions or allergies..."><?php echo htmlspecialchars($_POST['dietary'] ?? ''); ?></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="message">Message (Optional)</label>
-                    <textarea id="message" name="message" placeholder="Any additional message for the couple..."><?php echo htmlspecialchars($_POST['message'] ?? ''); ?></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="song_request">Song Request (Optional)</label>
-                    <textarea id="song_request" name="song_request" placeholder="Is there a song that would get you on the dance floor?"><?php echo htmlspecialchars($_POST['song_request'] ?? ''); ?></textarea>
-                </div>
-                
-                <button type="submit" class="btn">Submit RSVP</button>
-            </form>
+        <div id="search-results" class="search-results" style="display:none;">
+            <!-- Populated by JS -->
         </div>
-    <?php endif; ?>
+        
+        <div id="search-error" class="rsvp-not-found" style="display:none;">
+            <p>Oops! We're having trouble finding your invite. Please try another spelling of your name or contact the couple.</p>
+        </div>
+    </div>
+    
+    <!-- Step 2: Group RSVP Form -->
+    <div class="form-container" id="step-rsvp" style="display:none;">
+        <h2 class="rsvp-step-title">RSVP for Your Party</h2>
+        <p class="rsvp-step-desc" id="rsvp-group-desc"></p>
+        
+        <div id="group-members-list" class="group-members-list">
+            <!-- Populated by JS -->
+        </div>
+        
+        <div class="form-group required">
+            <label for="rsvp-email">Email Address</label>
+            <input type="email" id="rsvp-email" placeholder="your@email.com" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="rsvp-message">Message (Optional)</label>
+            <textarea id="rsvp-message" placeholder="Any message for the couple..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="rsvp-song">Song Request (Optional)</label>
+            <textarea id="rsvp-song" placeholder="Is there a song that would get you on the dance floor?"></textarea>
+        </div>
+        
+        <div class="rsvp-form-actions">
+            <button type="button" class="btn" id="btn-submit-rsvp">Submit RSVP</button>
+            <button type="button" class="btn-back" id="btn-back-search">← Search Again</button>
+        </div>
+        
+        <div id="rsvp-error" class="alert alert-error" style="display:none;">
+            <p></p>
+        </div>
+    </div>
+    
+    <!-- Step 3: Success -->
+    <div class="form-container" id="step-success" style="display:none;">
+        <div class="alert alert-success">
+            <p>Thank you for your RSVP! We've received your response and look forward to celebrating with you.</p>
+        </div>
+        <div id="rsvp-summary" class="rsvp-summary">
+            <!-- Populated by JS -->
+        </div>
+    </div>
 </main>
+
+<style>
+    .rsvp-step-title {
+        color: var(--color-green);
+        margin-bottom: 0.5rem;
+    }
+    .rsvp-step-desc {
+        font-family: 'Crimson Text', serif;
+        color: #666;
+        margin-bottom: 1.5rem;
+        font-size: 1.1rem;
+    }
+    .search-results {
+        margin-top: 1.5rem;
+    }
+    .search-results h3 {
+        font-size: 1rem;
+        color: var(--color-green);
+        margin-bottom: 0.75rem;
+    }
+    .search-result-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: 'Crimson Text', serif;
+        font-size: 1.05rem;
+    }
+    .search-result-item:hover {
+        border-color: var(--color-green);
+        background-color: rgba(127, 143, 101, 0.05);
+    }
+    .search-result-name {
+        font-weight: bold;
+        color: var(--color-dark);
+    }
+    .search-result-group {
+        font-size: 0.9rem;
+        color: #888;
+    }
+    .search-result-rsvpd {
+        font-size: 0.85rem;
+        color: var(--color-green);
+        font-style: italic;
+    }
+    .rsvp-not-found {
+        margin-top: 1.5rem;
+        padding: 1.25rem;
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 6px;
+    }
+    .rsvp-not-found p {
+        color: #856404;
+        font-family: 'Crimson Text', serif;
+        margin: 0;
+        font-size: 1.05rem;
+    }
+    
+    /* Group members list */
+    .group-members-list {
+        margin-bottom: 1.5rem;
+    }
+    .group-member-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        background: white;
+        transition: border-color 0.2s;
+    }
+    .group-member-card.attending {
+        border-color: var(--color-green);
+        background: rgba(127, 143, 101, 0.03);
+    }
+    .group-member-card.declined {
+        border-color: #dc3545;
+        background: rgba(220, 53, 69, 0.02);
+    }
+    .group-member-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    .group-member-name {
+        font-size: 1.15rem;
+        color: var(--color-dark);
+    }
+    .attending-toggle {
+        display: flex;
+        gap: 0;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid #ccc;
+    }
+    .attending-toggle button {
+        padding: 0.4rem 1rem;
+        border: none;
+        background: white;
+        cursor: pointer;
+        font-family: 'Cinzel', serif;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+        color: #666;
+    }
+    .attending-toggle button:first-child {
+        border-right: 1px solid #ccc;
+    }
+    .attending-toggle button.active-yes {
+        background: var(--color-green);
+        color: white;
+    }
+    .attending-toggle button.active-no {
+        background: #dc3545;
+        color: white;
+    }
+    .group-member-dietary {
+        margin-top: 0.5rem;
+    }
+    .group-member-dietary label {
+        font-family: 'Crimson Text', serif;
+        font-size: 0.95rem;
+        color: #666;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+    .group-member-dietary input {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-family: 'Crimson Text', serif;
+        font-size: 1rem;
+    }
+    .group-member-dietary input:focus {
+        border-color: var(--color-green);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(127, 143, 101, 0.25);
+    }
+    
+    .rsvp-form-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+    .btn-back {
+        background: none;
+        border: none;
+        color: var(--color-green);
+        cursor: pointer;
+        font-family: 'Cinzel', serif;
+        font-size: 0.95rem;
+        padding: 0.5rem;
+        transition: color 0.3s;
+    }
+    .btn-back:hover {
+        color: var(--color-gold);
+    }
+    
+    .rsvp-summary {
+        margin-top: 1.5rem;
+        font-family: 'Crimson Text', serif;
+    }
+    .rsvp-summary h3 {
+        color: var(--color-green);
+        margin-bottom: 0.75rem;
+    }
+    .rsvp-summary-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+    }
+    .rsvp-summary-item:last-child {
+        border-bottom: none;
+    }
+    
+    /* Loading state */
+    .btn.loading {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+    .btn.loading::after {
+        content: '...';
+    }
+    
+    #guest-search {
+        font-size: 1.1rem;
+    }
+</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const guestsInput = document.getElementById('guests');
-    const guestNamesContainer = document.getElementById('guest-names-container');
-    const guestNamesFields = document.getElementById('guest-names-fields');
+    const searchInput = document.getElementById('guest-search');
+    const btnSearch = document.getElementById('btn-search');
+    const searchResults = document.getElementById('search-results');
+    const searchError = document.getElementById('search-error');
+    const stepLookup = document.getElementById('step-lookup');
+    const stepRsvp = document.getElementById('step-rsvp');
+    const stepSuccess = document.getElementById('step-success');
+    const groupMembersList = document.getElementById('group-members-list');
+    const rsvpGroupDesc = document.getElementById('rsvp-group-desc');
+    const btnSubmit = document.getElementById('btn-submit-rsvp');
+    const btnBack = document.getElementById('btn-back-search');
+    const rsvpError = document.getElementById('rsvp-error');
     
-    // Store existing guest name values from form submission
-    const existingGuestNames = {};
-    <?php
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guests'])) {
-        $guests = intval($_POST['guests'] ?? 1);
-        for ($i = 1; $i < $guests; $i++) {
-            $guestName = trim($_POST['guest_name_' . $i] ?? '');
-            if (!empty($guestName)) {
-                echo "existingGuestNames[" . $i . "] = " . json_encode($guestName) . ";\n";
-            }
+    let selectedGuestId = null;
+    let groupMembers = [];
+    
+    // Search for guests
+    async function searchGuests() {
+        const query = searchInput.value.trim();
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            searchError.style.display = 'none';
+            return;
         }
-    }
-    ?>
-    
-    function updateGuestNameFields() {
-        const guests = parseInt(guestsInput.value) || 1;
         
-        if (guests > 1) {
-            guestNamesContainer.style.display = 'block';
-            guestNamesFields.innerHTML = '';
+        btnSearch.classList.add('loading');
+        btnSearch.textContent = 'Searching';
+        
+        try {
+            const resp = await fetch('/api/guest-search?q=' + encodeURIComponent(query));
+            const data = await resp.json();
             
-            // Create input fields for additional guests (guests - 1, since the first guest is the RSVP submitter)
-            for (let i = 1; i < guests; i++) {
-                const fieldGroup = document.createElement('div');
-                fieldGroup.style.marginBottom = '0.75rem';
+            if (data.guests && data.guests.length > 0) {
+                searchError.style.display = 'none';
+                searchResults.style.display = 'block';
                 
-                const label = document.createElement('label');
-                label.setAttribute('for', 'guest_name_' + i);
-                label.textContent = 'Guest ' + i + ' Name';
+                let html = '<h3>Select your name:</h3>';
+                data.guests.forEach(function(guest) {
+                    const fullName = guest.first_name + (guest.last_name ? ' ' + guest.last_name : '');
+                    const rsvpd = guest.rsvp_submitted_at ? '<span class="search-result-rsvpd">Already RSVPd</span>' : '';
+                    html += '<div class="search-result-item" data-guest-id="' + guest.id + '">'
+                         + '<div>'
+                         + '<span class="search-result-name">' + escapeHtml(fullName) + '</span>'
+                         + '</div>'
+                         + rsvpd
+                         + '</div>';
+                });
+                searchResults.innerHTML = html;
                 
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.id = 'guest_name_' + i;
-                input.name = 'guest_name_' + i;
-                input.placeholder = 'Enter guest name';
-                input.style.width = '100%';
-                input.className = 'form-control';
-                if (existingGuestNames[i]) {
-                    input.value = existingGuestNames[i];
-                }
-                
-                fieldGroup.appendChild(label);
-                fieldGroup.appendChild(input);
-                guestNamesFields.appendChild(fieldGroup);
+                // Attach click handlers
+                searchResults.querySelectorAll('.search-result-item').forEach(function(item) {
+                    item.addEventListener('click', function() {
+                        selectGuest(parseInt(this.dataset.guestId));
+                    });
+                });
+            } else {
+                searchResults.style.display = 'none';
+                searchError.style.display = 'block';
             }
-        } else {
-            guestNamesContainer.style.display = 'none';
-            guestNamesFields.innerHTML = '';
+        } catch (err) {
+            console.error('Search error:', err);
+            searchResults.style.display = 'none';
+            searchError.style.display = 'block';
+        }
+        
+        btnSearch.classList.remove('loading');
+        btnSearch.textContent = 'Find My Invite';
+    }
+    
+    // Select a guest and load their group
+    async function selectGuest(guestId) {
+        selectedGuestId = guestId;
+        
+        try {
+            const resp = await fetch('/api/guest-group?guest_id=' + guestId);
+            const data = await resp.json();
+            
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            
+            groupMembers = data.group_members;
+            
+            // Build group RSVP form
+            const selectedName = data.selected_guest.first_name + ' ' + (data.selected_guest.last_name || '');
+            if (groupMembers.length > 1) {
+                rsvpGroupDesc.textContent = 'Please indicate attendance for each member of your party.';
+            } else {
+                rsvpGroupDesc.textContent = 'Please indicate whether you will be attending.';
+            }
+            
+            let html = '';
+            groupMembers.forEach(function(member) {
+                const memberName = member.first_name + (member.last_name ? ' ' + member.last_name : '');
+                const currentAttending = member.attending;
+                const currentDietary = member.dietary || '';
+                
+                html += '<div class="group-member-card" data-member-id="' + member.id + '">'
+                     + '<div class="group-member-header">'
+                     + '<span class="group-member-name">' + escapeHtml(memberName) + '</span>'
+                     + '<div class="attending-toggle">'
+                     + '<button type="button" class="btn-attending' + (currentAttending === 'yes' ? ' active-yes' : '') + '" data-value="yes">Attending</button>'
+                     + '<button type="button" class="btn-attending' + (currentAttending === 'no' ? ' active-no' : '') + '" data-value="no">Not Attending</button>'
+                     + '</div>'
+                     + '</div>'
+                     + '<div class="group-member-dietary">'
+                     + '<label for="dietary-' + member.id + '">Dietary restrictions or allergies</label>'
+                     + '<input type="text" id="dietary-' + member.id + '" placeholder="e.g., vegetarian, nut allergy..." value="' + escapeHtml(currentDietary) + '">'
+                     + '</div>'
+                     + '</div>';
+            });
+            groupMembersList.innerHTML = html;
+            
+            // Pre-fill email if any member has one
+            const emailInput = document.getElementById('rsvp-email');
+            for (let m of groupMembers) {
+                if (m.email) {
+                    emailInput.value = m.email;
+                    break;
+                }
+            }
+            
+            // Pre-fill message and song if available
+            for (let m of groupMembers) {
+                if (m.message) {
+                    document.getElementById('rsvp-message').value = m.message;
+                    break;
+                }
+            }
+            for (let m of groupMembers) {
+                if (m.song_request) {
+                    document.getElementById('rsvp-song').value = m.song_request;
+                    break;
+                }
+            }
+            
+            // Attach attending toggle handlers
+            groupMembersList.querySelectorAll('.btn-attending').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const card = this.closest('.group-member-card');
+                    const toggle = this.closest('.attending-toggle');
+                    
+                    // Clear active states
+                    toggle.querySelectorAll('button').forEach(function(b) {
+                        b.classList.remove('active-yes', 'active-no');
+                    });
+                    
+                    // Set active
+                    const value = this.dataset.value;
+                    if (value === 'yes') {
+                        this.classList.add('active-yes');
+                        card.classList.add('attending');
+                        card.classList.remove('declined');
+                    } else {
+                        this.classList.add('active-no');
+                        card.classList.add('declined');
+                        card.classList.remove('attending');
+                    }
+                });
+            });
+            
+            // Show RSVP step
+            stepLookup.style.display = 'none';
+            stepRsvp.style.display = 'block';
+            stepRsvp.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+        } catch (err) {
+            console.error('Error loading group:', err);
+            alert('An error occurred. Please try again.');
         }
     }
     
-    // Initialize on page load
-    updateGuestNameFields();
+    // Submit RSVP
+    async function submitRsvp() {
+        rsvpError.style.display = 'none';
+        
+        const email = document.getElementById('rsvp-email').value.trim();
+        const message = document.getElementById('rsvp-message').value.trim();
+        const songRequest = document.getElementById('rsvp-song').value.trim();
+        
+        if (!email) {
+            showRsvpError('Please enter your email address.');
+            return;
+        }
+        
+        // Collect guest responses
+        const guestData = [];
+        let hasResponse = false;
+        
+        groupMembersList.querySelectorAll('.group-member-card').forEach(function(card) {
+            const memberId = parseInt(card.dataset.memberId);
+            const activeBtn = card.querySelector('.btn-attending.active-yes, .btn-attending.active-no');
+            const attending = activeBtn ? activeBtn.dataset.value : '';
+            const dietary = card.querySelector('input[type="text"]').value.trim();
+            
+            if (attending) hasResponse = true;
+            
+            guestData.push({
+                id: memberId,
+                attending: attending,
+                dietary: dietary
+            });
+        });
+        
+        if (!hasResponse) {
+            showRsvpError('Please indicate attendance for at least one guest.');
+            return;
+        }
+        
+        btnSubmit.classList.add('loading');
+        btnSubmit.textContent = 'Submitting';
+        
+        try {
+            const resp = await fetch('/api/submit-group-rsvp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    guests: guestData,
+                    email: email,
+                    message: message,
+                    song_request: songRequest
+                })
+            });
+            
+            const data = await resp.json();
+            
+            if (data.success) {
+                // Show success
+                stepRsvp.style.display = 'none';
+                stepSuccess.style.display = 'block';
+                
+                // Build summary
+                let summaryHtml = '<h3>Your RSVP Summary</h3>';
+                guestData.forEach(function(gd) {
+                    const member = groupMembers.find(function(m) { return m.id === gd.id || m.id == gd.id; });
+                    if (member && gd.attending) {
+                        const name = member.first_name + (member.last_name ? ' ' + member.last_name : '');
+                        summaryHtml += '<div class="rsvp-summary-item">'
+                            + '<span>' + escapeHtml(name) + '</span>'
+                            + '<span>' + (gd.attending === 'yes' ? '✓ Attending' : '✗ Not Attending') + '</span>'
+                            + '</div>';
+                    }
+                });
+                document.getElementById('rsvp-summary').innerHTML = summaryHtml;
+                
+                stepSuccess.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                showRsvpError(data.error || 'An error occurred. Please try again.');
+            }
+        } catch (err) {
+            console.error('Submit error:', err);
+            showRsvpError('An error occurred. Please try again.');
+        }
+        
+        btnSubmit.classList.remove('loading');
+        btnSubmit.textContent = 'Submit RSVP';
+    }
     
-    // Update when guests number changes
-    guestsInput.addEventListener('change', updateGuestNameFields);
-    guestsInput.addEventListener('input', updateGuestNameFields);
+    function showRsvpError(msg) {
+        rsvpError.querySelector('p').textContent = msg;
+        rsvpError.style.display = 'block';
+        rsvpError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Event listeners
+    btnSearch.addEventListener('click', searchGuests);
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchGuests();
+        }
+    });
+    
+    btnSubmit.addEventListener('click', submitRsvp);
+    
+    btnBack.addEventListener('click', function() {
+        stepRsvp.style.display = 'none';
+        stepLookup.style.display = 'block';
+        stepLookup.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
 });
 </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
-

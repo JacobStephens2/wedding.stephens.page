@@ -50,6 +50,16 @@ Bala Golf Club
 
 By the message field, ask if the filler has a request for a song which would get them on the dance floor.
 
+### Invite Lookup
+Like the way The Knot does it, such as at https://www.theknot.com/us/madison-scott-and-hunter-fellows-2026-06-06-9633b0cd-0fc4-4916-aa1d-f3a46eb648db/rsvp, the user should have to look up their name in the RSVP form to complete the RSVP for themselves.
+
+If the user does not find themself, the form can say "Oops! We’re having trouble finding your invite. Please try another spelling of your name or contact the couple"
+
+### Invite Lookup Management Page in Admin Area
+There should be a page in the admin area which lets admins manage the invite list. The initial set of data should come from the private/Guest List Feb 10 2026.csv file. This CRUD area should show first name, last name, group number, and RSVP status.
+
+#### Invite Groups
+Groups of guests should be put together by the Mailing Group value, so if three guests have a Mailing Group value of 71, then they should all be part of the same invite group, so they would all appear together as the user is filling out the RSVP form.
 
 ### Storing RSVPs
 In addition to emailing notice of RSVP's, RSVP's should be stored in a MySQL database.
@@ -148,6 +158,8 @@ There should be a form that lets users send emails to Jacob and Melissa at melis
 There should be a password protected page accessible at https://wedding.stephens.page/check-rsvps, which is not listed in the site menus. The password is the RSVP_CHECK_PASSWORD value in the .env file. This page should show the user the RSVPs stored in the database.
 
 There should be a link on the logged in and logged out view of this page which takes the user back to the main site.
+
+## Manage RSVPs
 
 ## Manage House Fund
 In the admin area there should be a manage house fund page which allows the user to manage the house fund (CRUD operations on entries).

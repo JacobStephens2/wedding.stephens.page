@@ -14,6 +14,7 @@ if (isAdminAuthenticated()):
             <ul class="admin-menu-list">
                 <li><a href="/admin">Admin Menu</a></li>
                 <li><a href="/check-rsvps">Check RSVPs</a></li>
+                <li><a href="/admin-guests">Manage Guests</a></li>
                 <li><a href="/admin-registry">Manage Registry</a></li>
                 <li><a href="/admin-house-fund">Manage House Fund</a></li>
                 <li><a href="/admin?logout=1">Logout</a></li>

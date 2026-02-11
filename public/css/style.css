@@ -687,6 +687,50 @@ header {
     cursor: not-allowed;
 }
 
+.attending-count {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.attending-count label {
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.attending-count input[type="number"] {
+    width: 4rem;
+    padding: 0.5rem;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    text-align: center;
+    transition: border-color 0.3s;
+}
+
+.attending-count input[type="number"]:focus {
+    outline: none;
+    border-color: var(--color-green);
+}
+
+.guest-name-row {
+    margin-bottom: 0.75rem;
+}
+
+.guest-name-row input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.guest-name-row input:focus {
+    outline: none;
+    border-color: var(--color-green);
+}
+
 .alert {
     padding: 1rem;
     border-radius: 4px;

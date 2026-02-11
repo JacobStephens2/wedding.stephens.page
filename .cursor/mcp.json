@@ -1,9 +1,10 @@
 {
   "mcpServers": {
     "playwright": {
-      "command": "/usr/local/bin/mcp-server-playwright"
+      "command": "/usr/local/bin/mcp-server-playwright",
+      "env": {
+        "PLAYWRIGHT_LAUNCH_OPTIONS": "{\"chromiumSandbox\": false}"
+      }
     }
   }
 }
-
-

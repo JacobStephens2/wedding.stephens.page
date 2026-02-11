@@ -136,15 +136,38 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upd
 
 // If authenticated, fetch RSVPs
 $rsvps = [];
+$guestRsvps = [];
+$guestStats = ['total' => 0, 'attending' => 0, 'declined' => 0, 'pending' => 0];
 if ($authenticated) {
     try {
         $pdo = getDbConnection();
+        // Legacy RSVPs
         $stmt = $pdo->query("
             SELECT id, name, email, attending, guests, guest_names, dietary, message, song_request, created_at
             FROM rsvps
             ORDER BY created_at DESC
         ");
         $rsvps = $stmt->fetchAll();
+        
+        // New guest-based RSVPs
+        $stmt = $pdo->query("
+            SELECT id, first_name, last_name, mailing_group, group_name, attending, dietary, song_request, message, email, rsvp_submitted_at
+            FROM guests
+            WHERE rsvp_submitted_at IS NOT NULL
+            ORDER BY rsvp_submitted_at DESC
+        ");
+        $guestRsvps = $stmt->fetchAll();
+        
+        // Guest stats
+        $statsStmt = $pdo->query("
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN attending = 'yes' THEN 1 ELSE 0 END) as attending,
+                SUM(CASE WHEN attending = 'no' THEN 1 ELSE 0 END) as declined,
+                SUM(CASE WHEN attending IS NULL THEN 1 ELSE 0 END) as pending
+            FROM guests
+        ");
+        $guestStats = $statsStmt->fetch(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
         $error = 'Error loading RSVPs: ' . htmlspecialchars($e->getMessage());
     }
@@ -349,8 +372,72 @@ $page_title = "Check RSVPs - Jacob & Melissa";
                     </div>
                 <?php endif; ?>
                 
+                <!-- Guest-based RSVPs (new system) -->
+                <h2 style="margin-top: 1.5rem; color: var(--color-green);">Guest RSVPs</h2>
+                <p style="font-family: 'Crimson Text', serif; color: #666; margin-bottom: 1rem;">
+                    <a href="/admin-guests" style="color: var(--color-green);">Manage all guests →</a>
+                </p>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-number"><?php echo $guestStats['total']; ?></div>
+                        <div class="stat-label">Total Guests</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #2d5016;"><?php echo $guestStats['attending']; ?></div>
+                        <div class="stat-label">Attending</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #8b0000;"><?php echo $guestStats['declined']; ?></div>
+                        <div class="stat-label">Declined</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: var(--color-lavender);"><?php echo $guestStats['pending']; ?></div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+                
+                <?php if (!empty($guestRsvps)): ?>
+                    <table class="rsvp-table" style="margin-bottom: 2rem;">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Group</th>
+                                <th>Attending</th>
+                                <th>Dietary</th>
+                                <th>Song Request</th>
+                                <th>Message</th>
+                                <th>Email</th>
+                                <th>Submitted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($guestRsvps as $gr): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($gr['first_name'] . ' ' . $gr['last_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($gr['group_name']); ?></td>
+                                    <td class="<?php echo $gr['attending'] === 'yes' ? 'attending-yes' : 'attending-no'; ?>">
+                                        <?php echo $gr['attending'] === 'yes' ? 'Yes' : 'No'; ?>
+                                    </td>
+                                    <td><?php echo htmlspecialchars($gr['dietary'] ?? ''); ?></td>
+                                    <td><?php echo htmlspecialchars($gr['song_request'] ?? ''); ?></td>
+                                    <td><?php echo htmlspecialchars($gr['message'] ?? ''); ?></td>
+                                    <td><?php echo htmlspecialchars($gr['email'] ?? ''); ?></td>
+                                    <td><?php echo date('M j, Y g:i A', strtotime($gr['rsvp_submitted_at'])); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <p style="color: #666; font-family: 'Crimson Text', serif; margin-bottom: 2rem;">No guest RSVPs yet.</p>
+                <?php endif; ?>
+                
+                <!-- Legacy RSVPs -->
+                <?php if (!empty($rsvps)): ?>
+                <h2 style="margin-top: 1.5rem; color: var(--color-green);">Legacy RSVPs</h2>
+                <?php endif; ?>
+                
                 <?php if (empty($rsvps)): ?>
-                    <p>No RSVPs found.</p>
+                    <!-- no legacy rsvps to show -->
                 <?php else: ?>
                     <?php
                     $total = count($rsvps);
