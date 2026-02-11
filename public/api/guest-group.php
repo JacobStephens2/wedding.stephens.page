@@ -35,7 +35,7 @@ try {
     // Get all guests in the same mailing group
     if ($guest['mailing_group'] !== null) {
         $stmt = $pdo->prepare("
-            SELECT id, first_name, last_name, group_name, mailing_group, attending, dietary, song_request, message, email, rsvp_submitted_at
+            SELECT id, first_name, last_name, group_name, mailing_group, attending, dietary, song_request, message, email, rsvp_submitted_at, has_plus_one, plus_one_name, plus_one_attending, plus_one_dietary
             FROM guests
             WHERE mailing_group = ?
             ORDER BY id ASC
@@ -45,7 +45,7 @@ try {
     } else {
         // Guest has no mailing group - return just this guest
         $stmt = $pdo->prepare("
-            SELECT id, first_name, last_name, group_name, mailing_group, attending, dietary, song_request, message, email, rsvp_submitted_at
+            SELECT id, first_name, last_name, group_name, mailing_group, attending, dietary, song_request, message, email, rsvp_submitted_at, has_plus_one, plus_one_name, plus_one_attending, plus_one_dietary
             FROM guests
             WHERE id = ?
         ");

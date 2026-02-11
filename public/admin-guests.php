@@ -38,15 +38,17 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("
-            INSERT INTO guests (first_name, last_name, group_name, mailing_group)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO guests (first_name, last_name, group_name, mailing_group, has_plus_one)
+            VALUES (?, ?, ?, ?, ?)
         ");
         $mailingGroup = trim($_POST['mailing_group'] ?? '');
+        $hasPlusOne = isset($_POST['has_plus_one']) && $_POST['has_plus_one'] === '1' ? 1 : 0;
         $stmt->execute([
             trim($_POST['first_name'] ?? ''),
             trim($_POST['last_name'] ?? ''),
             trim($_POST['group_name'] ?? ''),
             $mailingGroup !== '' ? (int)$mailingGroup : null,
+            $hasPlusOne,
         ]);
         header('Location: /admin-guests?added=1');
         exit;
@@ -61,9 +63,10 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upd
         $pdo = getDbConnection();
         $mailingGroup = trim($_POST['mailing_group'] ?? '');
         $attending = $_POST['attending'] ?? '';
+        $hasPlusOne = isset($_POST['has_plus_one']) && $_POST['has_plus_one'] === '1' ? 1 : 0;
         $stmt = $pdo->prepare("
             UPDATE guests 
-            SET first_name = ?, last_name = ?, group_name = ?, mailing_group = ?, attending = ?
+            SET first_name = ?, last_name = ?, group_name = ?, mailing_group = ?, attending = ?, has_plus_one = ?
             WHERE id = ?
         ");
         $stmt->execute([
@@ -72,6 +75,7 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upd
             trim($_POST['group_name'] ?? ''),
             $mailingGroup !== '' ? (int)$mailingGroup : null,
             $attending !== '' ? $attending : null,
+            $hasPlusOne,
             (int)$_POST['guest_id'],
         ]);
         header('Location: /admin-guests?updated=1');
@@ -373,7 +377,6 @@ $page_title = "Manage Guests - Jacob & Melissa";
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            overflow-x: auto;
         }
         .guests-table {
             width: 100%;
@@ -389,6 +392,9 @@ $page_title = "Manage Guests - Jacob & Melissa";
             font-size: 0.85rem;
             font-weight: 400;
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
         .guests-table td {
             padding: 0.6rem 1rem;
@@ -571,6 +577,12 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                 <input type="number" id="mailing_group" name="mailing_group" min="0"
                                        value="<?php echo htmlspecialchars($editGuest['mailing_group'] ?? ''); ?>">
                             </div>
+                            <div class="form-group" style="display:flex; align-items:center; gap:0.5rem; min-width:120px; padding-top:1.8rem;">
+                                <input type="checkbox" id="has_plus_one" name="has_plus_one" value="1"
+                                       <?php echo (!empty($editGuest['has_plus_one'])) ? 'checked' : ''; ?>
+                                       style="width:auto; margin:0;">
+                                <label for="has_plus_one" style="margin:0; cursor:pointer;">Plus One</label>
+                            </div>
                             <?php if ($editGuest): ?>
                             <div class="form-group">
                                 <label for="attending">RSVP Status</label>
@@ -611,6 +623,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                 <th>Last Name</th>
                                 <th>Group #</th>
                                 <th>Group Name</th>
+                                <th>+1</th>
                                 <th>RSVP Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -627,6 +640,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                     <td><?php echo htmlspecialchars($guest['last_name']); ?></td>
                                     <td><?php echo $guest['mailing_group'] !== null ? htmlspecialchars($guest['mailing_group']) : '—'; ?></td>
                                     <td><?php echo htmlspecialchars($guest['group_name']); ?></td>
+                                    <td><?php echo $guest['has_plus_one'] ? '✓' : ''; ?></td>
                                     <td>
                                         <?php if ($guest['attending'] === 'yes'): ?>
                                             <span class="rsvp-badge rsvp-attending">Attending</span>
@@ -646,7 +660,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                 </tr>
                             <?php endforeach; ?>
                             <?php if (empty($guests)): ?>
-                                <tr><td colspan="6" style="text-align:center; padding:2rem; color:#666;">No guests found.</td></tr>
+                                <tr><td colspan="7" style="text-align:center; padding:2rem; color:#666;">No guests found.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>

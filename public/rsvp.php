@@ -281,6 +281,23 @@ include __DIR__ . '/includes/header.php';
     #guest-search {
         font-size: 1.1rem;
     }
+    
+    /* Plus one styles */
+    .plus-one-card {
+        border-style: dashed;
+        margin-left: 1.5rem;
+        margin-top: -0.5rem;
+    }
+    .plus-one-label {
+        font-style: italic;
+        color: #666;
+    }
+    .plus-one-details.hidden {
+        display: none;
+    }
+    .plus-one-details {
+        margin-top: 0.5rem;
+    }
 </style>
 
 <script>
@@ -396,6 +413,35 @@ document.addEventListener('DOMContentLoaded', function() {
                      + '<input type="text" id="dietary-' + member.id + '" placeholder="e.g., vegetarian, nut allergy..." value="' + escapeHtml(currentDietary) + '">'
                      + '</div>'
                      + '</div>';
+                
+                // Plus one card
+                if (parseInt(member.has_plus_one)) {
+                    const poName = member.plus_one_name || '';
+                    const poAttending = member.plus_one_attending;
+                    const poDietary = member.plus_one_dietary || '';
+                    const bringingChecked = poAttending === 'yes' ? true : false;
+                    const notBringingChecked = poAttending === 'no' ? true : false;
+                    
+                    html += '<div class="group-member-card plus-one-card" data-plus-one-for="' + member.id + '">'
+                         + '<div class="group-member-header">'
+                         + '<span class="group-member-name plus-one-label">Guest of ' + escapeHtml(member.first_name) + '</span>'
+                         + '<div class="attending-toggle">'
+                         + '<button type="button" class="btn-plus-one-attending' + (bringingChecked ? ' active-yes' : '') + '" data-value="yes">Bringing</button>'
+                         + '<button type="button" class="btn-plus-one-attending' + (notBringingChecked ? ' active-no' : '') + '" data-value="no">Not Bringing</button>'
+                         + '</div>'
+                         + '</div>'
+                         + '<div class="plus-one-details' + (bringingChecked ? '' : ' hidden') + '">'
+                         + '<div class="group-member-dietary">'
+                         + '<label for="plus-one-name-' + member.id + '">Guest\'s name</label>'
+                         + '<input type="text" id="plus-one-name-' + member.id + '" placeholder="Enter your guest\'s name..." value="' + escapeHtml(poName) + '">'
+                         + '</div>'
+                         + '<div class="group-member-dietary">'
+                         + '<label for="plus-one-dietary-' + member.id + '">Dietary restrictions or allergies</label>'
+                         + '<input type="text" id="plus-one-dietary-' + member.id + '" placeholder="e.g., vegetarian, nut allergy..." value="' + escapeHtml(poDietary) + '">'
+                         + '</div>'
+                         + '</div>'
+                         + '</div>';
+                }
             });
             groupMembersList.innerHTML = html;
             
@@ -447,6 +493,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             });
             
+            // Attach plus-one toggle handlers
+            groupMembersList.querySelectorAll('.btn-plus-one-attending').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const card = this.closest('.plus-one-card');
+                    const toggle = this.closest('.attending-toggle');
+                    const details = card.querySelector('.plus-one-details');
+                    
+                    // Clear active states
+                    toggle.querySelectorAll('button').forEach(function(b) {
+                        b.classList.remove('active-yes', 'active-no');
+                    });
+                    
+                    const value = this.dataset.value;
+                    if (value === 'yes') {
+                        this.classList.add('active-yes');
+                        card.classList.add('attending');
+                        card.classList.remove('declined');
+                        if (details) details.classList.remove('hidden');
+                    } else {
+                        this.classList.add('active-no');
+                        card.classList.add('declined');
+                        card.classList.remove('attending');
+                        if (details) details.classList.add('hidden');
+                    }
+                });
+            });
+            
             // Show RSVP step
             stepLookup.style.display = 'none';
             stepRsvp.style.display = 'block';
@@ -475,7 +548,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const guestData = [];
         let hasResponse = false;
         
-        groupMembersList.querySelectorAll('.group-member-card').forEach(function(card) {
+        groupMembersList.querySelectorAll('.group-member-card:not(.plus-one-card)').forEach(function(card) {
             const memberId = parseInt(card.dataset.memberId);
             const activeBtn = card.querySelector('.btn-attending.active-yes, .btn-attending.active-no');
             const attending = activeBtn ? activeBtn.dataset.value : '';
@@ -483,11 +556,26 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (attending) hasResponse = true;
             
-            guestData.push({
+            const entry = {
                 id: memberId,
                 attending: attending,
                 dietary: dietary
-            });
+            };
+            
+            // Check for plus-one card
+            const plusOneCard = groupMembersList.querySelector('.plus-one-card[data-plus-one-for="' + memberId + '"]');
+            if (plusOneCard) {
+                const poActiveBtn = plusOneCard.querySelector('.btn-plus-one-attending.active-yes, .btn-plus-one-attending.active-no');
+                const poAttending = poActiveBtn ? poActiveBtn.dataset.value : '';
+                const poName = (plusOneCard.querySelector('input[id^="plus-one-name-"]') || {}).value || '';
+                const poDietary = (plusOneCard.querySelector('input[id^="plus-one-dietary-"]') || {}).value || '';
+                
+                entry.plus_one_attending = poAttending;
+                entry.plus_one_name = poName.trim();
+                entry.plus_one_dietary = poDietary.trim();
+            }
+            
+            guestData.push(entry);
         });
         
         if (!hasResponse) {
@@ -527,6 +615,19 @@ document.addEventListener('DOMContentLoaded', function() {
                             + '<span>' + escapeHtml(name) + '</span>'
                             + '<span>' + (gd.attending === 'yes' ? '✓ Attending' : '✗ Not Attending') + '</span>'
                             + '</div>';
+                        
+                        // Plus one summary
+                        if (gd.plus_one_attending === 'yes' && gd.plus_one_name) {
+                            summaryHtml += '<div class="rsvp-summary-item">'
+                                + '<span>' + escapeHtml(gd.plus_one_name) + ' (guest)</span>'
+                                + '<span>✓ Attending</span>'
+                                + '</div>';
+                        } else if (gd.plus_one_attending === 'no') {
+                            summaryHtml += '<div class="rsvp-summary-item">'
+                                + '<span>Guest of ' + escapeHtml(member.first_name) + '</span>'
+                                + '<span>✗ Not Bringing</span>'
+                                + '</div>';
+                        }
                     }
                 });
                 document.getElementById('rsvp-summary').innerHTML = summaryHtml;

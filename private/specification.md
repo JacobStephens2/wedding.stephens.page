@@ -55,9 +55,6 @@ Like the way The Knot does it, such as at https://www.theknot.com/us/madison-sco
 
 If the user does not find themself, the form can say "Oops! We’re having trouble finding your invite. Please try another spelling of your name or contact the couple"
 
-### Invite Lookup Management Page in Admin Area
-There should be a page in the admin area which lets admins manage the invite list. The initial set of data should come from the private/Guest List Feb 10 2026.csv file. This CRUD area should show first name, last name, group number, and RSVP status.
-
 #### Invite Groups
 Groups of guests should be put together by the Mailing Group value, so if three guests have a Mailing Group value of 71, then they should all be part of the same invite group, so they would all appear together as the user is filling out the RSVP form.
 
@@ -158,6 +155,14 @@ There should be a form that lets users send emails to Jacob and Melissa at melis
 There should be a password protected page accessible at https://wedding.stephens.page/check-rsvps, which is not listed in the site menus. The password is the RSVP_CHECK_PASSWORD value in the .env file. This page should show the user the RSVPs stored in the database.
 
 There should be a link on the logged in and logged out view of this page which takes the user back to the main site.
+
+## Invite Lookup Management Page in Admin Area
+There should be a page in the admin area which lets admins manage the invite list. The initial set of data should come from the private/Guest List Feb 10 2026.csv file. This CRUD area should show first name, last name, group number, and RSVP status.
+
+The header columns of the guest management page (/admin-guests) should stay sticky at the top of the page on scroll so the admin can continue to see what each column is as they scroll down.
+
+### Giving a guest a plus one
+Admins should be able to give guests a plus one. If a guest has a plus one, then when they look themself up in the invite lookup of the RSVP page, they should see their name as well as a blank name field for their plus one. They should be able to indicate whether or not they are bringing a plus one.
 
 ## Manage RSVPs
 

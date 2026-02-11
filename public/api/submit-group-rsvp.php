@@ -74,7 +74,10 @@ try {
             email = :email,
             song_request = :song_request,
             message = :message,
-            rsvp_submitted_at = :rsvp_submitted_at
+            rsvp_submitted_at = :rsvp_submitted_at,
+            plus_one_name = :plus_one_name,
+            plus_one_attending = :plus_one_attending,
+            plus_one_dietary = :plus_one_dietary
         WHERE id = :id
     ");
     
@@ -99,6 +102,11 @@ try {
         $nameStmt->execute([$guestId]);
         $guestInfo = $nameStmt->fetch(PDO::FETCH_ASSOC);
         
+        // Plus one data
+        $plusOneName = trim($gr['plus_one_name'] ?? '');
+        $plusOneAttending = trim($gr['plus_one_attending'] ?? '');
+        $plusOneDietary = trim($gr['plus_one_dietary'] ?? '');
+        
         if ($guestInfo) {
             $fullName = trim($guestInfo['first_name'] . ' ' . $guestInfo['last_name']);
             $guestNames[] = $fullName . ' (' . ($attending === 'yes' ? 'Attending' : 'Not Attending') . ')';
@@ -106,6 +114,15 @@ try {
             if ($attending === 'yes') {
                 $attendingCount++;
             } else {
+                $decliningCount++;
+            }
+            
+            // Count plus one
+            if ($plusOneAttending === 'yes') {
+                $poLabel = !empty($plusOneName) ? $plusOneName : 'Guest of ' . $guestInfo['first_name'];
+                $guestNames[] = $poLabel . ' (Attending - plus one)';
+                $attendingCount++;
+            } elseif ($plusOneAttending === 'no') {
                 $decliningCount++;
             }
         }
@@ -117,6 +134,9 @@ try {
             ':song_request' => !empty($songRequest) ? $songRequest : null,
             ':message' => !empty($message) ? $message : null,
             ':rsvp_submitted_at' => $now,
+            ':plus_one_name' => !empty($plusOneName) ? $plusOneName : null,
+            ':plus_one_attending' => ($plusOneAttending === 'yes' || $plusOneAttending === 'no') ? $plusOneAttending : null,
+            ':plus_one_dietary' => !empty($plusOneDietary) ? $plusOneDietary : null,
             ':id' => $guestId,
         ]);
     }
