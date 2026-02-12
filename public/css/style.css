@@ -307,6 +307,44 @@ header {
     text-transform: none;
 }
 
+.story-section .scripture-quote {
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    line-height: 1.8;
+    text-align: center;
+    max-width: 60ch;
+    margin: 0 auto 2rem;
+    color: var(--color-green);
+}
+
+.story-section .scripture-quote .reference {
+    display: block;
+    margin-top: 0.5rem;
+    font-style: normal;
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
+}
+
+.story-section .story-accent {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.3rem;
+    text-align: center;
+    font-style: italic;
+    margin: 1.5rem auto;
+    max-width: 80ch;
+}
+
+.story-section .story-footnote {
+    font-family: 'Crimson Text', serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #666;
+    max-width: 80ch;
+    margin: -0.5rem auto 1.5rem;
+    text-align: justify;
+}
+
 /* About Page Styles */
 .about-section {
     margin-bottom: 4rem;
@@ -1510,6 +1548,15 @@ footer a:focus {
         font-size: 2rem;
     }
     
+    .page-container {
+        padding: 2rem 0.75rem;
+    }
+
+    .story-section {
+        padding: 1.5rem 1rem;
+        border-radius: 4px;
+    }
+
     .story-section h2 {
         font-size: 2rem;
     }
