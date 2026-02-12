@@ -44,8 +44,15 @@ include __DIR__ . '/includes/header.php';
     </section>
     
     <section class="travel-section">
-        <h2>Hotel Block</h2>
-        <p>We are currently working on securing a hotel block for our wedding guests. Information about the hotel block, including booking details and special rates, will be posted here once it becomes available. Please check back soon!</p>
+        <h2>Accommodations</h2>
+        
+        <div class="accommodation-option">
+            <h3>Residence Inn by Marriott — Room Block</h3>
+            <p class="address">615 Righters Ferry Rd, Bala Cynwyd, PA 19004</p>
+            <p>We've reserved a block of rooms at the Residence Inn by Marriott for our wedding guests at a group rate. <a href="https://app.marriott.com/reslink?id=1769545389844&key=GRP&app=resvlink" target="_blank" rel="noopener noreferrer">Book through our room block here</a>. The rooms are reserved through March&nbsp;11.</p>
+        </div>
+
+        <p class="accommodations-note"><strong>Note:</strong> You may find rooms closer to Bala Golf Club (the reception venue) at a lower rate than the room block by searching independently. We encourage you to compare options to find what works best for&nbsp;you.</p>
     </section>
     
     <section class="travel-section">

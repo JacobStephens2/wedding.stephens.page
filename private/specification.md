@@ -135,7 +135,10 @@ The default state of the house fund section should be open on page load.
 There should be an "about" page linked to from the menu. This page should have info about how kids are allowed and about the nuptial Mass and Communion. We can borrow wording from Kiera and Brett's wedding website if they have any relevant wording: https://www.zola.com/wedding/brettandkiera
 
 ## Travel
-This page should have information about parking and transportation as well as information about our hotel block. We haven't reserved a hotel block yet, but will soon and will update the section with this information when we have it.
+This page should have information about parking and transportation as well as information about our hotel block.
+
+### Accommodations
+We have a room block at the Residence Inn by Marriott (615 Righters Ferry Rd, Bala Cynwyd, PA 19004). The group rate booking link is: https://app.marriott.com/reslink?id=1769545389844&key=GRP&app=resvlink — available through March 11, 2026. A note on the page advises guests that they may find rooms closer to Bala Golf Club at a lower rate by searching independently.
 
 Here is information from Saint AJ's website about parking near the church: "Free parking is available for all Sunday Masses in the Santander Bank parking lot across the street from the Church."
 
@@ -148,6 +151,12 @@ We're happy to help coordinate travel arrangements for out-of-town guests. If yo
 
 ## Contact
 There should be a form that lets users send emails to Jacob and Melissa at melissa.longua@gmail.com. Mandrill SMTP can be used to send these emails, with credentials in the private .env file.
+
+Above the contact form, Jacob's mailing address should be displayed for guests who want to send cards or letters:
+
+Jacob Stephens
+3815 Haverford Ave, Unit 1
+Philadelphia, PA 19104
 
 # Admin Pages
 
