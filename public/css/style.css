@@ -6,6 +6,7 @@
     --color-dark: #2c2c2c;
     --color-light: #f5f5f5;
     --overlay-dark: rgba(0, 0, 0, 0.5);
+    --travel-content-width: 800px;
 }
 
 /* Base Styles */
@@ -395,7 +396,7 @@ header {
     line-height: 1.8;
     margin-bottom: 1.5rem;
     text-align: left;
-    max-width: 80ch;
+    max-width: var(--travel-content-width);
     margin-left: auto;
     margin-right: auto;
     text-transform: none;
@@ -418,6 +419,9 @@ header {
     color: var(--color-green);
     margin-bottom: 0.5rem;
     text-align: left;
+    max-width: var(--travel-content-width);
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .location-parking .address {
@@ -426,6 +430,9 @@ header {
     color: var(--color-dark);
     font-style: italic;
     margin-bottom: 1rem;
+    max-width: var(--travel-content-width);
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .location-parking p:not(.address) {
@@ -434,7 +441,9 @@ header {
     line-height: 1.8;
     margin-bottom: 0;
     text-align: left;
-    max-width: 80ch;
+    max-width: var(--travel-content-width);
+    margin-left: auto;
+    margin-right: auto;
     text-transform: none;
 }
 
@@ -455,6 +464,9 @@ header {
     color: var(--color-green);
     margin-bottom: 0.75rem;
     text-align: left;
+    max-width: var(--travel-content-width);
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .transportation-option p {
@@ -463,7 +475,9 @@ header {
     line-height: 1.8;
     margin-bottom: 0;
     text-align: left;
-    max-width: 80ch;
+    max-width: var(--travel-content-width);
+    margin-left: auto;
+    margin-right: auto;
     text-transform: none;
 }
 
@@ -484,6 +498,9 @@ header {
     color: var(--color-green);
     margin-bottom: 0.75rem;
     text-align: left;
+    max-width: var(--travel-content-width);
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .accommodation-option .address {
@@ -492,6 +509,9 @@ header {
     color: var(--color-dark);
     font-style: italic;
     margin-bottom: 1rem;
+    max-width: var(--travel-content-width);
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .accommodation-option p:not(.address) {
@@ -500,7 +520,9 @@ header {
     line-height: 1.8;
     margin-bottom: 0;
     text-align: left;
-    max-width: 80ch;
+    max-width: var(--travel-content-width);
+    margin-left: auto;
+    margin-right: auto;
     text-transform: none;
 }
 
@@ -513,7 +535,7 @@ header {
     border-left: 3px solid var(--color-gold);
     padding: 1rem 1.5rem;
     margin-top: 1.5rem;
-    max-width: 80ch;
+    max-width: var(--travel-content-width);
     margin-left: auto;
     margin-right: auto;
     text-transform: none;
