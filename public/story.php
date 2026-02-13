@@ -37,12 +37,12 @@ include __DIR__ . '/includes/header.php';
     </section>
 
     <section class="story-section">
-        <h2>Rosie the Riveter&rsquo;s Birthday</h2>
+        <h2>The Birthday Dance</h2>
         <p>A week later, I ran into Jacob again&nbsp;&mdash; this time at a Lindy Hop social at Cherry St Harbor. We danced several songs over the evening before I ran off to welcome friends from out of town, who had come to celebrate my birthday. Jacob intentionally asked for one last song before I left, so that he could be my last dance on my&nbsp;birthday.</p>
     </section>
 
     <section class="story-section">
-        <h2>The Orbits Tighten</h2>
+        <h2>Tacos and Theology</h2>
         <p>Another week later, on November 1, the Feast of All Saints, we both found ourselves back at the Concierge Ballroom for a Balboa dance. As we danced and conversed about our days, I mentioned I had gone to Mass for the feast&nbsp;day.</p>
         <p>Jacob&rsquo;s ears pricked&nbsp;&mdash; he had been feeling drawn to explore the Catholic Church and join a formation class to learn more. At this time I still hadn&rsquo;t settled on a parish community for myself, but had been to St. Agatha St. James a couple of times and thought the church was beautiful and the community faithful. I invited him to join me sometime, hoping I could snag him for the Church and maybe also&nbsp;myself&hellip;</p>
         <p>The next day, Jacob invited me to join him and a couple other dance friends in seeing live theater&nbsp;&mdash; <em>The Obama Musical</em> (which, if you&rsquo;re wondering, was not very good but <em>was</em> entertaining and at times a bit of a fever dream). Afterwards we got tacos, and somehow ended up on the topic of Pope John Paul II&rsquo;s Theology of the Body while he drove me&nbsp;home.</p>
