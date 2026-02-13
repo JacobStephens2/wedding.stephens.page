@@ -164,6 +164,8 @@ Jacob Stephens
 3815 Haverford Ave, Unit 1
 Philadelphia, PA 19104
 
+Jacob's cell phone number should be on the contact page: 484 356 7773
+
 # Admin Pages
 
 ## Check RSVPs

@@ -754,10 +754,48 @@ header {
     color: var(--color-dark);
 }
 
+.contact-details {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+}
+
+.contact-detail {
+    text-align: center;
+}
+
+.contact-label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--color-lavender);
+    margin-bottom: 0.5rem;
+}
+
 .mailing-address {
     font-family: 'Crimson Text', serif;
     font-size: 1.1rem;
     line-height: 1.8;
+    margin: 0;
+}
+
+.contact-phone {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.contact-phone a {
+    color: var(--color-dark);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.contact-phone a:hover {
+    color: var(--color-gold);
 }
 
 .form-group {

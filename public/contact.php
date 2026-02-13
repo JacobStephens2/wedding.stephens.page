@@ -46,12 +46,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h1 class="page-title">Contact Us</h1>
 
     <div class="form-container mailing-address-section">
-        <h3>Mailing Address</h3>
-        <p class="mailing-address">
-            Jacob Stephens<br>
-            3815 Haverford Ave, Unit 1<br>
-            Philadelphia, PA 19104
-        </p>
+        <h3>Contact Information</h3>
+        <div class="contact-details">
+            <div class="contact-detail">
+                <span class="contact-label">Address</span>
+                <p class="mailing-address">
+                    Jacob Stephens<br>
+                    3815 Haverford Ave, Unit 1<br>
+                    Philadelphia, PA 19104
+                </p>
+            </div>
+            <div class="contact-detail">
+                <span class="contact-label">Jacob's Cell</span>
+                <p class="contact-phone">(484) 356-7773</p>
+            </div>
+        </div>
     </div>
     
     <?php if ($success): ?>
