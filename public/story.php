@@ -96,7 +96,7 @@ include __DIR__ . '/includes/header.php';
     <section class="story-section">
         <h2>Written in Stone and Sky</h2>
         <p>Jacob insisted I request off from work on September 26, and that evening as our plane descended, I was quite surprised to finally take out my earbuds and hear the pilot welcome us to Calgary, in the province of Alberta, Canada. We spent the next day, September 27th, hiking in Banff National Park, and after a pitstop at the hostel to shower and &ldquo;put on something nice,&rdquo; we were driving the Icefields&nbsp;Parkway.</p>
-        <p>We walked to a rocky overlook on Mount Jimmy Stepson, above Peyto Lake. The deep, looming clouds sat heavy in the valley, and we were surrounded by the grandeur of the Canadian Rockies. Below, the lake sat quiet, still, and brilliant blue. We braced ourselves against the chilling mountain winds and falling mist. A guitarist starting playing a sweet, acoustic cover of <em>Can&rsquo;t Help Falling In Love</em>, and Jacob knelt down before&nbsp;me.</p>
+        <p>We walked to a rocky overlook on Mount Jimmy Simpson, above Peyto Lake. The deep, looming clouds sat heavy in the valley, and we were surrounded by the grandeur of the Canadian Rockies. Below, the lake sat quiet, still, and brilliant blue. We braced ourselves against the chilling mountain winds and falling mist. A guitarist starting playing a sweet, acoustic cover of <em>Can&rsquo;t Help Falling In Love</em>, and Jacob knelt down before&nbsp;me.</p>
         <p class="story-accent">I said yes<br>
         <small style="font-size: 18px;">...and six hours later we were back on a plane to&nbsp;Philadelphia.</small></p>
         
