@@ -300,7 +300,7 @@ header {
     font-size: 1.1rem;
     line-height: 1.8;
     margin-bottom: 1.5rem;
-    text-align: justify;
+    text-align: left;
     max-width: 80ch;
     margin-left: auto;
     margin-right: auto;
@@ -342,7 +342,7 @@ header {
     color: #666;
     max-width: 80ch;
     margin: -0.5rem auto 1.5rem;
-    text-align: justify;
+    text-align: left;
 }
 
 /* About Page Styles */
@@ -530,6 +530,9 @@ header {
 .story-media-block {
     display: block;
     margin-top: 2rem;
+    max-width: 80ch;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .story-media-block img {

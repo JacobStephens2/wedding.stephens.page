@@ -49,7 +49,13 @@ include __DIR__ . '/includes/header.php';
         <div class="accommodation-option">
             <h3>Residence Inn by Marriott — Room Block</h3>
             <p class="address">615 Righters Ferry Rd, Bala Cynwyd, PA 19004</p>
-            <p>We've reserved a block of rooms at the Residence Inn by Marriott for our wedding guests at a group rate. <a href="https://app.marriott.com/reslink?id=1769545389844&key=GRP&app=resvlink" target="_blank" rel="noopener noreferrer">Book through our room block here</a>. The rooms are reserved through March&nbsp;11.</p>
+            <p>We've reserved a block of rooms at the Residence Inn by Marriott for our wedding guests at a group rate of <strong>$300 per night</strong>. <a href="https://app.marriott.com/reslink?id=1769545389844&key=GRP&app=resvlink" target="_blank" rel="noopener noreferrer">Book through our room block here</a>. The rooms are reserved through March&nbsp;11.</p>
+        </div>
+
+        <div class="accommodation-option">
+            <h3>Courtyard by Marriott Philadelphia City Avenue — Room Block</h3>
+            <p class="address">4100 Presidential Boulevard, Philadelphia, PA 19131</p>
+            <p>We've reserved another block of rooms at the Courtyard by Marriott for our wedding guests at a group rate of <strong>$200 per night</strong>. <a href="https://app.marriott.com/reslink?id=1770919186656&key=GRP&app=resvlink" target="_blank" rel="noopener noreferrer">Book through our room block here</a>.</p>
         </div>
 
         <p class="accommodations-note"><strong>Note:</strong> You may find rooms closer to Bala Golf Club (the reception venue) at a lower rate than the room block by searching independently. We encourage you to compare options to find what works best for&nbsp;you.</p>

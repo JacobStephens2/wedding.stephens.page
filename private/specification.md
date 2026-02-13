@@ -66,6 +66,8 @@ This page should have several sections for the user to scroll down through, tell
 
 Visitors should be able to click the photos on this page to view them larger.
 
+This page should present the story of private/sources/The Story of How We Met - Wedding Website v2.md
+
 ### Carousels
 Carousels on the story page should not automatically scroll. They should only go to the next photo after being clicked.
 
@@ -138,7 +140,11 @@ There should be an "about" page linked to from the menu. This page should have i
 This page should have information about parking and transportation as well as information about our hotel block.
 
 ### Accommodations
-We have a room block at the Residence Inn by Marriott (615 Righters Ferry Rd, Bala Cynwyd, PA 19004). The group rate booking link is: https://app.marriott.com/reslink?id=1769545389844&key=GRP&app=resvlink — available through March 11, 2026. A note on the page advises guests that they may find rooms closer to Bala Golf Club at a lower rate by searching independently.
+We have a room block at the Residence Inn by Marriott (615 Righters Ferry Rd, Bala Cynwyd, PA 19004). The group rate booking link is: https://app.marriott.com/reslink?id=1769545389844&key=GRP&app=resvlink — available through March 11, 2026. A note on the page advises guests that they may find rooms closer to Bala Golf Club at a lower rate by searching independently. Rooms in this block are $300 per night.
+
+We have another room block at Courtyard by Marriott Philadelphia City Avenue
+- 4100 Presidential Boulevard Philadelphia, Pennsylvania, USA, 19131
+for $200 per night. (booking link: https://app.marriott.com/reslink?id=1770919186656&key=GRP&app=resvlink)
 
 Here is information from Saint AJ's website about parking near the church: "Free parking is available for all Sunday Masses in the Santander Bank parking lot across the street from the Church."
 
