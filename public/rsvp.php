@@ -284,19 +284,47 @@ include __DIR__ . '/includes/header.php';
     
     /* Plus one styles */
     .plus-one-card {
-        border-style: dashed;
-        margin-left: 1.5rem;
-        margin-top: -0.5rem;
+        border-style: solid;
     }
     .plus-one-label {
         font-style: italic;
-        color: #666;
+        color: var(--color-dark);
+        font-size: 0.9rem;
     }
     .plus-one-details.hidden {
         display: none;
     }
     .plus-one-details {
-        margin-top: 0.5rem;
+        margin-top: 0.75rem;
+    }
+    .plus-one-name-group {
+        margin-bottom: 0.5rem;
+    }
+    .plus-one-name-group label {
+        font-family: 'Cinzel', serif;
+        font-size: 0.95rem;
+        color: var(--color-dark);
+        display: block;
+        margin-bottom: 0.35rem;
+        font-weight: 600;
+    }
+    .plus-one-name-group input {
+        width: 100%;
+        padding: 0.65rem 0.85rem;
+        border: 2px solid var(--color-green);
+        border-radius: 6px;
+        font-family: 'Crimson Text', serif;
+        font-size: 1.15rem;
+        color: var(--color-dark);
+        background: rgba(127, 143, 101, 0.04);
+    }
+    .plus-one-name-group input:focus {
+        border-color: var(--color-green);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(127, 143, 101, 0.25);
+    }
+    .plus-one-name-group input::placeholder {
+        color: #aaa;
     }
 </style>
 
@@ -431,9 +459,9 @@ document.addEventListener('DOMContentLoaded', function() {
                          + '</div>'
                          + '</div>'
                          + '<div class="plus-one-details' + (bringingChecked ? '' : ' hidden') + '">'
-                         + '<div class="group-member-dietary">'
-                         + '<label for="plus-one-name-' + member.id + '">Guest\'s name</label>'
-                         + '<input type="text" id="plus-one-name-' + member.id + '" placeholder="Enter your guest\'s name..." value="' + escapeHtml(poName) + '">'
+                         + '<div class="plus-one-name-group">'
+                         + '<label for="plus-one-name-' + member.id + '">Guest\'s Full Name</label>'
+                         + '<input type="text" id="plus-one-name-' + member.id + '" placeholder="Enter your guest\'s full name..." value="' + escapeHtml(poName) + '">'
                          + '</div>'
                          + '<div class="group-member-dietary">'
                          + '<label for="plus-one-dietary-' + member.id + '">Dietary restrictions or allergies</label>'
