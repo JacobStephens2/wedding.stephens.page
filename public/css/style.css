@@ -1212,16 +1212,16 @@ header {
     transition: transform 0.3s, opacity 0.3s;
 }
 
-.registry-item-image-clickable {
-    cursor: pointer;
+.registry-item-image-link {
+    display: block;
 }
 
-.registry-item-image-clickable:hover {
+.registry-item-image-link img {
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+.registry-item-image-link:hover img {
     opacity: 0.9;
-    transform: scale(1.02);
-}
-
-.registry-item-card:hover .registry-item-image img:not(.registry-item-image-clickable) {
     transform: scale(1.02);
 }
 
