@@ -1273,7 +1273,11 @@ header {
 }
 
 .registry-item-image-link {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
 }
 
 .registry-item-image-link img {
