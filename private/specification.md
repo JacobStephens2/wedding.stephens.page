@@ -193,6 +193,9 @@ On a wide enough viewport, the list of registry items below the entry form shoul
 
 The font for the descriptions in this view in the list should be user case as well, like on the public registry view page.
 
+### Registry Summary Info
+The registry admin page should have summary information at the top of the page, above the "Add New Registry Item" area, about how many items are on the registry total, how many are available, and how many are already purchased.
+
 ### Registry Item Ordering
 There should be a way that we can manually order the default order the registry items appear in on the public registry page.
 

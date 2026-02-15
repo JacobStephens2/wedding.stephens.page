@@ -517,6 +517,46 @@ $page_title = "Manage Registry - Jacob & Melissa";
             font-size: 0.85rem;
             margin-left: 0.5rem;
         }
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .stat-card {
+            text-align: center;
+            padding: 1rem;
+            border-right: 1px solid #eee;
+        }
+        .stat-card:last-child {
+            border-right: none;
+        }
+        @media (max-width: 600px) {
+            .stat-card {
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+            .stat-card:last-child {
+                border-bottom: none;
+            }
+        }
+        .stat-value {
+            display: block;
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--color-green);
+            margin-bottom: 0.25rem;
+        }
+        .stat-label {
+            display: block;
+            color: #666;
+            font-family: 'Crimson Text', serif;
+            font-size: 1.1rem;
+        }
         .unpublished-badge {
             display: inline-block;
             background-color: #6c757d;
@@ -630,6 +670,35 @@ $page_title = "Manage Registry - Jacob & Melissa";
                         <p><?php echo htmlspecialchars($success); ?></p>
                     </div>
                 <?php endif; ?>
+                
+                <?php
+                // Calculate summary stats
+                $totalItems = count($items);
+                $purchasedItems = 0;
+                $availableItems = 0;
+                foreach ($items as $item) {
+                    if ($item['purchased']) {
+                        $purchasedItems++;
+                    } else {
+                        $availableItems++;
+                    }
+                }
+                ?>
+                
+                <div class="summary-stats">
+                    <div class="stat-card">
+                        <span class="stat-value"><?php echo $totalItems; ?></span>
+                        <span class="stat-label">Total Items</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value"><?php echo $availableItems; ?></span>
+                        <span class="stat-label">Available</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value"><?php echo $purchasedItems; ?></span>
+                        <span class="stat-label">Purchased</span>
+                    </div>
+                </div>
                 
                 <div class="add-item-form">
                     <h2 id="form-title"><?php echo $editItem ? 'Edit Registry Item' : 'Add New Registry Item'; ?></h2>
