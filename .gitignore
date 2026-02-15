@@ -2,6 +2,8 @@
 private/.env
 vendor/*
 *.jpg
+!public/images/house-fund.jpg
+!public/images/honeymoon-fund.jpg
 *.mov
 *.mp4
 private/cron_state/*
