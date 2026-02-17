@@ -233,6 +233,13 @@ Run the cron checker manually with this command?
 
 sudo -u www-data bash -lc 'cd /var/www/wedding.stephens.page && /usr/bin/php private/cron/registry_checker.php'
 
+## Site Up Checker
+There should be a cron which regularly runs and checks to ensure the site is online. If it is not, then an email should be sent to Melissa and I notifying us.
+
+Run the site up checker manually with this command:
+
+sudo -u www-data bash -lc 'cd /var/www/wedding.stephens.page && /usr/bin/php private/cron/site_up_checker.php'
+
 # Redirects
 
 ## Blessing
