@@ -8,7 +8,7 @@ $storyPhotos = [];
 try {
     $pdo = getDbConnection();
     $stmt = $pdo->query("
-        SELECT path, alt, story_section, story_position
+        SELECT path, alt, photo_date, story_section, story_position
         FROM gallery_photos
         WHERE story_section IS NOT NULL
         ORDER BY story_section, story_position ASC
@@ -28,9 +28,12 @@ function renderCarousel(array $photos, bool $landscape = false): string {
         $active = $i === 0 ? ' active' : '';
         $src = '/assets.php?type=photo&path=' . urlencode($p['path']);
         $alt = htmlspecialchars($p['alt']);
-        $html .= '<img src="' . $src . '" alt="' . $alt . '" class="carousel-image clickable-image' . $active . '">';
+        $dateFormatted = !empty($p['photo_date']) ? date('F j, Y', strtotime($p['photo_date'])) : '';
+        $html .= '<img src="' . $src . '" alt="' . $alt . '"'
+            . ' data-caption-desc="' . $alt . '"'
+            . ' data-caption-date="' . htmlspecialchars($dateFormatted) . '"'
+            . ' class="carousel-image clickable-image' . $active . '">';
     }
-    $html .= '</div>';
     $html .= '<button class="carousel-btn carousel-prev" aria-label="Previous image">‹</button>';
     $html .= '<button class="carousel-btn carousel-next" aria-label="Next image">›</button>';
     $html .= '<div class="carousel-indicators">';
@@ -38,7 +41,15 @@ function renderCarousel(array $photos, bool $landscape = false): string {
         $active = $i === 0 ? ' active' : '';
         $html .= '<span class="indicator' . $active . '" data-slide="' . $i . '"></span>';
     }
-    $html .= '</div></div>';
+    $html .= '</div>';
+    $html .= '</div>';
+    $firstDesc = htmlspecialchars($photos[0]['alt'] ?? '');
+    $firstDate = !empty($photos[0]['photo_date']) ? date('F j, Y', strtotime($photos[0]['photo_date'])) : '';
+    $html .= '<div class="carousel-caption">';
+    if ($firstDesc) $html .= '<span class="carousel-caption-desc">' . $firstDesc . '</span>';
+    if ($firstDate) $html .= '<span class="carousel-caption-date">' . htmlspecialchars($firstDate) . '</span>';
+    $html .= '</div>';
+    $html .= '</div>';
     return $html;
 }
 

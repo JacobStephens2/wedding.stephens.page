@@ -598,7 +598,8 @@ header {
 .photo-carousel {
     position: relative;
     width: 100%;
-    margin: 2rem 0;
+    max-width: 80ch;
+    margin: 2rem auto;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -685,6 +686,25 @@ header {
 
 .indicator.active {
     background-color: white;
+}
+
+.carousel-caption {
+    padding: 0.6rem 0.85rem;
+    font-family: 'Crimson Text', serif;
+    text-align: center;
+    background: white;
+}
+
+.carousel-caption-desc {
+    display: block;
+    font-size: 0.95rem;
+    color: #444;
+}
+
+.carousel-caption-date {
+    display: block;
+    font-size: 0.82rem;
+    color: #999;
 }
 
 /* Lightbox Modal Styles */

@@ -75,6 +75,10 @@ The carousels with only landscape photos (proposal and blessing) should not have
 
 Clicking on a photo in the carousel should show the photo that is being displayed.
 
+Carousel images on the story page should show the description and date of the image beneath the image, like the gallery page does.
+
+Carousel images on the story page should have a max width the same as the max width of the paragraphs on the page.
+
 ### Meeting
 Jacob and I met fusion dancing in Old City, Philadelphia, and kept meeting at various dance events in the city in October-November of 2024.
 

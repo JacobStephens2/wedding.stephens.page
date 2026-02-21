@@ -170,15 +170,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const indicators = photoCarousel.querySelectorAll('.indicator');
         let currentIndex = 0;
         
+        const captionEl = photoCarousel.querySelector('.carousel-caption');
+
         function showSlide(index) {
-            // Remove active class from all images and indicators in this carousel
             images.forEach(img => img.classList.remove('active'));
             indicators.forEach(ind => ind.classList.remove('active'));
-            
-            // Add active class to current slide
+
             images[index].classList.add('active');
             indicators[index].classList.add('active');
             currentIndex = index;
+
+            if (captionEl) {
+                var desc = images[index].getAttribute('data-caption-desc') || '';
+                var date = images[index].getAttribute('data-caption-date') || '';
+                var descEl = captionEl.querySelector('.carousel-caption-desc');
+                var dateEl = captionEl.querySelector('.carousel-caption-date');
+                if (descEl) { descEl.textContent = desc; descEl.style.display = desc ? '' : 'none'; }
+                if (dateEl) { dateEl.textContent = date; dateEl.style.display = date ? '' : 'none'; }
+            }
         }
         
         function nextSlide() {

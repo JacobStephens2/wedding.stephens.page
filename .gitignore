@@ -7,3 +7,6 @@ vendor/*
 *.mov
 *.mp4
 private/cron_state/*
+private/photos/gallery/*.jpeg
+private/photos/gallery/*.jpg
+private/photos/gallery/*.png
