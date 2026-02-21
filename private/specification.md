@@ -142,6 +142,19 @@ There should be an arrow the user can click on the honeymoon fund section to fol
 
 The default state of the honeymoon fund section should be folded on page load.
 
+## Gallery
+There should be a gallery page which displays all the photos on the story page, and optionally, more. The order of the photos displayed on the gallery page should match the order of their appearance on the story page.
+
+In the menu, the link to the gallery should appear after the registry link.
+
+When a user is viewing a closeup of a photo, they should be able to arrow key left and right through the photos.
+
+When a user is viewing a photo closeup on mobile, they should be able to swipe left and right to move through the photos. Tapping on the left or right of the photo on mobile should also move through photos.
+
+The photo data array should have a date field, and the photos on the page should be ordered chronologically according to the date field, with the oldest appearing first on the gallery page.
+
+The caption of the photos on the gallery page should include the description and the date of the photo. This lets the visitor to the page know more about the photo.
+
 ## About
 There should be an "about" page linked to from the menu. This page should have info about how kids are allowed and about the nuptial Mass and Communion. We can borrow wording from Kiera and Brett's wedding website if they have any relevant wording: https://www.zola.com/wedding/brettandkiera
 
@@ -226,6 +239,15 @@ There should be a way that we can manually order the default order the registry 
 
 ### Publishing Status for Registry Items
 There should be a way to set the publishing status of registry items. By default new items should have a published status of "Published", meaning they display on the public registry page, but in editing registry items, admins should be able to set the registry item status to "Unpublished", which makes the registry item only visible in the registry management area, but not in the public list.
+
+## Manage Gallery
+There should be a manage gallery section of the admin area which allows admins to manage the gallery. They should be able to add and remove photos, as well as edit the date and description of the photos.
+
+If a user uploads a .heic photo, it should be converted to a web friendly format.
+
+The description field of the image editor should use a sentence case font, not an all uppercase font.
+
+After uploading a photo, the system should attempt to prefill the date and description of the upload form based on the filename of the photo. `11-16-24 Balcony View of Hamilton.jpg` is an example of a filename. This filename has 11-16-24 as the date (November 16, 2024) and "Balcony View of Hamilton" as the description.
 
 # Crons
 

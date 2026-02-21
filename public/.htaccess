@@ -33,6 +33,10 @@ RewriteRule ^$ index.php [L]
 # Set default charset
 AddDefaultCharset UTF-8
 
+# Allow larger photo uploads (phone photos can be 5-15MB)
+php_value upload_max_filesize 20M
+php_value post_max_size 22M
+
 # Enable compression
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript

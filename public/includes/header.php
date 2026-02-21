@@ -40,6 +40,7 @@
                 <a href="/story">Story</a>
                 <a href="/rsvp">RSVP</a>
                 <a href="/registry">Registry</a>
+                <a href="/gallery">Gallery</a>
                 <a href="/about">About</a>
                 <a href="/travel">Travel</a>
                 <a href="/contact">Contact</a>
@@ -52,6 +53,7 @@
             <a href="/story">Story</a>
             <a href="/rsvp">RSVP</a>
             <a href="/registry">Registry</a>
+            <a href="/gallery">Gallery</a>
             <a href="/about">About</a>
             <a href="/travel">Travel</a>
             <a href="/contact">Contact</a>

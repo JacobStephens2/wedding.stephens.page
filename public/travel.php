@@ -57,7 +57,8 @@ include __DIR__ . '/includes/header.php';
         <div class="accommodation-option">
             <h3>Courtyard by Marriott Philadelphia City Avenue — Room Block</h3>
             <p class="address">4100 Presidential Boulevard, Philadelphia, PA 19131</p>
-            <p>We've reserved another block of rooms at the Courtyard by Marriott for our wedding guests at a group rate of <strong>$200 per night</strong>. <a href="https://app.marriott.com/reslink?id=1770919186656&key=GRP&app=resvlink" target="_blank" rel="noopener noreferrer">Book through our room block here</a>.</p>
+            <p>We've reserved another block of rooms at the Courtyard by Marriott for our wedding guests at a group rate of <strong>$200 per night</strong>. <a href="https://app.marriott.com/reslink?id=1770919186656&key=GRP&app=resvlink" target="_blank" rel="noopener noreferrer">Book through our room block here</a>.
+            The rooms are reserved through March&nbsp;10.</p>
         </div>
     </section>
     

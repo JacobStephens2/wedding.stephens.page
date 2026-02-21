@@ -123,6 +123,9 @@ $page_title = "Admin - Jacob & Melissa";
                         <a href="/admin-house-fund">Manage House Fund</a>
                     </li>
                     <li class="admin-menu-item">
+                        <a href="/admin-gallery">Manage Gallery</a>
+                    </li>
+                    <li class="admin-menu-item">
                         <a href="/admin-honeymoon-fund">Manage Honeymoon Fund</a>
                     </li>
                 </ul>

@@ -18,6 +18,7 @@ if (isAdminAuthenticated()):
                 <li><a href="/admin-registry">Manage Registry</a></li>
                 <li><a href="/admin-house-fund">Manage House Fund</a></li>
                 <li><a href="/admin-honeymoon-fund">Manage Honeymoon Fund</a></li>
+                <li><a href="/admin-gallery">Manage Gallery</a></li>
                 <li><a href="/admin?logout=1">Logout</a></li>
             </ul>
         </div>
