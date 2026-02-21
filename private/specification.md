@@ -196,6 +196,9 @@ The area at the top of the guest management page should include plus ones in the
 ### Giving a guest a plus one
 Admins should be able to give guests a plus one. If a guest has a plus one, then when they look themself up in the invite lookup of the RSVP page, they should see their name as well as a blank name field for their plus one. They should be able to indicate whether or not they are bringing a plus one.
 
+### Entering an RSVP from the admin area
+We are receiving RSVP cards by mail, and we want to input those RSVPs into the system to keep track of our guest count. There should be a way to input RSVPs from the admin area. This admin RSVP input should have optional email address input.
+
 ## Manage RSVPs
 
 ## Manage House Fund
