@@ -68,6 +68,8 @@ Visitors should be able to click the photos on this page to view them larger.
 
 This page should present the story of private/sources/The Story of How We Met - Wedding Website v2.md
 
+The YouTube videos on the story page should have a max width equal to the max width of the paragraphs on the page.
+
 ### Carousels
 Carousels on the story page should not automatically scroll. They should only go to the next photo after being clicked.
 
@@ -78,6 +80,8 @@ Clicking on a photo in the carousel should show the photo that is being displaye
 Carousel images on the story page should show the description and date of the image beneath the image, like the gallery page does.
 
 Carousel images on the story page should have a max width the same as the max width of the paragraphs on the page.
+
+If the image for a carousel is portrait, the full photo should display in the carousel with black bars on the sides. This prevents important details of the photo from getting cut off in the carousel image displays.
 
 ### Meeting
 Jacob and I met fusion dancing in Old City, Philadelphia, and kept meeting at various dance events in the city in October-November of 2024.

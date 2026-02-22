@@ -8,7 +8,7 @@ $storyPhotos = [];
 try {
     $pdo = getDbConnection();
     $stmt = $pdo->query("
-        SELECT path, alt, photo_date, story_section, story_position
+        SELECT path, alt, photo_date, position, story_section, story_position
         FROM gallery_photos
         WHERE story_section IS NOT NULL
         ORDER BY story_section, story_position ASC
@@ -20,18 +20,19 @@ try {
     error_log("Story photos error: " . $e->getMessage());
 }
 
-function renderCarousel(array $photos, bool $landscape = false): string {
+function renderCarousel(array $photos): string {
     if (empty($photos)) return '';
-    $cls = $landscape ? 'photo-carousel carousel-landscape' : 'photo-carousel';
-    $html = '<div class="' . $cls . '"><div class="carousel-container">';
+    $html = '<div class="photo-carousel"><div class="carousel-container">';
     foreach ($photos as $i => $p) {
         $active = $i === 0 ? ' active' : '';
         $src = '/assets.php?type=photo&path=' . urlencode($p['path']);
         $alt = htmlspecialchars($p['alt']);
         $dateFormatted = !empty($p['photo_date']) ? date('F j, Y', strtotime($p['photo_date'])) : '';
+        $pos = !empty($p['position']) ? htmlspecialchars($p['position']) : 'center';
         $html .= '<img src="' . $src . '" alt="' . $alt . '"'
             . ' data-caption-desc="' . $alt . '"'
             . ' data-caption-date="' . htmlspecialchars($dateFormatted) . '"'
+            . ' data-object-position="' . $pos . '"'
             . ' class="carousel-image clickable-image' . $active . '">';
     }
     $html .= '<button class="carousel-btn carousel-prev" aria-label="Previous image">‹</button>';
@@ -122,7 +123,7 @@ function renderBlockImages(array $photos): string {
         <p>In late January, temperatures were frigid, and I asked Jacob if he could give me rides to work so I could escape the long walk to the bus stop while it was so cold out. Daily rides soon became the norm, even after temperatures came back&nbsp;up.</p>
         <p>In early March, I brought Jacob to Steubenville&nbsp;&mdash; the town where I had spent my whole college and post-college life up to my move to Philly. After attending a praise and worship event at my alma mater, we went to dinner at Pastaio, the only &ldquo;fancy restaurant&rdquo; in the area (which is actually really good&nbsp;&mdash; they made it onto an episode of &ldquo;America&rsquo;s Best Restaurants&rdquo;&nbsp;&mdash; check it out if you ever find yourself about 45 minutes west of Pittsburgh). With plates of pasta between us, I told him I loved him. He had been waiting to tell me the same.</p>
         
-        <?php echo renderCarousel($storyPhotos['pastaio'] ?? [], true); ?>
+        <?php echo renderCarousel($storyPhotos['pastaio'] ?? []); ?>
     </section>
 
     <section class="story-section">
@@ -144,9 +145,9 @@ function renderBlockImages(array $photos): string {
         <p>Jacob insisted I request off from work on September 26, and that evening as our plane descended, I was quite surprised to finally take out my earbuds and hear the pilot welcome us to Calgary, in the province of Alberta, Canada. We spent the next day, September 27th, hiking in Banff National Park, and after a pitstop at the hostel to shower and &ldquo;put on something nice,&rdquo; we were driving the Icefields&nbsp;Parkway.</p>
         <p>We walked to a rocky overlook on Mount Jimmy Simpson, above Peyto Lake. The deep, looming clouds sat heavy in the valley, and we were surrounded by the grandeur of the Canadian Rockies. Below, the lake sat quiet, still, and brilliant blue. We braced ourselves against the chilling mountain winds and falling mist. A guitarist starting playing a sweet, acoustic cover of <em>Can&rsquo;t Help Falling In Love</em>, and Jacob knelt down before&nbsp;me.</p>
         <p class="story-accent">I said yes<br>
-        <small style="font-size: 18px;">...and six hours later we were back on a plane to&nbsp;Philadelphia.</small></p>
+        <small style="font-size: 18px;">...and seven hours later we were back on a plane to&nbsp;Philadelphia.</small></p>
         
-        <?php echo renderCarousel($storyPhotos['proposal'] ?? [], true); ?>
+        <?php echo renderCarousel($storyPhotos['proposal'] ?? []); ?>
         
         <div class="story-media">
             <iframe src="https://www.youtube.com/embed/iEbqiWzH800" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -160,7 +161,7 @@ function renderBlockImages(array $photos): string {
             <iframe src="https://www.youtube.com/embed/dko2cded45E" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
         
-        <?php echo renderCarousel($storyPhotos['blessing'] ?? [], true); ?>
+        <?php echo renderCarousel($storyPhotos['blessing'] ?? []); ?>
 
         <p>Afterward, our families shared a meal together, and we celebrated this turning point in our lives&nbsp;&mdash; turning to a new adventure and embracing a new, joined life&nbsp;together.</p>
     </section>

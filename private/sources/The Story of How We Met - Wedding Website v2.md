@@ -78,7 +78,7 @@ Jacob insisted I request off from work on September 26, and that evening as our 
 
 We walked to a rocky overlook on Mount Jimmy Stepson, above Peyto Lake. The deep, looming clouds sat heavy in the valley, and we were surrounded by the grandeur of the Canadian Rockies. Below, the lake sat quiet, still, and brilliant blue. We braced ourselves against the chilling mountain winds and falling mist. A guitarist starting playing a sweet, acoustic cover of Can't Help Falling In Love, and Jacob knelt down before me.
 
-I said yes, and six hours later we were back on a plane to Philadelphia.
+I said yes, and seven hours later we were back on a plane to Philadelphia.
 
 The next day, our pastor Fr. Remi Morales blessed our engagement during a small ceremony surrounded by our parents and friends.
  

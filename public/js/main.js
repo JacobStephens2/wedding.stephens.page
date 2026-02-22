@@ -161,6 +161,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Apply per-image object-fit based on natural aspect ratio
+    document.querySelectorAll('.carousel-image').forEach(function(img) {
+        function applyFit() {
+            if (img.naturalWidth > img.naturalHeight) {
+                img.classList.add('carousel-image-cover');
+                var pos = img.getAttribute('data-object-position');
+                if (pos) img.style.objectPosition = pos;
+            }
+        }
+        if (img.naturalWidth) applyFit();
+        else img.addEventListener('load', applyFit);
+    });
+
     // Photo carousel functionality - handle multiple carousels
     const photoCarousels = document.querySelectorAll('.photo-carousel');
     photoCarousels.forEach(photoCarousel => {
