@@ -225,6 +225,10 @@ The guest count totals should include total declined by reception and declined b
 
 Typing a guest's name into the Search name input should filter the table as the user types into the input.
 
+There should be a way in the manage guests area to easily pull up a view that shows all the dietary restrictions (if any) that have been entered into RSVPs.
+
+There should be a way in the manage guests area to easily view the songs requested. Only one song per RSVP group should show, otherwise many repeats will display.
+
 ### Giving a guest a plus one
 Admins should be able to give guests a plus one. If a guest has a plus one, then when they look themself up in the invite lookup of the RSVP page, they should see their name as well as a blank name field for their plus one. They should be able to indicate whether or not they are bringing a plus one.
 

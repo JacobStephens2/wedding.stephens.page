@@ -1225,6 +1225,107 @@ $page_title = "Manage Guests - Jacob & Melissa";
                     <a href="/admin-guests" class="btn-clear">Clear</a>
                 </form>
                 
+                <!-- Dietary Restrictions View -->
+                <button type="button" id="dietary-toggle" class="btn-filter" style="margin-bottom: 1rem;">View Dietary Restrictions</button>
+                <div id="dietary-panel" style="display: none; margin-bottom: 1.5rem; background: #f9f9f6; border: 1px solid #ddd; border-radius: 8px; padding: 1rem;">
+                    <h3 style="margin: 0 0 0.75rem;">Dietary Restrictions</h3>
+                    <?php
+                    $dietaryEntries = [];
+                    foreach ($guests as $g) {
+                        if (!empty(trim($g['dietary'] ?? ''))) {
+                            $dietaryEntries[] = [
+                                'name' => htmlspecialchars($g['first_name'] . ' ' . $g['last_name']),
+                                'dietary' => htmlspecialchars($g['dietary']),
+                            ];
+                        }
+                        if ($g['has_plus_one'] && !empty(trim($g['plus_one_dietary'] ?? ''))) {
+                            $poName = !empty(trim($g['plus_one_name'] ?? ''))
+                                ? htmlspecialchars($g['plus_one_name'])
+                                : htmlspecialchars($g['first_name'] . ' ' . $g['last_name']) . "'s +1";
+                            $dietaryEntries[] = [
+                                'name' => $poName,
+                                'dietary' => htmlspecialchars($g['plus_one_dietary']),
+                            ];
+                        }
+                    }
+                    if (empty($dietaryEntries)): ?>
+                        <p style="color: #666;">No dietary restrictions have been submitted.</p>
+                    <?php else: ?>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; padding: 0.5rem; border-bottom: 2px solid #ccc;">Guest</th>
+                                    <th style="text-align: left; padding: 0.5rem; border-bottom: 2px solid #ccc;">Dietary Restriction</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($dietaryEntries as $entry): ?>
+                                    <tr>
+                                        <td style="padding: 0.4rem 0.5rem; border-bottom: 1px solid #eee;"><?php echo $entry['name']; ?></td>
+                                        <td style="padding: 0.4rem 0.5rem; border-bottom: 1px solid #eee;"><?php echo $entry['dietary']; ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+                </div>
+                <script>
+                document.getElementById('dietary-toggle').addEventListener('click', function() {
+                    var panel = document.getElementById('dietary-panel');
+                    var visible = panel.style.display !== 'none';
+                    panel.style.display = visible ? 'none' : 'block';
+                    this.textContent = visible ? 'View Dietary Restrictions' : 'Hide Dietary Restrictions';
+                });
+                </script>
+
+                <!-- Song Requests View -->
+                <button type="button" id="songs-toggle" class="btn-filter" style="margin-bottom: 1rem;">View Song Requests</button>
+                <div id="songs-panel" style="display: none; margin-bottom: 1.5rem; background: #f9f9f6; border: 1px solid #ddd; border-radius: 8px; padding: 1rem;">
+                    <h3 style="margin: 0 0 0.75rem;">Song Requests</h3>
+                    <?php
+                    $songEntries = [];
+                    $seenGroups = [];
+                    foreach ($guests as $g) {
+                        if (!empty(trim($g['song_request'] ?? ''))) {
+                            $groupKey = $g['mailing_group'] ?? $g['id'];
+                            if (isset($seenGroups[$groupKey])) continue;
+                            $seenGroups[$groupKey] = true;
+                            $songEntries[] = [
+                                'name' => !empty($g['group_name']) ? htmlspecialchars($g['group_name']) : htmlspecialchars($g['first_name'] . ' ' . $g['last_name']),
+                                'song' => htmlspecialchars($g['song_request']),
+                            ];
+                        }
+                    }
+                    if (empty($songEntries)): ?>
+                        <p style="color: #666;">No song requests have been submitted.</p>
+                    <?php else: ?>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; padding: 0.5rem; border-bottom: 2px solid #ccc;">Guest</th>
+                                    <th style="text-align: left; padding: 0.5rem; border-bottom: 2px solid #ccc;">Song Request</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($songEntries as $entry): ?>
+                                    <tr>
+                                        <td style="padding: 0.4rem 0.5rem; border-bottom: 1px solid #eee;"><?php echo $entry['name']; ?></td>
+                                        <td style="padding: 0.4rem 0.5rem; border-bottom: 1px solid #eee;"><?php echo $entry['song']; ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+                </div>
+                <script>
+                document.getElementById('songs-toggle').addEventListener('click', function() {
+                    var panel = document.getElementById('songs-panel');
+                    var visible = panel.style.display !== 'none';
+                    panel.style.display = visible ? 'none' : 'block';
+                    this.textContent = visible ? 'View Song Requests' : 'Hide Song Requests';
+                });
+                </script>
+
                 <!-- Guests Table -->
                 <span class="guest-count-label">Showing <?php echo count($guests); ?> guest<?php echo count($guests) !== 1 ? 's' : ''; ?></span>
                 <?php
