@@ -206,8 +206,64 @@ if ($authenticated) {
             ORDER BY g.$sort $order, g.id ASC
         ");
         $stmt->execute($params);
-        $guests = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+        $rawGuests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Inject plus-one rows after their host guest
+        $guests = [];
+        foreach ($rawGuests as $guest) {
+            $guests[] = $guest;
+            if ($guest['has_plus_one']) {
+                $plusOneName = trim($guest['plus_one_name'] ?? '');
+                $poFirstName = $plusOneName ?: '(Plus One)';
+                $poLastName = '';
+                if ($plusOneName && strpos($plusOneName, ' ') !== false) {
+                    $parts = explode(' ', $plusOneName, 2);
+                    $poFirstName = $parts[0];
+                    $poLastName = $parts[1];
+                }
+
+                // Check if plus-one passes the status filter
+                $includeRow = true;
+                if ($statusFilter !== '' && in_array($statusFilter, $allowedStatusFilters)) {
+                    switch ($statusFilter) {
+                        case 'ceremony_yes':
+                            $includeRow = ($guest['plus_one_ceremony_attending'] ?? '') === 'yes';
+                            break;
+                        case 'ceremony_no':
+                            $includeRow = ($guest['plus_one_ceremony_attending'] ?? '') === 'no';
+                            break;
+                        case 'reception_yes':
+                            $includeRow = ($guest['plus_one_reception_attending'] ?? '') === 'yes';
+                            break;
+                        case 'reception_no':
+                            $includeRow = ($guest['plus_one_reception_attending'] ?? '') === 'no';
+                            break;
+                    }
+                }
+
+                if ($includeRow) {
+                    $guests[] = [
+                        'id' => $guest['id'],
+                        'first_name' => $poFirstName,
+                        'last_name' => $poLastName,
+                        'group_name' => $guest['group_name'],
+                        'mailing_group' => $guest['mailing_group'],
+                        'has_plus_one' => 0,
+                        'attending' => $guest['plus_one_attending'],
+                        'ceremony_attending' => $guest['plus_one_ceremony_attending'],
+                        'reception_attending' => $guest['plus_one_reception_attending'],
+                        'address_1' => $guest['address_1'],
+                        'address_2' => $guest['address_2'],
+                        'city' => $guest['city'],
+                        'state' => $guest['state'],
+                        'zip' => $guest['zip'],
+                        'country' => $guest['country'],
+                        'is_plus_one' => true,
+                    ];
+                }
+            }
+        }
+
         // Stats (always from full table)
         // Counts are in "invites" (guests + granted plus-ones), per specification.
         $statsStmt = $pdo->query("
@@ -227,10 +283,22 @@ if ($authenticated) {
                     COALESCE(SUM(CASE WHEN attending IS NULL THEN 1 ELSE 0 END), 0)
                     + COALESCE(SUM(CASE WHEN has_plus_one = 1 AND plus_one_attending IS NULL THEN 1 ELSE 0 END), 0)
                 ) as pending,
-                COALESCE(SUM(CASE WHEN ceremony_attending = 'yes' THEN 1 ELSE 0 END), 0) as ceremony,
-                COALESCE(SUM(CASE WHEN reception_attending = 'yes' THEN 1 ELSE 0 END), 0) as reception,
-                COALESCE(SUM(CASE WHEN ceremony_attending = 'no' THEN 1 ELSE 0 END), 0) as ceremony_declined,
-                COALESCE(SUM(CASE WHEN reception_attending = 'no' THEN 1 ELSE 0 END), 0) as reception_declined
+                (
+                    COALESCE(SUM(CASE WHEN ceremony_attending = 'yes' THEN 1 ELSE 0 END), 0)
+                    + COALESCE(SUM(CASE WHEN has_plus_one = 1 AND plus_one_ceremony_attending = 'yes' THEN 1 ELSE 0 END), 0)
+                ) as ceremony,
+                (
+                    COALESCE(SUM(CASE WHEN reception_attending = 'yes' THEN 1 ELSE 0 END), 0)
+                    + COALESCE(SUM(CASE WHEN has_plus_one = 1 AND plus_one_reception_attending = 'yes' THEN 1 ELSE 0 END), 0)
+                ) as reception,
+                (
+                    COALESCE(SUM(CASE WHEN ceremony_attending = 'no' THEN 1 ELSE 0 END), 0)
+                    + COALESCE(SUM(CASE WHEN has_plus_one = 1 AND plus_one_ceremony_attending = 'no' THEN 1 ELSE 0 END), 0)
+                ) as ceremony_declined,
+                (
+                    COALESCE(SUM(CASE WHEN reception_attending = 'no' THEN 1 ELSE 0 END), 0)
+                    + COALESCE(SUM(CASE WHEN has_plus_one = 1 AND plus_one_reception_attending = 'no' THEN 1 ELSE 0 END), 0)
+                ) as reception_declined
             FROM guests
         ");
         $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
@@ -456,6 +524,10 @@ $page_title = "Manage Guests - Jacob & Melissa";
         }
         .guests-table tr.group-start {
             border-top: 2px solid var(--color-green);
+        }
+        .guests-table tr.plus-one-row {
+            font-style: italic;
+            color: #666;
         }
         .rsvp-badge {
             display: inline-block;
@@ -1326,13 +1398,14 @@ $page_title = "Manage Guests - Jacob & Melissa";
                             </tr>
                         </thead>
                         <tbody>
-                            <?php 
+                            <?php
                             $lastGroup = -999;
-                            foreach ($guests as $guest): 
-                                $isGroupStart = ($guest['mailing_group'] !== null && $guest['mailing_group'] != $lastGroup);
-                                $lastGroup = $guest['mailing_group'];
+                            foreach ($guests as $guest):
+                                $isPlusOne = !empty($guest['is_plus_one']);
+                                $isGroupStart = !$isPlusOne && ($guest['mailing_group'] !== null && $guest['mailing_group'] != $lastGroup);
+                                if (!$isPlusOne) $lastGroup = $guest['mailing_group'];
                             ?>
-                                <tr class="<?php echo $isGroupStart ? 'group-start' : ''; ?>">
+                                <tr class="<?php echo $isGroupStart ? 'group-start' : ''; ?><?php echo $isPlusOne ? ' plus-one-row' : ''; ?>">
                                     <td><?php echo htmlspecialchars($guest['first_name']); ?></td>
                                     <td><?php echo htmlspecialchars($guest['last_name']); ?></td>
                                     <td><?php echo $guest['mailing_group'] !== null ? htmlspecialchars($guest['mailing_group']) : '—'; ?></td>
@@ -1365,12 +1438,14 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                         <?php endif; ?>
                                     </td>
                                     <td>
+                                        <?php if (!$isPlusOne): ?>
                                         <div class="action-links">
                                             <a href="/admin-guests?rsvp=<?php echo $guest['id']; ?>" class="rsvp-link">RSVP</a>
                                             <a href="/admin-guests?edit=<?php echo $guest['id']; ?>" class="edit-link">Edit</a>
-                                            <a href="/admin-guests?delete=<?php echo $guest['id']; ?>" class="delete-link" 
+                                            <a href="/admin-guests?delete=<?php echo $guest['id']; ?>" class="delete-link"
                                                onclick="return confirm('Delete <?php echo htmlspecialchars(addslashes($guest['first_name'] . ' ' . $guest['last_name'])); ?>?');">Delete</a>
                                         </div>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

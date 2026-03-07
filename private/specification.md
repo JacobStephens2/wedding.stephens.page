@@ -222,6 +222,8 @@ The headers of the guest table should be clickable to sort the table by the fiel
 
 Typing a guest's name into the Search name input should filter the table as the user types into the input.
 
+If a guest has a plus one, the plus one should appear as a row in the guest table with the same Group # that they are part of. This will make it easier for us to see a complete list of all the names of people who are attending the reception for example, which will be useful for creating seating charts.
+
 ### RSVP Summary Stats
 The area at the top of the guest management page should include plus ones in the total count of invites. This will help us know how many invites we have extended and whether we need to hold off or not on extending more invitations.
 
