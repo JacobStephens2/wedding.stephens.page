@@ -217,22 +217,25 @@ if ($authenticated) {
         $params = [];
         
         if ($search !== '') {
-            $where[] = "(first_name LIKE ? OR last_name LIKE ? OR CONCAT(first_name, ' ', last_name) LIKE ?)";
+            $where[] = "(g.first_name LIKE ? OR g.last_name LIKE ? OR CONCAT(g.first_name, ' ', g.last_name) LIKE ?)";
             $params[] = "%$search%";
             $params[] = "%$search%";
             $params[] = "%$search%";
         }
         
         if ($groupFilter !== '') {
-            $where[] = "mailing_group = ?";
+            $where[] = "g.mailing_group = ?";
             $params[] = (int)$groupFilter;
         }
         
         $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
         
         $stmt = $pdo->prepare("
-            SELECT * FROM guests $whereClause
-            ORDER BY $sort $order, id ASC
+            SELECT g.*, ma.address_1, ma.address_2, ma.city, ma.state, ma.zip, ma.country
+            FROM guests g
+            LEFT JOIN mailing_addresses ma ON g.mailing_group = ma.mailing_group
+            $whereClause
+            ORDER BY g.$sort $order, g.id ASC
         ");
         $stmt->execute($params);
         $guests = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1136,7 +1139,9 @@ $page_title = "Manage Guests - Jacob & Melissa";
                         <span class="stat-number"><?php echo $stats['total'] - $stats['declined']; ?></span>
                         <span class="stat-label">Max if Pending Say Yes</span>
                     </div>
-                    <div class="stat-item" style="border-left: 2px solid #eee; padding-left: 2rem;">
+                </div>
+                <div class="stats-bar" style="margin-top: -1rem;">
+                    <div class="stat-item">
                         <span class="stat-number" style="color: var(--color-green);"><?php echo $stats['ceremony']; ?></span>
                         <span class="stat-label">Ceremony</span>
                     </div>
@@ -1356,6 +1361,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                 <th><a href="<?php echo getSortUrl('last_name', $sort, $order); ?>">Last Name<?php echo getSortIndicator('last_name', $sort, $order); ?></a></th>
                                 <th><a href="<?php echo getSortUrl('mailing_group', $sort, $order); ?>">Group #<?php echo getSortIndicator('mailing_group', $sort, $order); ?></a></th>
                                 <th><a href="<?php echo getSortUrl('group_name', $sort, $order); ?>">Group Name<?php echo getSortIndicator('group_name', $sort, $order); ?></a></th>
+                                <th>Address</th>
                                 <th><a href="<?php echo getSortUrl('has_plus_one', $sort, $order); ?>">+1<?php echo getSortIndicator('has_plus_one', $sort, $order); ?></a></th>
                                 <th><a href="<?php echo getSortUrl('attending', $sort, $order); ?>">RSVP Status<?php echo getSortIndicator('attending', $sort, $order); ?></a></th>
                                 <th>Actions</th>
@@ -1373,6 +1379,23 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                     <td><?php echo htmlspecialchars($guest['last_name']); ?></td>
                                     <td><?php echo $guest['mailing_group'] !== null ? htmlspecialchars($guest['mailing_group']) : '—'; ?></td>
                                     <td><?php echo htmlspecialchars($guest['group_name']); ?></td>
+                                    <td><?php
+                                        $addrParts = array_filter([
+                                            $guest['address_1'] ?? '',
+                                            $guest['address_2'] ?? '',
+                                        ]);
+                                        $cityState = array_filter([
+                                            $guest['city'] ?? '',
+                                            $guest['state'] ?? '',
+                                        ]);
+                                        $addrLine1 = implode(', ', $addrParts);
+                                        $addrLine2 = implode(', ', $cityState);
+                                        if ($guest['zip'] ?? '') $addrLine2 .= ' ' . $guest['zip'];
+                                        if ($guest['country'] ?? '') $addrLine2 .= ', ' . $guest['country'];
+                                        $addrLine2 = trim($addrLine2, ', ');
+                                        $fullAddr = implode('<br>', array_filter([$addrLine1, $addrLine2]));
+                                        echo $fullAddr ?: '—';
+                                    ?></td>
                                     <td><?php echo $guest['has_plus_one'] ? '✓' : ''; ?></td>
                                     <td>
                                         <?php if ($guest['attending'] === 'yes'): ?>
@@ -1394,7 +1417,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                 </tr>
                             <?php endforeach; ?>
                             <?php if (empty($guests)): ?>
-                                <tr><td colspan="7" style="text-align:center; padding:2rem; color:#666;">No guests found.</td></tr>
+                                <tr><td colspan="8" style="text-align:center; padding:2rem; color:#666;">No guests found.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
