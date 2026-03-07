@@ -114,57 +114,6 @@ if ($authenticated && isset($_GET['delete'])) {
     }
 }
 
-// Handle CSV re-import
-if ($authenticated && isset($_GET['reimport']) && $_GET['reimport'] === 'confirm') {
-    try {
-        $pdo = getDbConnection();
-        $csvPath = __DIR__ . '/../private/Guest List Feb 10 2026.csv';
-        
-        if (!file_exists($csvPath)) {
-            $error = 'CSV file not found.';
-        } else {
-            $pdo->exec("DELETE FROM guests");
-            $pdo->exec("ALTER TABLE guests AUTO_INCREMENT = 1");
-            
-            $handle = fopen($csvPath, 'r');
-            fgetcsv($handle); // skip summary row 1
-            fgetcsv($handle); // skip summary row 2
-            $headers = fgetcsv($handle); // header row
-            
-            $colMap = [];
-            foreach ($headers as $i => $header) {
-                $colMap[trim($header)] = $i;
-            }
-            
-            $stmt = $pdo->prepare("
-                INSERT INTO guests (first_name, last_name, group_name, guest_id, mailing_group)
-                VALUES (?, ?, ?, ?, ?)
-            ");
-            
-            $imported = 0;
-            while (($row = fgetcsv($handle)) !== false) {
-                $firstName = trim($row[$colMap['First Name']] ?? '');
-                if (empty($firstName)) continue;
-                
-                $mailingGroup = trim($row[$colMap['Mailing Group']] ?? '');
-                $stmt->execute([
-                    $firstName,
-                    trim($row[$colMap['Last Name']] ?? ''),
-                    trim($row[$colMap['Group']] ?? ''),
-                    trim($row[$colMap['id']] ?? ''),
-                    ($mailingGroup !== '' && is_numeric($mailingGroup)) ? (int)$mailingGroup : null,
-                ]);
-                $imported++;
-            }
-            fclose($handle);
-            
-            header('Location: /admin-guests?reimported=' . $imported);
-            exit;
-        }
-    } catch (Exception $e) {
-        $error = 'Import error: ' . htmlspecialchars($e->getMessage());
-    }
-}
 
 // Fetch guest for editing
 $editGuest = null;
@@ -202,6 +151,7 @@ if ($authenticated) {
         // Apply search filter if present
         $search = trim($_GET['search'] ?? '');
         $groupFilter = trim($_GET['group_filter'] ?? '');
+        $statusFilter = trim($_GET['status_filter'] ?? '');
         
         // Sorting
         $sort = $_GET['sort'] ?? 'mailing_group';
@@ -226,6 +176,24 @@ if ($authenticated) {
         if ($groupFilter !== '') {
             $where[] = "g.mailing_group = ?";
             $params[] = (int)$groupFilter;
+        }
+
+        $allowedStatusFilters = ['ceremony_yes', 'ceremony_no', 'reception_yes', 'reception_no'];
+        if ($statusFilter !== '' && in_array($statusFilter, $allowedStatusFilters)) {
+            switch ($statusFilter) {
+                case 'ceremony_yes':
+                    $where[] = "g.ceremony_attending = 'yes'";
+                    break;
+                case 'ceremony_no':
+                    $where[] = "g.ceremony_attending = 'no'";
+                    break;
+                case 'reception_yes':
+                    $where[] = "g.reception_attending = 'yes'";
+                    break;
+                case 'reception_no':
+                    $where[] = "g.reception_attending = 'no'";
+                    break;
+            }
         }
         
         $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
@@ -259,22 +227,10 @@ if ($authenticated) {
                     COALESCE(SUM(CASE WHEN attending IS NULL THEN 1 ELSE 0 END), 0)
                     + COALESCE(SUM(CASE WHEN has_plus_one = 1 AND plus_one_attending IS NULL THEN 1 ELSE 0 END), 0)
                 ) as pending,
-                (
-                    COALESCE(SUM(CASE WHEN ceremony_attending = 'yes' THEN 1 ELSE 0 END), 0)
-                    + COALESCE(SUM(CASE WHEN has_plus_one = 1 AND plus_one_ceremony_attending = 'yes' THEN 1 ELSE 0 END), 0)
-                ) as ceremony,
-                (
-                    COALESCE(SUM(CASE WHEN reception_attending = 'yes' THEN 1 ELSE 0 END), 0)
-                    + COALESCE(SUM(CASE WHEN has_plus_one = 1 AND plus_one_reception_attending = 'yes' THEN 1 ELSE 0 END), 0)
-                ) as reception,
-                (
-                    COALESCE(SUM(CASE WHEN ceremony_attending = 'no' THEN 1 ELSE 0 END), 0)
-                    + COALESCE(SUM(CASE WHEN has_plus_one = 1 AND plus_one_ceremony_attending = 'no' THEN 1 ELSE 0 END), 0)
-                ) as ceremony_declined,
-                (
-                    COALESCE(SUM(CASE WHEN reception_attending = 'no' THEN 1 ELSE 0 END), 0)
-                    + COALESCE(SUM(CASE WHEN has_plus_one = 1 AND plus_one_reception_attending = 'no' THEN 1 ELSE 0 END), 0)
-                ) as reception_declined
+                COALESCE(SUM(CASE WHEN ceremony_attending = 'yes' THEN 1 ELSE 0 END), 0) as ceremony,
+                COALESCE(SUM(CASE WHEN reception_attending = 'yes' THEN 1 ELSE 0 END), 0) as reception,
+                COALESCE(SUM(CASE WHEN ceremony_attending = 'no' THEN 1 ELSE 0 END), 0) as ceremony_declined,
+                COALESCE(SUM(CASE WHEN reception_attending = 'no' THEN 1 ELSE 0 END), 0) as reception_declined
             FROM guests
         ");
         $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
@@ -356,6 +312,14 @@ $page_title = "Manage Guests - Jacob & Melissa";
         .stat-attending .stat-number { color: var(--color-green); }
         .stat-declined .stat-number { color: #dc3545; }
         .stat-pending .stat-number { color: var(--color-lavender); }
+        .stat-link {
+            text-decoration: none;
+            display: block;
+            cursor: pointer;
+        }
+        .stat-link:hover {
+            opacity: 0.7;
+        }
         
         .filters-bar {
             display: flex;
@@ -528,23 +492,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
             background: rgba(220, 53, 69, 0.1);
         }
         
-        .reimport-section {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background: #fff3cd;
-            border-radius: 8px;
-            border: 1px solid #ffc107;
-        }
-        .reimport-section h3 {
-            margin-bottom: 0.5rem;
-            color: #856404;
-        }
-        .reimport-section p {
-            font-family: 'Crimson Text', serif;
-            color: #856404;
-            margin-bottom: 1rem;
-        }
-        .btn-danger {
+.btn-danger {
             background: #dc3545;
             color: white;
             border: none;
@@ -820,9 +768,6 @@ $page_title = "Manage Guests - Jacob & Melissa";
                 <?php endif; ?>
                 <?php if (isset($_GET['deleted'])): ?>
                     <div class="alert alert-success"><p>Guest deleted.</p></div>
-                <?php endif; ?>
-                <?php if (isset($_GET['reimported'])): ?>
-                    <div class="alert alert-success"><p>Re-imported <?php echo intval($_GET['reimported']); ?> guests from CSV.</p></div>
                 <?php endif; ?>
                 
                 <?php if ($rsvpGuest): ?>
@@ -1142,21 +1087,34 @@ $page_title = "Manage Guests - Jacob & Melissa";
                 </div>
                 <div class="stats-bar" style="margin-top: -1rem;">
                     <div class="stat-item">
-                        <span class="stat-number" style="color: var(--color-green);"><?php echo $stats['ceremony']; ?></span>
-                        <span class="stat-label">Ceremony</span>
+                        <a href="/admin-guests?status_filter=ceremony_yes" class="stat-link">
+                            <span class="stat-number" style="color: var(--color-green);"><?php echo $stats['ceremony']; ?></span>
+                            <span class="stat-label">Ceremony</span>
+                        </a>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number" style="color: #dc3545;"><?php echo $stats['ceremony_declined']; ?></span>
-                        <span class="stat-label">Declined Ceremony</span>
+                        <a href="/admin-guests?status_filter=ceremony_no" class="stat-link">
+                            <span class="stat-number" style="color: #dc3545;"><?php echo $stats['ceremony_declined']; ?></span>
+                            <span class="stat-label">Declined Ceremony</span>
+                        </a>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number" style="color: var(--color-green);"><?php echo $stats['reception']; ?></span>
-                        <span class="stat-label">Reception</span>
+                        <a href="/admin-guests?status_filter=reception_yes" class="stat-link">
+                            <span class="stat-number" style="color: var(--color-green);"><?php echo $stats['reception']; ?></span>
+                            <span class="stat-label">Reception</span>
+                        </a>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number" style="color: #dc3545;"><?php echo $stats['reception_declined']; ?></span>
-                        <span class="stat-label">Declined Reception</span>
+                        <a href="/admin-guests?status_filter=reception_no" class="stat-link">
+                            <span class="stat-number" style="color: #dc3545;"><?php echo $stats['reception_declined']; ?></span>
+                            <span class="stat-label">Declined Reception</span>
+                        </a>
                     </div>
+                    <?php if ($statusFilter !== ''): ?>
+                        <div class="stat-item" style="align-self: center;">
+                            <a href="/admin-guests" class="stat-link" style="font-size: 0.85rem; color: #666;">[Clear filter]</a>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 
                 <!-- Add/Edit Guest Form -->
@@ -1421,16 +1379,6 @@ $page_title = "Manage Guests - Jacob & Melissa";
                             <?php endif; ?>
                         </tbody>
                     </table>
-                </div>
-                
-                <!-- Re-import Section -->
-                <div class="reimport-section">
-                    <h3>Re-import from CSV</h3>
-                    <p>This will delete all current guest records and re-import from the original CSV file. All RSVP data will be lost.</p>
-                    <a href="/admin-guests?reimport=confirm" class="btn-danger" 
-                       onclick="return confirm('WARNING: This will delete ALL guest records including RSVP data and re-import from the CSV. Continue?');">
-                        Re-import from CSV
-                    </a>
                 </div>
             </div>
         <?php endif; ?>
