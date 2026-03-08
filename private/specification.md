@@ -254,7 +254,9 @@ Admins should be able to give guests a plus one. If a guest has a plus one, then
 We are receiving RSVP cards by mail, and we want to input those RSVPs into the system to keep track of our guest count. There should be a way to input RSVPs from the admin area. This admin RSVP input should have optional email address input.
 
 #### Rehearsal Invite and Export
-When editing a guest, the admin should be able to mark a guest as invited to the rehearsal. Correspondingly, there should be a button called "Export Rehearsal Contacts", which exports a CSV with contact information about the guests who are invited to the rehearsal. This will help send invitations to rehearsal guests.
+When editing a guest, the admin should be able to mark a guest as invited to the rehearsal. Correspondingly, there should be a button called "Export Rehearsal Contacts", which exports a CSV with contact information about the guests who are invited to the rehearsal. This will help send invitations to rehearsal guests. The CSV export should have a column called "Mailing Group", which should carry the Group # value for the guest.
+
+For guests with a plus one, the admin should be able to mark whether or not the plus one is invited to the rehearsal.
 
 ## Manage House Fund
 In the admin area there should be a manage house fund page which allows the user to manage the house fund (CRUD operations on entries).

@@ -38,19 +38,36 @@ if ($authenticated && isset($_GET['export_rehearsal'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->query("
-            SELECT g.first_name, g.last_name, g.group_name, g.phone, g.email,
-                   ma.address_1, ma.address_2, ma.city, ma.state, ma.zip, ma.country
-            FROM guests g
-            LEFT JOIN mailing_addresses ma ON g.mailing_group = ma.mailing_group
-            WHERE g.rehearsal_invited = 1
-            ORDER BY g.group_name, g.last_name, g.first_name
+            SELECT first_name, last_name, group_name, mailing_group, phone, email,
+                   address_1, address_2, city, state, zip, country
+            FROM (
+                SELECT g.first_name, g.last_name, g.group_name, g.mailing_group, g.phone, g.email,
+                       ma.address_1, ma.address_2, ma.city, ma.state, ma.zip, ma.country
+                FROM guests g
+                LEFT JOIN mailing_addresses ma ON g.mailing_group = ma.mailing_group
+                WHERE g.rehearsal_invited = 1
+                UNION ALL
+                SELECT
+                    CASE WHEN g.plus_one_name IS NOT NULL AND g.plus_one_name != ''
+                         THEN SUBSTRING_INDEX(g.plus_one_name, ' ', 1)
+                         ELSE '(Plus One)' END,
+                    CASE WHEN g.plus_one_name IS NOT NULL AND g.plus_one_name != '' AND LOCATE(' ', g.plus_one_name) > 0
+                         THEN SUBSTRING(g.plus_one_name, LOCATE(' ', g.plus_one_name) + 1)
+                         ELSE '' END,
+                    g.group_name, g.mailing_group, NULL, NULL,
+                    ma.address_1, ma.address_2, ma.city, ma.state, ma.zip, ma.country
+                FROM guests g
+                LEFT JOIN mailing_addresses ma ON g.mailing_group = ma.mailing_group
+                WHERE g.has_plus_one = 1 AND g.plus_one_rehearsal_invited = 1
+            ) combined
+            ORDER BY group_name, last_name, first_name
         ");
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment; filename="rehearsal-contacts.csv"');
         $out = fopen('php://output', 'w');
-        fputcsv($out, ['First Name', 'Last Name', 'Group', 'Phone', 'Email', 'Address 1', 'Address 2', 'City', 'State', 'Zip', 'Country']);
+        fputcsv($out, ['First Name', 'Last Name', 'Group', 'Mailing Group', 'Phone', 'Email', 'Address 1', 'Address 2', 'City', 'State', 'Zip', 'Country']);
         foreach ($rows as $row) {
             fputcsv($out, $row);
         }
@@ -109,12 +126,13 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upd
         
         $phone = trim($_POST['phone'] ?? '');
         $rehearsalInvited = isset($_POST['rehearsal_invited']) && $_POST['rehearsal_invited'] === '1' ? 1 : 0;
+        $plusOneRehearsalInvited = isset($_POST['plus_one_rehearsal_invited']) && $_POST['plus_one_rehearsal_invited'] === '1' ? 1 : 0;
 
         $stmt = $pdo->prepare("
             UPDATE guests
             SET first_name = ?, last_name = ?, group_name = ?, mailing_group = ?,
                 attending = ?, ceremony_attending = ?, reception_attending = ?, has_plus_one = ?,
-                phone = ?, rehearsal_invited = ?
+                phone = ?, rehearsal_invited = ?, plus_one_rehearsal_invited = ?
             WHERE id = ?
         ");
         $stmt->execute([
@@ -128,6 +146,7 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upd
             $hasPlusOne,
             $phone !== '' ? $phone : null,
             $rehearsalInvited,
+            $plusOneRehearsalInvited,
             (int)$_POST['guest_id'],
         ]);
 
@@ -342,7 +361,7 @@ if ($authenticated) {
                             $includeRow = ($guest['plus_one_reception_attending'] ?? '') === 'no';
                             break;
                         case 'rehearsal':
-                            $includeRow = !empty($guest['rehearsal_invited']);
+                            $includeRow = !empty($guest['plus_one_rehearsal_invited']);
                             break;
                     }
                 }
@@ -364,7 +383,7 @@ if ($authenticated) {
                         'state' => $guest['state'],
                         'zip' => $guest['zip'],
                         'country' => $guest['country'],
-                        'rehearsal_invited' => $guest['rehearsal_invited'],
+                        'rehearsal_invited' => $guest['plus_one_rehearsal_invited'],
                         'is_plus_one' => true,
                     ];
                 }
@@ -408,6 +427,7 @@ if ($authenticated) {
                 ) as reception_declined,
                 (
                     COALESCE(SUM(CASE WHEN rehearsal_invited = 1 THEN 1 ELSE 0 END), 0)
+                    + COALESCE(SUM(CASE WHEN has_plus_one = 1 AND plus_one_rehearsal_invited = 1 THEN 1 ELSE 0 END), 0)
                 ) as rehearsal
             FROM guests
         ");
@@ -1358,6 +1378,14 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                        style="width:auto; margin:0;">
                                 <label for="rehearsal_invited" style="margin:0; cursor:pointer;">Rehearsal</label>
                             </div>
+                            <?php if ($editGuest && !empty($editGuest['has_plus_one'])): ?>
+                            <div class="form-group" style="display:flex; align-items:center; gap:0.5rem; min-width:160px; padding-top:1.8rem;">
+                                <input type="checkbox" id="plus_one_rehearsal_invited" name="plus_one_rehearsal_invited" value="1"
+                                       <?php echo (!empty($editGuest['plus_one_rehearsal_invited'])) ? 'checked' : ''; ?>
+                                       style="width:auto; margin:0;">
+                                <label for="plus_one_rehearsal_invited" style="margin:0; cursor:pointer;">+1 Rehearsal</label>
+                            </div>
+                            <?php endif; ?>
                             <?php if ($editGuest): ?>
                             <div class="form-group">
                                 <label for="phone">Phone</label>
