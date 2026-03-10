@@ -220,10 +220,10 @@ include __DIR__ . '/includes/header.php';
     <div class="modal-content">
         <span class="modal-close">&times;</span>
         <h3>Mark Item as Purchased</h3>
-        <p>Would you like to let others know you've purchased this item?</p>
+        <p>If you've purchased this item, please mark it here so other guests know it's been taken.</p>
         <form id="purchase-form">
             <div class="form-group">
-                <label for="purchaser-name">Your Name (optional)</label>
+                <label for="purchaser-name">Your Name (optional &mdash; only visible to Melissa and Jacob)</label>
                 <input type="text" id="purchaser-name" name="purchaser_name" placeholder="Enter your name">
             </div>
             <input type="hidden" id="purchase-item-id" name="item_id">
