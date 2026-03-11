@@ -217,6 +217,17 @@ Admins should be able to click on the column headers to sort the table by each c
 ## Manage Guests
 There should be a page in the admin area which lets admins manage the invite list. The initial set of data should come from the private/Guest List Feb 10 2026.csv file. This CRUD area should show first name, last name, group number, and RSVP status.
 
+### Adding Guests
+The Add guest form should be hidden by default on the manage guests page, unless the user clicks "Add Guest" to display the add guest form. There should be an X in the top right corner of the add guest form container to fold it after it is opened.
+
+When adding a guest, the Group # field for the guest should show what the next available group # is. 
+
+There should be an "Add guest to group" button in the add guest form. The add guest to group button should display another line to enter another guest's first and last name. This guest will share the same group name and group # of the first line. This is to be used to create households of guests to help manage mailing lists. The group # lets the admins and system know which guests are part of the same group for mailing purposes.
+
+When there are multiple guests being added at once, the text of the "Add guest" button should change to "Add guests".
+
+The Group Name field should, when the user clicks on it to input into it, drop down with options of distinct previously used group names which the user can click to fill the group name field, otherwise they should be able to freely type into the group name field to create a new group name.
+
 ### Editing a Guest
 When editing a guest, the admin should be able to edit the mailing address for the guest group, and the admin should be able to edit a phone number for the guest.
 
@@ -258,7 +269,14 @@ There should be a "Rehearsal" total as well.
 ### Allergy and Song Request Views
 There should be a way in the manage guests area to easily pull up a view that shows all the dietary restrictions (if any) that have been entered into RSVPs.
 
+There should be an "Export Dietary Restrictions" button which exports a list of the guests with dietary restrictions to a CSV file that downloads to the user's device.
+
 There should be a way in the manage guests area to easily view the songs requested. Only one song per RSVP group should show, otherwise many repeats will display.
+
+### Guests by Group View
+There should be a view which shows guest counts by group in a bar chart. This will help the admins know how much each guest group is represented. The x-axis of the chart should have the group names, and the y-axis should show the count of guests in that group, for example, there could be a "J Family Stephens" x-axis item, with a count of 34 if there are 34 guests in that group. The base of the bars in the bar chart should bottom align. The groups in the x-axis of the chart should be ordered alphabetically. 
+
+Guests who have declined the reception should be excluded from the counts for the groups, and there should be a note that this is the case. This is to make the chart more useful to think about who else to invite to get better representation across groups.
 
 ## Manage House Fund
 In the admin area there should be a manage house fund page which allows the user to manage the house fund (CRUD operations on entries).

@@ -78,6 +78,46 @@ if ($authenticated && isset($_GET['export_rehearsal'])) {
     }
 }
 
+// Handle dietary restrictions CSV export
+if ($authenticated && isset($_GET['export_dietary'])) {
+    try {
+        $pdo = getDbConnection();
+        $stmt = $pdo->query("
+            SELECT first_name, last_name, dietary
+            FROM (
+                SELECT g.first_name, g.last_name, g.dietary
+                FROM guests g
+                WHERE g.dietary IS NOT NULL AND g.dietary != ''
+                UNION ALL
+                SELECT
+                    CASE WHEN g.plus_one_name IS NOT NULL AND g.plus_one_name != ''
+                         THEN SUBSTRING_INDEX(g.plus_one_name, ' ', 1)
+                         ELSE CONCAT('(+1 of ', g.first_name, ')') END,
+                    CASE WHEN g.plus_one_name IS NOT NULL AND g.plus_one_name != '' AND LOCATE(' ', g.plus_one_name) > 0
+                         THEN SUBSTRING(g.plus_one_name, LOCATE(' ', g.plus_one_name) + 1)
+                         ELSE '' END,
+                    g.plus_one_dietary
+                FROM guests g
+                WHERE g.has_plus_one = 1 AND g.plus_one_dietary IS NOT NULL AND g.plus_one_dietary != ''
+            ) combined
+            ORDER BY last_name, first_name
+        ");
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="dietary-restrictions.csv"');
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['First Name', 'Last Name', 'Dietary Restriction']);
+        foreach ($rows as $row) {
+            fputcsv($out, $row);
+        }
+        fclose($out);
+        exit;
+    } catch (Exception $e) {
+        $error = 'Error exporting dietary restrictions: ' . htmlspecialchars($e->getMessage());
+    }
+}
+
 // Handle add guest
 if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_guest'])) {
     try {
@@ -89,14 +129,34 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add
         $mailingGroup = trim($_POST['mailing_group'] ?? '');
         $hasPlusOne = isset($_POST['has_plus_one']) && $_POST['has_plus_one'] === '1' ? 1 : 0;
         $rehearsalInvited = isset($_POST['rehearsal_invited']) && $_POST['rehearsal_invited'] === '1' ? 1 : 0;
+        $groupName = trim($_POST['group_name'] ?? '');
+        $mailingGroupVal = $mailingGroup !== '' ? (int)$mailingGroup : null;
         $stmt->execute([
             trim($_POST['first_name'] ?? ''),
             trim($_POST['last_name'] ?? ''),
-            trim($_POST['group_name'] ?? ''),
-            $mailingGroup !== '' ? (int)$mailingGroup : null,
+            $groupName,
+            $mailingGroupVal,
             $hasPlusOne,
             $rehearsalInvited,
         ]);
+
+        // Insert extra guests in the same group
+        $extraFirstNames = $_POST['extra_first_names'] ?? [];
+        $extraLastNames = $_POST['extra_last_names'] ?? [];
+        for ($i = 0; $i < count($extraFirstNames); $i++) {
+            $extraFirst = trim($extraFirstNames[$i] ?? '');
+            if ($extraFirst === '') continue;
+            $extraLast = trim($extraLastNames[$i] ?? '');
+            $stmt->execute([
+                $extraFirst,
+                $extraLast,
+                $groupName,
+                $mailingGroupVal,
+                0,
+                0,
+            ]);
+        }
+
         header('Location: /admin-guests?added=1');
         exit;
     } catch (Exception $e) {
@@ -432,6 +492,14 @@ if ($authenticated) {
             FROM guests
         ");
         $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
+
+        // Get next available mailing group number
+        $nextGroupStmt = $pdo->query("SELECT COALESCE(MAX(mailing_group), 0) + 1 AS next_group FROM guests");
+        $nextGroupNumber = $nextGroupStmt->fetch(PDO::FETCH_ASSOC)['next_group'];
+
+        // Get existing groups for "Add guest to group" feature
+        $groupsStmt = $pdo->query("SELECT DISTINCT mailing_group, group_name FROM guests WHERE mailing_group IS NOT NULL ORDER BY mailing_group ASC");
+        $existingGroups = $groupsStmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
         $error = 'Error loading guests: ' . htmlspecialchars($e->getMessage());
     }
@@ -569,6 +637,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
         .btn-clear:hover { background: #5a6268; color: white; }
         
         .add-guest-form {
+            position: relative;
             background: white;
             padding: 2rem;
             border-radius: 8px;
@@ -1336,7 +1405,13 @@ $page_title = "Manage Guests - Jacob & Melissa";
                 </div>
                 
                 <!-- Add/Edit Guest Form -->
-                <div class="add-guest-form" <?php if ($rsvpGuest): ?>style="display:none;"<?php endif; ?>>
+                <?php if (!$editGuest && !$rsvpGuest): ?>
+                <button type="button" id="show-add-guest-btn" class="btn" style="margin-bottom: 1rem;">Add Guest</button>
+                <?php endif; ?>
+                <div class="add-guest-form" <?php if (!$editGuest || $rsvpGuest): ?>style="display:none;"<?php endif; ?>>
+                    <?php if (!$editGuest): ?>
+                    <button type="button" id="close-add-guest-btn" style="position:absolute; top:0.5rem; right:0.75rem; background:none; border:none; font-size:1.4rem; cursor:pointer; color:#888; line-height:1;" title="Close">&times;</button>
+                    <?php endif; ?>
                     <h2><?php echo $editGuest ? 'Edit Guest' : 'Add Guest'; ?></h2>
                     <form method="POST" action="/admin-guests">
                         <?php if ($editGuest): ?>
@@ -1358,14 +1433,31 @@ $page_title = "Manage Guests - Jacob & Melissa";
                             </div>
                             <div class="form-group">
                                 <label for="group_name">Group Name</label>
-                                <input type="text" id="group_name" name="group_name"
+                                <input type="text" id="group_name" name="group_name" list="group_name_options"
                                        value="<?php echo htmlspecialchars($editGuest['group_name'] ?? ''); ?>">
+                                <datalist id="group_name_options">
+                                    <?php
+                                    $seenNames = [];
+                                    foreach ($existingGroups ?? [] as $grp) {
+                                        $name = $grp['group_name'];
+                                        if ($name !== '' && $name !== null && !isset($seenNames[$name])) {
+                                            $seenNames[$name] = true;
+                                            echo '<option value="' . htmlspecialchars($name) . '">';
+                                        }
+                                    }
+                                    ?>
+                                </datalist>
                             </div>
                             <div class="form-group">
                                 <label for="mailing_group">Mailing Group #</label>
                                 <input type="number" id="mailing_group" name="mailing_group" min="0"
-                                       value="<?php echo htmlspecialchars($editGuest['mailing_group'] ?? ''); ?>">
+                                       value="<?php echo htmlspecialchars($editGuest ? ($editGuest['mailing_group'] ?? '') : ($nextGroupNumber ?? '')); ?>">
                             </div>
+                            <?php if (!$editGuest): ?>
+                            <div class="form-group" style="padding-top:1.8rem;">
+                                <button type="button" id="add-to-group-btn" class="btn-secondary" style="white-space:nowrap;">Add guest to group</button>
+                            </div>
+                            <?php endif; ?>
                             <div class="form-group" style="display:flex; align-items:center; gap:0.5rem; min-width:120px; padding-top:1.8rem;">
                                 <input type="checkbox" id="has_plus_one" name="has_plus_one" value="1"
                                        <?php echo (!empty($editGuest['has_plus_one'])) ? 'checked' : ''; ?>
@@ -1447,15 +1539,36 @@ $page_title = "Manage Guests - Jacob & Melissa";
                             </div>
                         </div>
                         <?php endif; ?>
+                        <?php if (!$editGuest): ?>
+                        <div id="extra-guests-container"></div>
+                        <?php endif; ?>
                         <div class="form-actions">
-                            <button type="submit" class="btn"><?php echo $editGuest ? 'Update Guest' : 'Add Guest'; ?></button>
+                            <button type="submit" class="btn" <?php if (!$editGuest): ?>id="add-guest-submit"<?php endif; ?>><?php echo $editGuest ? 'Update Guest' : 'Add Guest'; ?></button>
                             <?php if ($editGuest): ?>
                                 <a href="/admin-guests" class="btn-secondary">Cancel</a>
                             <?php endif; ?>
                         </div>
                     </form>
                 </div>
-                
+                <script>
+                (function() {
+                    var btn = document.getElementById('show-add-guest-btn');
+                    if (!btn) return;
+                    var form = document.querySelector('.add-guest-form');
+                    var closeBtn = document.getElementById('close-add-guest-btn');
+                    btn.addEventListener('click', function() {
+                        form.style.display = '';
+                        btn.style.display = 'none';
+                    });
+                    if (closeBtn) {
+                        closeBtn.addEventListener('click', function() {
+                            form.style.display = 'none';
+                            btn.style.display = '';
+                        });
+                    }
+                })();
+                </script>
+
                 <!-- Search/Filter -->
                 <form method="GET" action="/admin-guests" class="filters-bar">
                     <input type="text" name="search" id="guest-search-input" placeholder="Search name..."
@@ -1469,7 +1582,10 @@ $page_title = "Manage Guests - Jacob & Melissa";
                 <!-- Dietary Restrictions View -->
                 <button type="button" id="dietary-toggle" class="btn-filter" style="margin-bottom: 1rem;">View Dietary Restrictions</button>
                 <div id="dietary-panel" style="display: none; margin-bottom: 1.5rem; background: #f9f9f6; border: 1px solid #ddd; border-radius: 8px; padding: 1rem;">
-                    <h3 style="margin: 0 0 0.75rem;">Dietary Restrictions</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h3 style="margin: 0;">Dietary Restrictions</h3>
+                        <a href="/admin-guests?export_dietary=1" class="btn-secondary" style="text-decoration: none; font-size: 0.9rem;">Export Dietary Restrictions</a>
+                    </div>
                     <?php
                     $dietaryEntries = [];
                     foreach ($guests as $g) {
@@ -1532,7 +1648,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
                             if (isset($seenGroups[$groupKey])) continue;
                             $seenGroups[$groupKey] = true;
                             $songEntries[] = [
-                                'name' => !empty($g['group_name']) ? htmlspecialchars($g['group_name']) : htmlspecialchars($g['first_name'] . ' ' . $g['last_name']),
+                                'name' => htmlspecialchars($g['first_name'] . ' ' . $g['last_name']),
                                 'song' => htmlspecialchars($g['song_request']),
                             ];
                         }
@@ -1569,6 +1685,64 @@ $page_title = "Manage Guests - Jacob & Melissa";
 
                 <!-- Export Rehearsal Contacts -->
                 <a href="/admin-guests?export_rehearsal=1" class="btn-filter" style="margin-bottom: 1rem; display: inline-block; text-decoration: none;">Export Rehearsal Contacts</a>
+
+                <!-- Guests by Group View -->
+                <button type="button" id="groups-toggle" class="btn-filter" style="margin-bottom: 1rem;">View Guests by Group</button>
+                <div id="groups-panel" style="display: none; margin-bottom: 1.5rem; background: #f9f9f6; border: 1px solid #ddd; border-radius: 8px; padding: 1rem;">
+                    <h3 style="margin: 0 0 0.75rem;">Guests by Group</h3>
+                    <?php
+                    $groupCounts = [];
+                    foreach ($guests as $g) {
+                        if (!empty($g['is_plus_one'])) continue;
+                        $groupName = !empty($g['group_name']) ? $g['group_name'] : '(No group)';
+                        $key = $groupName;
+                        if (!isset($groupCounts[$key])) {
+                            $groupCounts[$key] = 0;
+                        }
+                        if (($g['reception_attending'] ?? '') !== 'no') {
+                            $groupCounts[$key]++;
+                        }
+                        if (!empty($g['has_plus_one']) && ($g['plus_one_reception_attending'] ?? '') !== 'no') {
+                            $groupCounts[$key]++;
+                        }
+                    }
+                    ksort($groupCounts, SORT_NATURAL | SORT_FLAG_CASE);
+                    $maxCount = !empty($groupCounts) ? max($groupCounts) : 1;
+                    if (empty($groupCounts)): ?>
+                        <p style="color: #666;">No guests found.</p>
+                    <?php else: ?>
+                        <div style="overflow-x: auto;">
+                            <div style="min-width: <?php echo max(count($groupCounts) * 60, 300); ?>px; padding: 0 0.5rem;">
+                                <div style="display: flex; align-items: flex-end; gap: 4px; height: 200px; border-bottom: 2px solid #ccc;">
+                                    <?php foreach ($groupCounts as $name => $count):
+                                        $pct = ($count / $maxCount) * 100;
+                                    ?>
+                                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-width: 50px; height: 100%;">
+                                        <span style="font-size: 0.8rem; font-weight: bold; margin-bottom: 2px;"><?php echo $count; ?></span>
+                                        <div style="width: 80%; background: var(--color-green); border-radius: 4px 4px 0 0; height: <?php echo max($pct, 2); ?>%;" title="<?php echo htmlspecialchars($name) . ': ' . $count; ?>"></div>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <div style="display: flex; gap: 4px;">
+                                    <?php foreach ($groupCounts as $name => $count): ?>
+                                    <div style="flex: 1; min-width: 50px; text-align: center;">
+                                        <span style="font-size: 0.7rem; display: inline-block; margin-top: 4px; writing-mode: vertical-lr; transform: rotate(180deg); max-height: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?php echo htmlspecialchars($name); ?>"><?php echo htmlspecialchars($name); ?></span>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin: 0.75rem 0 0; font-style: italic;">Note: Guests who have declined the reception are excluded from these counts.</p>
+                    <?php endif; ?>
+                </div>
+                <script>
+                document.getElementById('groups-toggle').addEventListener('click', function() {
+                    var panel = document.getElementById('groups-panel');
+                    var visible = panel.style.display !== 'none';
+                    panel.style.display = visible ? 'none' : 'block';
+                    this.textContent = visible ? 'View Guests by Group' : 'Hide Guests by Group';
+                });
+                </script>
 
                 <!-- Guests Table -->
                 <span id="guests-table" class="guest-count-label">Showing <?php echo count($guests); ?> guest<?php echo count($guests) !== 1 ? 's' : ''; ?></span>
@@ -1693,6 +1867,46 @@ $page_title = "Manage Guests - Jacob & Melissa";
         if (countLabel) {
             countLabel.textContent = 'Showing ' + visible + ' guest' + (visible !== 1 ? 's' : '');
         }
+    });
+})();
+
+// Add guest to group
+(function() {
+    var btn = document.getElementById('add-to-group-btn');
+    var container = document.getElementById('extra-guests-container');
+    var submitBtn = document.getElementById('add-guest-submit');
+    if (!btn || !container) return;
+    var count = 0;
+
+    function updateSubmitText() {
+        if (!submitBtn) return;
+        submitBtn.textContent = container.children.length > 0 ? 'Add Guests' : 'Add Guest';
+    }
+
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        count++;
+        var row = document.createElement('div');
+        row.className = 'form-row';
+        row.style.alignItems = 'flex-end';
+        row.innerHTML =
+            '<div class="form-group required">' +
+                '<label for="extra_first_name_' + count + '">First Name</label>' +
+                '<input type="text" id="extra_first_name_' + count + '" name="extra_first_names[]" required>' +
+            '</div>' +
+            '<div class="form-group">' +
+                '<label for="extra_last_name_' + count + '">Last Name</label>' +
+                '<input type="text" id="extra_last_name_' + count + '" name="extra_last_names[]">' +
+            '</div>' +
+            '<div class="form-group" style="padding-bottom:0.25rem;">' +
+                '<button type="button" class="btn-secondary remove-extra-guest" style="color:#8b0000;">Remove</button>' +
+            '</div>';
+        container.appendChild(row);
+        updateSubmitText();
+        row.querySelector('.remove-extra-guest').addEventListener('click', function() {
+            container.removeChild(row);
+            updateSubmitText();
+        });
     });
 })();
 </script>
