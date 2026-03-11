@@ -212,8 +212,24 @@ There should be a password protected page accessible at https://wedding.stephens
 
 There should be a link on the logged in and logged out view of this page which takes the user back to the main site.
 
+Admins should be able to click on the column headers to sort the table by each column.
+
 ## Manage Guests
 There should be a page in the admin area which lets admins manage the invite list. The initial set of data should come from the private/Guest List Feb 10 2026.csv file. This CRUD area should show first name, last name, group number, and RSVP status.
+
+### Editing a Guest
+When editing a guest, the admin should be able to edit the mailing address for the guest group, and the admin should be able to edit a phone number for the guest.
+
+#### Giving a guest a plus one
+Admins should be able to give guests a plus one. If a guest has a plus one, then when they look themself up in the invite lookup of the RSVP page, they should see their name as well as a blank name field for their plus one. They should be able to indicate whether or not they are bringing a plus one.
+
+#### Entering an RSVP from the admin area
+We are receiving RSVP cards by mail, and we want to input those RSVPs into the system to keep track of our guest count. There should be a way to input RSVPs from the admin area. This admin RSVP input should have optional email address input.
+
+#### Rehearsal Invite and Export
+When editing a guest, the admin should be able to mark a guest as invited to the rehearsal. Correspondingly, there should be a button called "Export Rehearsal Contacts", which exports a CSV with contact information about the guests who are invited to the rehearsal. This will help send invitations to rehearsal guests. The CSV export should have a column called "Mailing Group", which should carry the Group # value for the guest.
+
+For guests with a plus one, the admin should be able to mark whether or not the plus one is invited to the rehearsal.
 
 ### Guests Table
 The header columns of the guest management page (/admin-guests) should stay sticky at the top of the page on scroll so the admin can continue to see what each column is as they scroll down.
@@ -243,20 +259,6 @@ There should be a "Rehearsal" total as well.
 There should be a way in the manage guests area to easily pull up a view that shows all the dietary restrictions (if any) that have been entered into RSVPs.
 
 There should be a way in the manage guests area to easily view the songs requested. Only one song per RSVP group should show, otherwise many repeats will display.
-
-### Editing a Guest
-When editing a guest, the admin should be able to edit the mailing address for the guest group, and the admin should be able to edit a phone number for the guest.
-
-#### Giving a guest a plus one
-Admins should be able to give guests a plus one. If a guest has a plus one, then when they look themself up in the invite lookup of the RSVP page, they should see their name as well as a blank name field for their plus one. They should be able to indicate whether or not they are bringing a plus one.
-
-#### Entering an RSVP from the admin area
-We are receiving RSVP cards by mail, and we want to input those RSVPs into the system to keep track of our guest count. There should be a way to input RSVPs from the admin area. This admin RSVP input should have optional email address input.
-
-#### Rehearsal Invite and Export
-When editing a guest, the admin should be able to mark a guest as invited to the rehearsal. Correspondingly, there should be a button called "Export Rehearsal Contacts", which exports a CSV with contact information about the guests who are invited to the rehearsal. This will help send invitations to rehearsal guests. The CSV export should have a column called "Mailing Group", which should carry the Group # value for the guest.
-
-For guests with a plus one, the admin should be able to mark whether or not the plus one is invited to the rehearsal.
 
 ## Manage House Fund
 In the admin area there should be a manage house fund page which allows the user to manage the house fund (CRUD operations on entries).

@@ -47,16 +47,26 @@ if (isset($_GET['logout'])) {
 $guestRsvps = [];
 $guestStats = ['total' => 0, 'attending' => 0, 'declined' => 0, 'pending' => 0];
 if ($authenticated) {
+    // Sorting
+    $sort = $_GET['sort'] ?? 'rsvp_submitted_at';
+    $order = $_GET['order'] ?? 'DESC';
+
+    $allowedSorts = ['first_name', 'last_name', 'group_name', 'ceremony_attending', 'reception_attending', 'dietary', 'song_request', 'email', 'rsvp_submitted_at'];
+    if (!in_array($sort, $allowedSorts)) {
+        $sort = 'rsvp_submitted_at';
+    }
+    $order = ($order === 'DESC') ? 'DESC' : 'ASC';
+
     try {
         $pdo = getDbConnection();
-        
+
         $stmt = $pdo->query("
             SELECT id, first_name, last_name, mailing_group, group_name, attending, ceremony_attending, reception_attending,
                    dietary, song_request, message, email, rsvp_submitted_at,
                    has_plus_one, plus_one_name, plus_one_attending, plus_one_ceremony_attending, plus_one_reception_attending, plus_one_dietary
             FROM guests
             WHERE rsvp_submitted_at IS NOT NULL
-            ORDER BY rsvp_submitted_at DESC
+            ORDER BY $sort $order, id ASC
         ");
         $guestRsvps = $stmt->fetchAll();
         
@@ -116,6 +126,21 @@ $page_title = "Check RSVPs - Jacob & Melissa";
             background-color: var(--color-green);
             color: white;
             font-weight: bold;
+        }
+        .rsvp-table th a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .rsvp-table th a:hover {
+            background: rgba(0,0,0,0.1);
+        }
+        .sort-indicator {
+            font-size: 0.7rem;
+            margin-left: 0.3rem;
+            opacity: 0.7;
         }
         .rsvp-table tr:hover {
             background-color: #f5f5f5;
@@ -265,18 +290,32 @@ $page_title = "Check RSVPs - Jacob & Melissa";
                             if ($ceremony === 'no' && $reception === 'no') return 'None';
                             return '—';
                         }
+                        function getRsvpSortUrl($field, $currentSort, $currentOrder) {
+                            $params = $_GET;
+                            if ($currentSort === $field) {
+                                $params['order'] = ($currentOrder === 'ASC') ? 'DESC' : 'ASC';
+                            } else {
+                                $params['sort'] = $field;
+                                $params['order'] = 'ASC';
+                            }
+                            return '/check-rsvps?' . http_build_query($params);
+                        }
+                        function getRsvpSortIndicator($field, $currentSort, $currentOrder) {
+                            if ($currentSort !== $field) return '';
+                            return $currentOrder === 'ASC' ? ' <span class="sort-indicator">▲</span>' : ' <span class="sort-indicator">▼</span>';
+                        }
                         ?>
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Group</th>
-                                <th>Ceremony</th>
-                                <th>Reception</th>
-                                <th>Dietary</th>
-                                <th>Song Request</th>
+                                <th><a href="<?php echo getRsvpSortUrl('first_name', $sort, $order); ?>">Name<?php echo getRsvpSortIndicator('first_name', $sort, $order); ?></a></th>
+                                <th><a href="<?php echo getRsvpSortUrl('group_name', $sort, $order); ?>">Group<?php echo getRsvpSortIndicator('group_name', $sort, $order); ?></a></th>
+                                <th><a href="<?php echo getRsvpSortUrl('ceremony_attending', $sort, $order); ?>">Ceremony<?php echo getRsvpSortIndicator('ceremony_attending', $sort, $order); ?></a></th>
+                                <th><a href="<?php echo getRsvpSortUrl('reception_attending', $sort, $order); ?>">Reception<?php echo getRsvpSortIndicator('reception_attending', $sort, $order); ?></a></th>
+                                <th><a href="<?php echo getRsvpSortUrl('dietary', $sort, $order); ?>">Dietary<?php echo getRsvpSortIndicator('dietary', $sort, $order); ?></a></th>
+                                <th><a href="<?php echo getRsvpSortUrl('song_request', $sort, $order); ?>">Song Request<?php echo getRsvpSortIndicator('song_request', $sort, $order); ?></a></th>
                                 <th>Message</th>
-                                <th>Email</th>
-                                <th>Submitted</th>
+                                <th><a href="<?php echo getRsvpSortUrl('email', $sort, $order); ?>">Email<?php echo getRsvpSortIndicator('email', $sort, $order); ?></a></th>
+                                <th><a href="<?php echo getRsvpSortUrl('rsvp_submitted_at', $sort, $order); ?>">Submitted<?php echo getRsvpSortIndicator('rsvp_submitted_at', $sort, $order); ?></a></th>
                             </tr>
                         </thead>
                         <tbody>
