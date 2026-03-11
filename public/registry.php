@@ -223,7 +223,7 @@ include __DIR__ . '/includes/header.php';
         <p>If you've purchased this item, please mark it here so other guests know it's been taken.</p>
         <form id="purchase-form">
             <div class="form-group">
-                <label for="purchaser-name">Your Name (optional &mdash; only visible to Melissa and Jacob)</label>
+                <label for="purchaser-name">Your Name (only visible to Melissa and Jacob)</label>
                 <input type="text" id="purchaser-name" name="purchaser_name" placeholder="Enter your name">
             </div>
             <input type="hidden" id="purchase-item-id" name="item_id">
