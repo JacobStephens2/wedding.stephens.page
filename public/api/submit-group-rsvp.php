@@ -185,7 +185,7 @@ try {
     if (!empty($songRequest)) {
         $emailBody .= "Song Request: $songRequest\n";
     }
-    $emailBody .= "\nCheck RSVPs at https://wedding.stephens.page/check-rsvps";
+    $emailBody .= "\nManage guests at https://wedding.stephens.page/admin-guests";
     
     $subject = 'New RSVP - ' . (count($guestNames) > 0 ? $guestNames[0] : 'Unknown');
     

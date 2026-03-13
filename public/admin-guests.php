@@ -1686,10 +1686,10 @@ $page_title = "Manage Guests - Jacob & Melissa";
                 <!-- Export Rehearsal Contacts -->
                 <a href="/admin-guests?export_rehearsal=1" class="btn-filter" style="margin-bottom: 1rem; display: inline-block; text-decoration: none;">Export Rehearsal Contacts</a>
 
-                <!-- Guests by Group View -->
-                <button type="button" id="groups-toggle" class="btn-filter" style="margin-bottom: 1rem;">View Guests by Group</button>
+                <!-- Reception Guests by Group View -->
+                <button type="button" id="groups-toggle" class="btn-filter" style="margin-bottom: 1rem;">View Reception Guests by Group</button>
                 <div id="groups-panel" style="display: none; margin-bottom: 1.5rem; background: #f9f9f6; border: 1px solid #ddd; border-radius: 8px; padding: 1rem;">
-                    <h3 style="margin: 0 0 0.75rem;">Guests by Group</h3>
+                    <h3 style="margin: 0 0 0.75rem;">Reception Guests by Group</h3>
                     <?php
                     $groupCounts = [];
                     foreach ($guests as $g) {
@@ -1717,7 +1717,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                     <?php foreach ($groupCounts as $name => $count):
                                         $pct = ($count / $maxCount) * 100;
                                     ?>
-                                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-width: 50px; height: 100%;">
+                                    <div class="chart-bar-col" data-group-name="<?php echo htmlspecialchars($name); ?>" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-width: 50px; height: 100%; cursor: pointer;">
                                         <span style="font-size: 0.8rem; font-weight: bold; margin-bottom: 2px;"><?php echo $count; ?></span>
                                         <div style="width: 80%; background: var(--color-green); border-radius: 4px 4px 0 0; height: <?php echo max($pct, 2); ?>%;" title="<?php echo htmlspecialchars($name) . ': ' . $count; ?>"></div>
                                     </div>
@@ -1732,6 +1732,28 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                 </div>
                             </div>
                         </div>
+                        <?php
+                        $jTotal = 0; $mTotal = 0; $usTotal = 0;
+                        foreach ($groupCounts as $name => $count) {
+                            if (strncasecmp($name, 'J', 1) === 0) $jTotal += $count;
+                            if (strncasecmp($name, 'M', 1) === 0) $mTotal += $count;
+                            if (strncasecmp($name, 'Us', 2) === 0) $usTotal += $count;
+                        }
+                        ?>
+                        <div style="display: flex; gap: 1.5rem; margin-top: 1rem; padding: 0.75rem; background: white; border-radius: 6px; border: 1px solid #ddd;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: bold; color: var(--color-green);"><?php echo $jTotal; ?></div>
+                                <div style="font-size: 0.8rem; color: #666;">J Group Guests</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: bold; color: var(--color-green);"><?php echo $mTotal; ?></div>
+                                <div style="font-size: 0.8rem; color: #666;">M Group Guests</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: bold; color: var(--color-green);"><?php echo $usTotal; ?></div>
+                                <div style="font-size: 0.8rem; color: #666;">Us Group Guests</div>
+                            </div>
+                        </div>
                         <p style="font-size: 0.8rem; color: #888; margin: 0.75rem 0 0; font-style: italic;">Note: Guests who have declined the reception are excluded from these counts.</p>
                     <?php endif; ?>
                 </div>
@@ -1740,7 +1762,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
                     var panel = document.getElementById('groups-panel');
                     var visible = panel.style.display !== 'none';
                     panel.style.display = visible ? 'none' : 'block';
-                    this.textContent = visible ? 'View Guests by Group' : 'Hide Guests by Group';
+                    this.textContent = visible ? 'View Reception Guests by Group' : 'Hide Reception Guests by Group';
                 });
                 </script>
 
@@ -1785,7 +1807,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                 $isGroupStart = !$isPlusOne && ($guest['mailing_group'] !== null && $guest['mailing_group'] != $lastGroup);
                                 if (!$isPlusOne) $lastGroup = $guest['mailing_group'];
                             ?>
-                                <tr class="<?php echo $isGroupStart ? 'group-start' : ''; ?><?php echo $isPlusOne ? ' plus-one-row' : ''; ?>">
+                                <tr class="<?php echo $isGroupStart ? 'group-start' : ''; ?><?php echo $isPlusOne ? ' plus-one-row' : ''; ?>" data-group-name="<?php echo htmlspecialchars($guest['group_name']); ?>">
                                     <td><?php echo htmlspecialchars($guest['first_name']); ?></td>
                                     <td><?php echo htmlspecialchars($guest['last_name']); ?></td>
                                     <td><?php echo $guest['mailing_group'] !== null ? htmlspecialchars($guest['mailing_group']) : '—'; ?></td>
@@ -1867,6 +1889,54 @@ $page_title = "Manage Guests - Jacob & Melissa";
         if (countLabel) {
             countLabel.textContent = 'Showing ' + visible + ' guest' + (visible !== 1 ? 's' : '');
         }
+    });
+})();
+
+// Chart bar click to filter table by group
+(function() {
+    var bars = document.querySelectorAll('.chart-bar-col');
+    if (!bars.length) return;
+    var table = document.querySelector('.guests-table');
+    if (!table) return;
+    var rows = table.querySelectorAll('tbody tr');
+    var countLabel = document.querySelector('.guest-count-label');
+    var activeGroup = null;
+
+    bars.forEach(function(bar) {
+        bar.addEventListener('click', function() {
+            var groupName = this.dataset.groupName;
+            if (activeGroup === groupName) {
+                // Deselect — show all
+                activeGroup = null;
+                bars.forEach(function(b) { b.style.opacity = ''; });
+                rows.forEach(function(row) { row.style.display = ''; });
+            } else {
+                activeGroup = groupName;
+                bars.forEach(function(b) {
+                    b.style.opacity = b.dataset.groupName === groupName ? '1' : '0.3';
+                });
+                var visible = 0;
+                rows.forEach(function(row) {
+                    if (row.querySelector('td[colspan]')) { row.style.display = 'none'; return; }
+                    var match = row.dataset.groupName === groupName;
+                    row.style.display = match ? '' : 'none';
+                    if (match) visible++;
+                });
+                if (countLabel) {
+                    countLabel.textContent = 'Showing ' + visible + ' guest' + (visible !== 1 ? 's' : '') + ' in "' + groupName + '"';
+                }
+                document.getElementById('guests-table').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+            // Reset count label
+            var visible = 0;
+            rows.forEach(function(row) {
+                if (!row.querySelector('td[colspan]')) visible++;
+            });
+            if (countLabel) {
+                countLabel.textContent = 'Showing ' + visible + ' guest' + (visible !== 1 ? 's' : '');
+            }
+        });
     });
 })();
 

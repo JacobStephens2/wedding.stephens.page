@@ -46,6 +46,7 @@ function sendEmail($to, $subject, $body, $replyTo = null) {
         }
         
         // Content
+        $mail->CharSet = 'UTF-8';
         $mail->isHTML(false);
         $mail->Subject = $subject;
         $mail->Body = $body;

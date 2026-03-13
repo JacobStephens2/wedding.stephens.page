@@ -41,7 +41,7 @@ The [Days] should be the number of days from now until April 11, 2026.
 
 
 ## RSVP
-There should be a page which lets visitors to the website RSVP. If a visitor RSVPs, an email notification of the reservation should be sent to melissa.longua@gmail.com.
+There should be a page which lets visitors to the website RSVP. If a visitor RSVPs, an email notification of the reservation should be sent to melissa.longua@gmail.com and jacob@stephens.page.
 
 The top of this page should note the locations of the wedding:
 
@@ -56,6 +56,11 @@ By the message field, ask if the filler has a request for a song which would get
 The user should be able to RSVP for both the ceremony and the reception separately, in case they can attend one but not the other. The guest management area should indicate total guests attending the ceremony and reception and also allow admins to manually mark users' RSVPs for ceremony and reception separately.
 
 All RSVPs that existed prior to the ceremony/reception split were assumed to apply to both events (migrated via `private/sql/add_ceremony_reception_columns.sql`).
+
+### RSVP Notice Email
+The email that notifies Jacob and Melissa of the new rsvp should indicate whether the guest is RSVP-ing for the reception and the ceremony or just one or the other.
+
+This email should have a link to the manage guests page (not to the Check RSVPs page).
 
 ### Invite Lookup
 Like the way The Knot does it, such as at https://www.theknot.com/us/madison-scott-and-hunter-fellows-2026-06-06-9633b0cd-0fc4-4916-aa1d-f3a46eb648db/rsvp, the user should have to look up their name in the RSVP form to complete the RSVP for themselves.
@@ -273,10 +278,14 @@ There should be an "Export Dietary Restrictions" button which exports a list of 
 
 There should be a way in the manage guests area to easily view the songs requested. Only one song per RSVP group should show, otherwise many repeats will display.
 
-### Guests by Group View
+### Reception Guests by Group View
 There should be a view which shows guest counts by group in a bar chart. This will help the admins know how much each guest group is represented. The x-axis of the chart should have the group names, and the y-axis should show the count of guests in that group, for example, there could be a "J Family Stephens" x-axis item, with a count of 34 if there are 34 guests in that group. The base of the bars in the bar chart should bottom align. The groups in the x-axis of the chart should be ordered alphabetically. 
 
+The user should be able to click a bar in the chart to view in the table below the guests who are part of that group.
+
 Guests who have declined the reception should be excluded from the counts for the groups, and there should be a note that this is the case. This is to make the chart more useful to think about who else to invite to get better representation across groups.
+
+The Guests By Group View should include summary stats which total the guests in the groups which start with a "J", which start with an "M", and which start with an "Us". This helps understand how many guests from each side are represented.
 
 ## Manage House Fund
 In the admin area there should be a manage house fund page which allows the user to manage the house fund (CRUD operations on entries).
