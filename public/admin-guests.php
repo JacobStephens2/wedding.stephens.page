@@ -1361,8 +1361,8 @@ $page_title = "Manage Guests - Jacob & Melissa";
                     </div>
                     <div class="stat-item">
                         <a href="/admin-guests?status_filter=not_declined" class="stat-link">
-                            <span class="stat-number"><?php echo $stats['total'] - $stats['declined']; ?></span>
-                            <span class="stat-label">Max if Pending Say Yes</span>
+                            <span class="stat-number"><?php echo $stats['reception'] + $stats['pending']; ?></span>
+                            <span class="stat-label">Max Reception if Pending Say Yes</span>
                         </a>
                     </div>
                 </div>

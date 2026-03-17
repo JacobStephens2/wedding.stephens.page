@@ -263,7 +263,7 @@ The area at the top of the guest management page should include plus ones in the
 
 The guest count totals should include total declined by reception and declined by ceremony.
 
-The guest count totals area should include a "Total if all Pending Say Yes" to let us know what our current maximum yes is in light of the declines we've received so far.
+The guest count totals area should include a "Max Reception if all Pending Say Yes" to let us know what our current maximum yes is in light of the declines we've received so far. This stat should equal yeses to the reception plus pending.
 
 In the container which shows the RSVP counts by ceremony and reception, the admin should be able to click on one of these numbers to display those guests in the table below.
 
