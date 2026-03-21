@@ -398,6 +398,10 @@ $page_title = "Seating Chart - Jacob & Melissa";
         .table-header:hover { background-color: #3d6b2e; }
         .table-header h3 { margin: 0; font-size: 1.1rem; }
         .table-header .table-meta { font-size: 0.9rem; opacity: 0.9; }
+        .seat-remaining-badge { font-size: 0.75rem; margin-left: 0.5rem; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 600; }
+        .seat-remaining-badge.seats-available { background: rgba(255,255,255,0.25); color: #fff; }
+        .seat-remaining-badge.seats-full { background: #c0392b; color: #fff; }
+        .seat-remaining-badge.seats-over { background: #e74c3c; color: #fff; }
         .table-body { padding: 0; }
         .table-body.collapsed { display: none; }
         .table-description {
@@ -831,7 +835,16 @@ $page_title = "Seating Chart - Jacob & Melissa";
                                 Table <?php echo $tableNum; ?> &mdash;
                                 <span class="editable" onclick="event.stopPropagation(); editTableName(<?php echo $table['table_id']; ?>, this)"><?php echo htmlspecialchars($table['table_name']); ?></span>
                             </h3>
-                            <span class="table-meta" id="meta-<?php echo $table['table_id']; ?>"><?php echo $totalAtTable; ?> / <?php echo $table['capacity']; ?> seats</span>
+                            <span class="table-meta" id="meta-<?php echo $table['table_id']; ?>"><?php echo $totalAtTable; ?> / <?php echo $table['capacity']; ?> seats<?php
+                                $remaining = $table['capacity'] - $totalAtTable;
+                                if ($remaining > 0): ?>
+                                    <span class="seat-remaining-badge seats-available"><?php echo $remaining; ?> remaining</span>
+                                <?php elseif ($remaining === 0): ?>
+                                    <span class="seat-remaining-badge seats-full">Full</span>
+                                <?php else: ?>
+                                    <span class="seat-remaining-badge seats-over">Over by <?php echo abs($remaining); ?></span>
+                                <?php endif; ?>
+                            </span>
                         </div>
                         <div class="table-body collapsed" id="tbody-<?php echo $table['table_id']; ?>">
                             <?php if (!empty($table['notes'])): ?>
