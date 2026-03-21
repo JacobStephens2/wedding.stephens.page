@@ -75,7 +75,7 @@ include __DIR__ . '/includes/header.php';
     <!-- Step 3: Success -->
     <div class="form-container" id="step-success" style="display:none;">
         <div class="alert alert-success">
-            <p>Thank you for your RSVP! We've received your response and look forward to celebrating with you.</p>
+            <p id="success-message">Thank you for your RSVP! We've received your response and look forward to celebrating with you.</p>
         </div>
         <div id="rsvp-summary" class="rsvp-summary">
             <!-- Populated by JS -->
@@ -292,6 +292,12 @@ include __DIR__ . '/includes/header.php';
     .rsvp-summary-item:last-child {
         border-bottom: none;
     }
+    .rsvp-summary-note {
+        margin-top: 1.25rem;
+        font-size: 0.95rem;
+        color: #888;
+        font-style: italic;
+    }
     
     /* Loading state */
     .btn.loading {
@@ -369,6 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let selectedGuestId = null;
     let groupMembers = [];
+    let isUpdate = false;
     
     // Search for guests
     async function searchGuests() {
@@ -393,7 +400,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 let html = '<h3>Select your name:</h3>';
                 data.guests.forEach(function(guest) {
                     const fullName = guest.first_name + (guest.last_name ? ' ' + guest.last_name : '');
-                    const rsvpd = guest.rsvp_submitted_at ? '<span class="search-result-rsvpd">Already RSVPd</span>' : '';
+                    const rsvpd = guest.rsvp_submitted_at ? '<span class="search-result-rsvpd">RSVPd — click to update</span>' : '';
                     html += '<div class="search-result-item" data-guest-id="' + guest.id + '">'
                          + '<div>'
                          + '<span class="search-result-name">' + escapeHtml(fullName) + '</span>'
@@ -437,7 +444,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             groupMembers = data.group_members;
-            
+
+            // Detect if this is an update (any member has already submitted)
+            isUpdate = groupMembers.some(function(m) { return !!m.rsvp_submitted_at; });
+
+            // Update heading and submit button text based on update vs first-time
+            document.querySelector('#step-rsvp .rsvp-step-title').textContent = isUpdate ? 'Update Your RSVP' : 'RSVP for Your Party';
+            btnSubmit.textContent = isUpdate ? 'Update RSVP' : 'Submit RSVP';
+
             // Build group RSVP form
             const selectedName = data.selected_guest.first_name + ' ' + (data.selected_guest.last_name || '');
             if (groupMembers.length > 1) {
@@ -673,7 +687,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show success
                 stepRsvp.style.display = 'none';
                 stepSuccess.style.display = 'block';
-                
+
+                // Set success message based on update vs first-time
+                document.getElementById('success-message').textContent = isUpdate
+                    ? "Your RSVP has been updated! We've received your changes."
+                    : "Thank you for your RSVP! We've received your response and look forward to celebrating with you.";
+
                 // Build summary
                 function eventSummaryLabel(ceremony, reception) {
                     var events = [];
@@ -691,7 +710,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             + '<span>' + escapeHtml(name) + '</span>'
                             + '<span>' + eventSummaryLabel(gd.ceremony_attending, gd.reception_attending) + '</span>'
                             + '</div>';
-                        
+                        if (gd.dietary) {
+                            summaryHtml += '<div class="rsvp-summary-item">'
+                                + '<span>&nbsp;&nbsp;Dietary: ' + escapeHtml(gd.dietary) + '</span>'
+                                + '</div>';
+                        }
+
                         if (gd.plus_one_ceremony_attending || gd.plus_one_reception_attending) {
                             const poLabel = gd.plus_one_name || ('Guest of ' + member.first_name);
                             const poCeremony = gd.plus_one_ceremony_attending;
@@ -700,9 +724,20 @@ document.addEventListener('DOMContentLoaded', function() {
                                 + '<span>' + escapeHtml(poLabel) + ' (guest)</span>'
                                 + '<span>' + eventSummaryLabel(poCeremony, poReception) + '</span>'
                                 + '</div>';
+                            if (gd.plus_one_dietary) {
+                                summaryHtml += '<div class="rsvp-summary-item">'
+                                    + '<span>&nbsp;&nbsp;Dietary: ' + escapeHtml(gd.plus_one_dietary) + '</span>'
+                                    + '</div>';
+                            }
                         }
                     }
                 });
+                if (songRequest) {
+                    summaryHtml += '<div class="rsvp-summary-item" style="margin-top: 0.75rem;">'
+                        + '<span>Song Request: ' + escapeHtml(songRequest) + '</span>'
+                        + '</div>';
+                }
+                summaryHtml += '<p class="rsvp-summary-note">Need to make changes? Just search for your name again to update your RSVP.</p>';
                 document.getElementById('rsvp-summary').innerHTML = summaryHtml;
                 
                 stepSuccess.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -715,7 +750,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         btnSubmit.classList.remove('loading');
-        btnSubmit.textContent = 'Submit RSVP';
+        btnSubmit.textContent = isUpdate ? 'Update RSVP' : 'Submit RSVP';
     }
     
     function showRsvpError(msg) {
