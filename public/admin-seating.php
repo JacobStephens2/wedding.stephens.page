@@ -764,6 +764,10 @@ $page_title = "Seating Chart - Jacob & Melissa";
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
                         Floor Plan Image
                     </button>
+                    <label style="display:flex; align-items:center; gap:0.35rem; font-size:0.85rem; color:#555; cursor:pointer;">
+                        <input type="checkbox" id="export-include-names" style="width:auto; margin:0;">
+                        Include guest names
+                    </label>
                     <a class="export-btn" href="/admin-seating?export=csv" title="Download spreadsheet">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
                         CSV Spreadsheet
@@ -1395,8 +1399,10 @@ $page_title = "Seating Chart - Jacob & Melissa";
     // ---- Visual floor plan export ----
     function exportVisual() {
         const d = exportData;
+        const includeNames = document.getElementById('export-include-names').checked;
         const canvas = document.getElementById('export-canvas');
-        const W = 1200, H = 700;
+        const W = includeNames ? 1800 : 1200;
+        const H = includeNames ? 1050 : 700;
         canvas.width = W;
         canvas.height = H;
         const ctx = canvas.getContext('2d');
@@ -1437,7 +1443,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
         ctx.fillText('DJ', W / 2, djY + 4);
 
         // Tables
-        const tableR = 38;
+        const tableR = includeNames ? 48 : 38;
         const green = '#4d6b2e';
         const red = '#b44';
 
@@ -1485,6 +1491,28 @@ $page_title = "Seating Chart - Jacob & Melissa";
                 nameLines.forEach((line, i) => {
                     ctx.fillText(line, cx, cy + tableR + 14 + i * 12);
                 });
+
+                // Guest names around the table
+                if (includeNames && t.guests.length > 0) {
+                    ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+                    ctx.fillStyle = '#333';
+                    const nameR = tableR + 22;
+                    const count = t.guests.length;
+                    const startAngle = -Math.PI / 2;
+                    t.guests.forEach((g, i) => {
+                        const angle = startAngle + (i / count) * Math.PI * 2;
+                        const nx = cx + Math.cos(angle) * nameR;
+                        const ny = cy + Math.sin(angle) * nameR;
+
+                        // Align text based on position around the circle
+                        if (Math.cos(angle) > 0.3) ctx.textAlign = 'left';
+                        else if (Math.cos(angle) < -0.3) ctx.textAlign = 'right';
+                        else ctx.textAlign = 'center';
+
+                        ctx.fillText(g.name, nx, ny + 4);
+                    });
+                    ctx.textAlign = 'center';
+                }
             }
         });
 
