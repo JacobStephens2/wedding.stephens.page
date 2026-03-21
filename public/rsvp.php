@@ -18,7 +18,13 @@ include __DIR__ . '/includes/header.php';
             <p>2200 Belmont Ave, Philadelphia, PA 19131</p>
         </div>
     </div>
-    
+
+    <div class="rsvp-deadline" style="text-align:center; margin-bottom:2rem; padding:1rem; background:rgba(127,143,101,0.08); border-radius:8px;">
+        <p style="font-family:'Crimson Text',serif; font-size:1.15rem; color:var(--color-dark); margin:0;">
+            Please RSVP by <strong style="color:var(--color-green);">March 11, 2026</strong>
+        </p>
+    </div>
+
     <!-- Step 1: Name Lookup -->
     <div class="form-container" id="step-lookup">
         <h2 class="rsvp-step-title">Find Your Invitation</h2>
@@ -47,9 +53,9 @@ include __DIR__ . '/includes/header.php';
             <!-- Populated by JS -->
         </div>
         
-        <div class="form-group required">
-            <label for="rsvp-email">Email Address</label>
-            <input type="email" id="rsvp-email" placeholder="your@email.com" required>
+        <div class="form-group">
+            <label for="rsvp-email">Email Address (Optional)</label>
+            <input type="email" id="rsvp-email" placeholder="your@email.com">
         </div>
         
         <div class="form-group">
@@ -615,11 +621,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const email = document.getElementById('rsvp-email').value.trim();
         const message = document.getElementById('rsvp-message').value.trim();
         const songRequest = document.getElementById('rsvp-song').value.trim();
-        
-        if (!email) {
-            showRsvpError('Please enter your email address.');
-            return;
-        }
         
         // Collect guest responses
         const guestData = [];

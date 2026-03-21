@@ -34,13 +34,7 @@ $email = trim($input['email'] ?? '');
 $message = trim($input['message'] ?? '');
 $songRequest = trim($input['song_request'] ?? '');
 
-if (empty($email)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Email address is required.']);
-    exit;
-}
-
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(400);
     echo json_encode(['error' => 'Please enter a valid email address.']);
     exit;
