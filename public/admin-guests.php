@@ -118,6 +118,64 @@ if ($authenticated && isset($_GET['export_dietary'])) {
     }
 }
 
+// Handle pending RSVPs CSV export
+if ($authenticated && isset($_GET['export_pending'])) {
+    try {
+        $pdo = getDbConnection();
+        $stmt = $pdo->query("
+            SELECT g.first_name, g.last_name, g.group_name, g.phone, g.email,
+                   ma.address_1, ma.address_2, ma.city, ma.state, ma.zip
+            FROM guests g
+            LEFT JOIN mailing_addresses ma ON g.mailing_group = ma.mailing_group
+            WHERE g.attending IS NULL
+            ORDER BY g.group_name, g.last_name, g.first_name
+        ");
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename=\"pending-rsvps.csv\"');
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['First Name', 'Last Name', 'Group', 'Phone', 'Email', 'Address 1', 'Address 2', 'City', 'State', 'Zip']);
+        foreach ($rows as $row) { fputcsv($out, $row); }
+        fclose($out);
+        exit;
+    } catch (Exception $e) {
+        $error = 'Error exporting pending contacts: ' . htmlspecialchars($e->getMessage());
+    }
+}
+
+// Handle full guest list CSV export
+if ($authenticated && isset($_GET['export_all'])) {
+    try {
+        $pdo = getDbConnection();
+        $stmt = $pdo->query("
+            SELECT g.first_name, g.last_name, g.group_name, g.mailing_group, g.email, g.phone,
+                   g.attending, g.ceremony_attending, g.reception_attending,
+                   g.has_plus_one, g.plus_one_name, g.plus_one_attending,
+                   g.plus_one_ceremony_attending, g.plus_one_reception_attending,
+                   g.dietary, g.plus_one_dietary, g.song_request, g.message, g.notes,
+                   g.is_child, g.is_infant, g.rehearsal_invited,
+                   ma.address_1, ma.address_2, ma.city, ma.state, ma.zip, ma.country
+            FROM guests g
+            LEFT JOIN mailing_addresses ma ON g.mailing_group = ma.mailing_group
+            ORDER BY g.mailing_group, g.last_name, g.first_name
+        ");
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename=\"full-guest-list.csv\"');
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['First Name', 'Last Name', 'Group', 'Mailing Group', 'Email', 'Phone',
+            'Attending', 'Ceremony', 'Reception', 'Has +1', '+1 Name', '+1 Attending',
+            '+1 Ceremony', '+1 Reception', 'Dietary', '+1 Dietary', 'Song Request', 'Message', 'Notes',
+            'Child', 'Infant', 'Rehearsal',
+            'Address 1', 'Address 2', 'City', 'State', 'Zip', 'Country']);
+        foreach ($rows as $row) { fputcsv($out, $row); }
+        fclose($out);
+        exit;
+    } catch (Exception $e) {
+        $error = 'Error exporting guest list: ' . htmlspecialchars($e->getMessage());
+    }
+}
+
 // Handle add guest
 if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_guest'])) {
     try {
@@ -1859,8 +1917,58 @@ $page_title = "Manage Guests - Jacob & Melissa";
                 });
                 </script>
 
+                <!-- Guest Messages View -->
+                <button type="button" id="messages-toggle" class="btn-filter" style="margin-bottom: 1rem;">View Guest Messages</button>
+                <div id="messages-panel" style="display: none; margin-bottom: 1.5rem; background: #f9f9f6; border: 1px solid #ddd; border-radius: 8px; padding: 1rem;">
+                    <h3 style="margin: 0 0 0.75rem;">Guest Messages</h3>
+                    <?php
+                    $messageEntries = [];
+                    $seenMessageGroups = [];
+                    foreach ($guests as $g) {
+                        if (!empty(trim($g['message'] ?? ''))) {
+                            $groupKey = $g['mailing_group'] ?? $g['id'];
+                            if (isset($seenMessageGroups[$groupKey])) continue;
+                            $seenMessageGroups[$groupKey] = true;
+                            $messageEntries[] = [
+                                'name' => htmlspecialchars($g['first_name'] . ' ' . $g['last_name']),
+                                'message' => htmlspecialchars($g['message']),
+                            ];
+                        }
+                    }
+                    if (empty($messageEntries)): ?>
+                        <p style="color: #666;">No messages have been submitted.</p>
+                    <?php else: ?>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; padding: 0.5rem; border-bottom: 2px solid #ccc;">Guest</th>
+                                    <th style="text-align: left; padding: 0.5rem; border-bottom: 2px solid #ccc;">Message</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($messageEntries as $entry): ?>
+                                    <tr>
+                                        <td style="padding: 0.4rem 0.5rem; border-bottom: 1px solid #eee;"><?php echo $entry['name']; ?></td>
+                                        <td style="padding: 0.4rem 0.5rem; border-bottom: 1px solid #eee;"><?php echo $entry['message']; ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+                </div>
+                <script>
+                document.getElementById('messages-toggle').addEventListener('click', function() {
+                    var panel = document.getElementById('messages-panel');
+                    var visible = panel.style.display !== 'none';
+                    panel.style.display = visible ? 'none' : 'block';
+                    this.textContent = visible ? 'View Guest Messages' : 'Hide Guest Messages';
+                });
+                </script>
+
                 <!-- Export Rehearsal Contacts -->
                 <a href="/admin-guests?export_rehearsal=1" class="btn-filter" style="margin-bottom: 1rem; display: inline-block; text-decoration: none;">Export Rehearsal Contacts</a>
+                <a href="/admin-guests?export_pending=1" class="btn-filter" style="margin-bottom: 1rem; display: inline-block; text-decoration: none;">Export Pending RSVPs</a>
+                <a href="/admin-guests?export_all=1" class="btn-filter" style="margin-bottom: 1rem; display: inline-block; text-decoration: none;">Export Full Guest List</a>
 
                 <!-- Reception Guests by Group View -->
                 <button type="button" id="groups-toggle" class="btn-filter" style="margin-bottom: 1rem;">View Reception Guests by Group</button>
