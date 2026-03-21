@@ -345,6 +345,17 @@ $page_title = "Seating Chart - Jacob & Melissa";
         .fp-table.over-capacity { background: #b44; }
         .fp-table-num { font-weight: bold; font-size: 0.9rem; }
         .fp-table-count { opacity: 0.85; font-size: 0.65rem; }
+        .fp-table-name {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 2px;
+            font-size: 0.6rem;
+            color: #555;
+            white-space: nowrap;
+            pointer-events: none;
+        }
         .fp-table.sweetheart {
             border-radius: 6px;
             width: 90px;
@@ -1025,6 +1036,10 @@ $page_title = "Seating Chart - Jacob & Melissa";
             el.style.top = t.pos_y + '%';
             el.innerHTML = '<span class="fp-table-num">' + t.number + '</span>'
                          + '<span class="fp-table-count">' + t.guest_count + '/' + t.capacity + '</span>';
+            const nameLabel = document.createElement('span');
+            nameLabel.className = 'fp-table-name';
+            nameLabel.textContent = t.name;
+            el.appendChild(nameLabel);
             el.title = 'T' + t.number + ': ' + t.name + ' (' + t.guest_count + '/' + t.capacity + ')';
 
             // Click to scroll to card
