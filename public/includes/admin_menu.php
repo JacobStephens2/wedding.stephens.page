@@ -15,6 +15,7 @@ if (isAdminAuthenticated()):
                 <li><a href="/admin">Admin Menu</a></li>
                 <li><a href="/check-rsvps">Check RSVPs</a></li>
                 <li><a href="/admin-guests">Manage Guests</a></li>
+                <li><a href="/admin-seating">Seating Chart</a></li>
                 <li><a href="/admin-registry">Manage Registry</a></li>
                 <li><a href="/admin-house-fund">Manage House Fund</a></li>
                 <li><a href="/admin-honeymoon-fund">Manage Honeymoon Fund</a></li>

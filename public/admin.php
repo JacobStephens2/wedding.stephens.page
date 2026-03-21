@@ -117,6 +117,9 @@ $page_title = "Admin - Jacob & Melissa";
                         <a href="/admin-guests">Manage Guests</a>
                     </li>
                     <li class="admin-menu-item">
+                        <a href="/admin-seating">Seating Chart</a>
+                    </li>
+                    <li class="admin-menu-item">
                         <a href="/admin-registry">Manage Registry</a>
                     </li>
                     <li class="admin-menu-item">
