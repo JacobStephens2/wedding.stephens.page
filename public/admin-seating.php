@@ -769,6 +769,10 @@ $page_title = "Seating Chart - Jacob & Melissa";
                             <input type="checkbox" id="export-include-names" style="width:auto; margin:0;">
                             with guest names
                         </label>
+                        <label style="display:flex; align-items:center; gap:0.35rem; font-size:0.8rem; color:#555; cursor:pointer; padding-left:0.25rem;" onclick="event.stopPropagation();">
+                            <input type="checkbox" id="export-first-names-only" style="width:auto; margin:0;">
+                            first names only
+                        </label>
                     </div>
                     <a class="export-btn" href="/admin-seating?export=csv" title="Download spreadsheet">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
@@ -850,7 +854,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
                                         <tr draggable="true"
                                             ondragstart="dragGuest(event, <?php echo $guest['guest_id']; ?>)"
                                             data-guest-id="<?php echo $guest['guest_id']; ?>">
-                                            <td><?php echo htmlspecialchars($guest['first_name'] . ' ' . $guest['last_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($guest['first_name'] . ' ' . $guest['last_name']); ?><?php if (!empty($guest['dietary'])): ?> <span title="<?php echo htmlspecialchars($guest['dietary']); ?>" style="cursor:help;">🍽</span><?php endif; ?></td>
                                             <td><span class="group-badge"><?php echo htmlspecialchars($guest['group_name']); ?></span></td>
                                             <td>
                                                 <?php if (!empty($guest['dietary'])): ?>
@@ -873,7 +877,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
                                         </tr>
                                         <?php if ($guest['has_plus_one'] && $guest['plus_one_reception_attending'] === 'yes'): ?>
                                         <tr class="plus-one-row">
-                                            <td><?php echo htmlspecialchars($guest['plus_one_name'] ?: 'Guest of ' . $guest['first_name']); ?> (plus one)</td>
+                                            <td><?php echo htmlspecialchars($guest['plus_one_name'] ?: 'Guest of ' . $guest['first_name']); ?> (plus one)<?php if (!empty($guest['plus_one_dietary'])): ?> <span title="<?php echo htmlspecialchars($guest['plus_one_dietary']); ?>" style="cursor:help;">🍽</span><?php endif; ?></td>
                                             <td></td>
                                             <td>
                                                 <?php if (!empty($guest['plus_one_dietary'])): ?>
@@ -1402,6 +1406,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
     function exportVisual() {
         const d = exportData;
         const includeNames = document.getElementById('export-include-names').checked;
+        const firstNamesOnly = document.getElementById('export-first-names-only').checked;
         const canvas = document.getElementById('export-canvas');
         const W = includeNames ? 1800 : 1200;
         const H = includeNames ? 1050 : 700;
@@ -1471,7 +1476,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
                 // Name label below
                 ctx.fillStyle = '#555';
                 ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-                ctx.fillText(t.guests.map(g => g.name.split(' ')[0]).join(' & '), cx, cy + rh / 2 + 14);
+                ctx.fillText(t.guests.map(g => firstNamesOnly ? g.name.split(' ')[0] : g.name).join(' & '), cx, cy + rh / 2 + 14);
             } else {
                 // Circle for round tables
                 ctx.beginPath();
@@ -1511,7 +1516,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
                         else if (Math.cos(angle) < -0.3) ctx.textAlign = 'right';
                         else ctx.textAlign = 'center';
 
-                        ctx.fillText(g.name, nx, ny + 4);
+                        ctx.fillText(firstNamesOnly ? g.name.split(' ')[0] : g.name, nx, ny + 4);
                     });
                     ctx.textAlign = 'center';
                 }
