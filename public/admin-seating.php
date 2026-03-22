@@ -207,6 +207,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($page_title); ?></title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <?php include __DIR__ . '/includes/theme_init.php'; ?>
     <link rel="stylesheet" href="/css/style.css?v=<?php
         $cssPath = __DIR__ . '/../css/style.css';
         echo file_exists($cssPath) ? filemtime($cssPath) : time();
@@ -220,9 +221,9 @@ $page_title = "Seating Chart - Jacob & Melissa";
             max-width: 1400px;
             margin: 2rem auto;
             padding: 2rem;
-            background-color: white;
+            background-color: var(--color-surface);
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px var(--color-shadow);
         }
         .stats {
             display: flex;
@@ -258,14 +259,14 @@ $page_title = "Seating Chart - Jacob & Melissa";
         /* ---- Floor Plan ---- */
         .floorplan-wrapper {
             margin-bottom: 2rem;
-            border: 1px solid #ddd;
+            border: 1px solid var(--color-border);
             border-radius: 8px;
             overflow: hidden;
         }
         .floorplan-header {
-            background-color: #f8f8f8;
+            background-color: var(--color-surface-alt);
             padding: 0.75rem 1.25rem;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--color-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -282,7 +283,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
         .floorplan-room {
             position: absolute;
             inset: 3% 3%;
-            border: 2px solid #ccc;
+            border: 2px solid var(--color-border);
             border-radius: 4px;
         }
         .fp-dancefloor {
@@ -291,11 +292,11 @@ $page_title = "Seating Chart - Jacob & Melissa";
             top: 30%;
             width: 30%;
             height: 40%;
-            border: 2px dashed #bbb;
+            border: 2px dashed var(--color-border);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #aaa;
+            color: var(--color-text-muted);
             font-size: 0.85rem;
             font-style: italic;
             background: rgba(255,255,255,0.5);
@@ -317,7 +318,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
             top: 2%;
             left: 50%;
             transform: translateX(-50%);
-            color: #999;
+            color: var(--color-text-muted);
             font-size: 0.7rem;
             font-style: italic;
         }
@@ -352,7 +353,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
             transform: translateX(-50%);
             margin-top: 2px;
             font-size: 0.6rem;
-            color: #555;
+            color: var(--color-text-secondary);
             white-space: nowrap;
             pointer-events: none;
         }
@@ -363,24 +364,24 @@ $page_title = "Seating Chart - Jacob & Melissa";
         }
 
         .fp-edit-hint {
-            color: #999;
+            color: var(--color-text-muted);
             font-size: 0.75rem;
         }
         .fp-btn {
             background: none;
-            border: 1px solid #ccc;
+            border: 1px solid var(--color-border);
             padding: 0.3rem 0.7rem;
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.8rem;
-            color: #666;
+            color: var(--color-text-secondary);
         }
-        .fp-btn:hover { background: #eee; }
+        .fp-btn:hover { background: var(--color-light); }
         .fp-btn.active { background: var(--color-green); color: white; border-color: var(--color-green); }
 
         /* ---- Table cards ---- */
         .table-card {
-            border: 1px solid #ddd;
+            border: 1px solid var(--color-border);
             border-radius: 8px;
             margin-bottom: 1.5rem;
             overflow: hidden;
@@ -406,10 +407,10 @@ $page_title = "Seating Chart - Jacob & Melissa";
         .table-body.collapsed { display: none; }
         .table-description {
             padding: 0.5rem 1.25rem;
-            color: #666;
+            color: var(--color-text-secondary);
             font-style: italic;
             font-size: 0.9rem;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--color-border);
         }
 
         /* ---- Inline editing ---- */
@@ -429,7 +430,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
         }
         .desc-edit-input {
             width: 100%;
-            border: 1px solid #ccc;
+            border: 1px solid var(--color-border);
             padding: 0.4rem;
             border-radius: 3px;
             font-size: 0.9rem;
@@ -445,20 +446,26 @@ $page_title = "Seating Chart - Jacob & Melissa";
         .guest-list td {
             padding: 0.5rem 1rem;
             text-align: left;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--color-border);
         }
         .guest-list th {
-            background-color: #f8f8f8;
+            background-color: var(--color-surface-alt);
             font-size: 0.8rem;
-            color: #666;
+            color: var(--color-text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         .guest-list tr:last-child td { border-bottom: none; }
-        .guest-list tr:hover { background-color: #f9f9f5; }
+        .guest-list tr:hover { background-color: var(--color-surface-alt); }
         .guest-list tr.drag-over { background-color: #e8f5e0; }
+        .guest-list tr.drag-over-above { box-shadow: inset 0 2px 0 var(--color-green); }
+        .guest-list tr.drag-over-below { box-shadow: inset 0 -2px 0 var(--color-green); }
         .guest-list tr.dragging-row { opacity: 0.4; }
-        .plus-one-row td { padding-left: 2rem; color: #666; font-style: italic; }
+        .plus-one-row td { padding-left: 2rem; color: var(--color-text-secondary); font-style: italic; }
+        .seat-num { color: var(--color-text-muted); font-size: 0.85rem; min-width: 1.5rem; text-align: center; }
+        .drag-handle { cursor: grab; color: var(--color-text-muted); font-size: 1rem; user-select: none; padding: 0 0.25rem; }
+        .drag-handle:hover { color: var(--color-dark); }
+        .guest-list tr.dragging-row .drag-handle { cursor: grabbing; }
 
         .dietary-badge {
             display: inline-block;
@@ -487,19 +494,19 @@ $page_title = "Seating Chart - Jacob & Melissa";
             font-size: 0.8rem;
             padding: 0.2rem 0.3rem;
             border-radius: 3px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--color-border);
             max-width: 130px;
         }
         .btn-sm {
             font-size: 0.75rem;
             padding: 0.2rem 0.5rem;
-            border: 1px solid #ccc;
+            border: 1px solid var(--color-border);
             border-radius: 3px;
             cursor: pointer;
-            background: white;
+            background: var(--color-surface);
             white-space: nowrap;
         }
-        .btn-sm:hover { background: #f0f0f0; }
+        .btn-sm:hover { background: var(--color-light); }
         .btn-sm.danger { color: #8b0000; border-color: #dca; }
         .btn-sm.danger:hover { background: #fff0f0; }
         .btn-sm.primary { color: var(--color-green); border-color: var(--color-green); }
@@ -511,15 +518,15 @@ $page_title = "Seating Chart - Jacob & Melissa";
             display: flex;
             gap: 0.5rem;
             align-items: center;
-            border-top: 1px solid #eee;
-            background: #fcfcfc;
+            border-top: 1px solid var(--color-border);
+            background: var(--color-surface-alt);
         }
         .add-guest-row select {
             flex: 1;
             font-size: 0.85rem;
             padding: 0.3rem;
             border-radius: 3px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--color-border);
         }
 
         /* ---- Unseated ---- */
@@ -542,19 +549,19 @@ $page_title = "Seating Chart - Jacob & Melissa";
         /* ---- Dietary summary ---- */
         .dietary-summary {
             margin-top: 2rem;
-            border: 1px solid #fff3cd;
+            border: 1px solid var(--color-border);
             border-radius: 8px;
             padding: 1.5rem;
-            background-color: #fffdf5;
+            background-color: var(--color-surface-alt);
         }
-        .dietary-summary h2 { margin-top: 0; color: #856404; }
+        .dietary-summary h2 { margin-top: 0; color: var(--color-gold); }
         .dietary-table { width: 100%; border-collapse: collapse; }
         .dietary-table th, .dietary-table td {
             padding: 0.5rem 1rem;
             text-align: left;
-            border-bottom: 1px solid #f0e8d0;
+            border-bottom: 1px solid var(--color-border);
         }
-        .dietary-table th { background-color: #fff8e1; font-size: 0.85rem; }
+        .dietary-table th { background-color: var(--color-light); font-size: 0.85rem; }
 
         /* ---- Add/Delete table ---- */
         .table-management {
@@ -565,7 +572,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
         }
         .table-management input {
             padding: 0.4rem 0.6rem;
-            border: 1px solid #ccc;
+            border: 1px solid var(--color-border);
             border-radius: 4px;
             font-size: 0.9rem;
         }
@@ -605,7 +612,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
         }
         .export-bar-label {
             font-size: 0.9rem;
-            color: #666;
+            color: var(--color-text-secondary);
             margin-right: 0.5rem;
         }
         .export-btn {
@@ -613,15 +620,15 @@ $page_title = "Seating Chart - Jacob & Melissa";
             align-items: center;
             gap: 0.4rem;
             padding: 0.45rem 1rem;
-            border: 1px solid #ccc;
+            border: 1px solid var(--color-border);
             border-radius: 4px;
-            background: white;
+            background: var(--color-surface);
             cursor: pointer;
             font-size: 0.85rem;
-            color: #444;
+            color: var(--color-text-caption);
             transition: all 0.2s;
         }
-        .export-btn:hover { background: #f5f5f5; border-color: var(--color-green); color: var(--color-green); }
+        .export-btn:hover { background: var(--color-light); border-color: var(--color-green); color: var(--color-green); }
         .export-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 
         /* ---- Export modal ---- */
@@ -636,7 +643,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
         }
         .export-modal-overlay.open { display: flex; }
         .export-modal {
-            background: white;
+            background: var(--color-surface);
             border-radius: 8px;
             width: 90%;
             max-width: 700px;
@@ -647,7 +654,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
         }
         .export-modal-header {
             padding: 1rem 1.5rem;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--color-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -658,11 +665,11 @@ $page_title = "Seating Chart - Jacob & Melissa";
             border: none;
             font-size: 1.5rem;
             cursor: pointer;
-            color: #999;
+            color: var(--color-text-muted);
             padding: 0;
             line-height: 1;
         }
-        .export-modal-close:hover { color: #333; }
+        .export-modal-close:hover { color: var(--color-dark); }
         .export-modal-body {
             flex: 1;
             overflow-y: auto;
@@ -675,11 +682,11 @@ $page_title = "Seating Chart - Jacob & Melissa";
             font-size: 0.85rem;
             line-height: 1.6;
             margin: 0;
-            color: #333;
+            color: var(--color-dark);
         }
         .export-modal-footer {
             padding: 0.75rem 1.5rem;
-            border-top: 1px solid #eee;
+            border-top: 1px solid var(--color-border);
             display: flex;
             gap: 0.5rem;
             justify-content: flex-end;
@@ -689,16 +696,117 @@ $page_title = "Seating Chart - Jacob & Melissa";
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.9rem;
-            border: 1px solid #ccc;
-            background: white;
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
         }
-        .export-modal-footer button:hover { background: #f5f5f5; }
+        .export-modal-footer button:hover { background: var(--color-light); }
         .export-modal-footer .btn-copy {
             background: var(--color-green);
             color: white;
             border-color: var(--color-green);
         }
         .export-modal-footer .btn-copy:hover { opacity: 0.9; }
+
+        /* ---- Grid (spreadsheet) view ---- */
+        .grid-view-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .grid-view-toggle button {
+            padding: 0.4rem 1rem;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            background: var(--color-surface);
+            color: var(--color-dark);
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .grid-view-toggle button.active {
+            background: var(--color-green);
+            color: white;
+            border-color: var(--color-green);
+        }
+        .grid-spreadsheet-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .grid-spreadsheet {
+            border-collapse: collapse;
+            min-width: 100%;
+        }
+        .grid-spreadsheet th {
+            position: sticky;
+            top: 0;
+            background: var(--color-green);
+            color: white;
+            padding: 0.6rem 1rem;
+            text-align: left;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            border-right: 1px solid rgba(255,255,255,0.2);
+            min-width: 160px;
+        }
+        .grid-spreadsheet td {
+            padding: 0.35rem 1rem;
+            border-right: 1px solid var(--color-border);
+            border-bottom: 1px solid var(--color-border);
+            font-size: 0.85rem;
+            white-space: nowrap;
+            vertical-align: top;
+            color: var(--color-dark);
+        }
+        .grid-spreadsheet tr:nth-child(even) td {
+            background: var(--color-surface-alt);
+        }
+        .grid-spreadsheet tr:nth-child(odd) td {
+            background: var(--color-surface);
+        }
+        .grid-spreadsheet .grid-seat-num {
+            color: var(--color-text-muted);
+            font-size: 0.75rem;
+            margin-right: 0.3rem;
+        }
+        .grid-cell-guest {
+            cursor: pointer;
+            position: relative;
+        }
+        .grid-cell-guest:hover {
+            background: var(--color-light) !important;
+        }
+        .grid-cell-plusone {
+            padding-left: 2rem !important;
+            color: var(--color-text-secondary);
+        }
+        .grid-move-icon {
+            float: right;
+            opacity: 0;
+            color: var(--color-text-muted);
+            font-size: 0.8rem;
+            transition: opacity 0.15s;
+        }
+        .grid-cell-guest:hover .grid-move-icon {
+            opacity: 1;
+        }
+        .grid-unseated-header {
+            background: #b44 !important;
+        }
+        .grid-cell-unseated {
+            border-left: 2px solid #b44;
+        }
+        .grid-move-select {
+            display: block;
+            margin-top: 0.3rem;
+            font-size: 0.8rem;
+            padding: 0.2rem;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            background: var(--color-surface);
+            color: var(--color-dark);
+            width: 100%;
+        }
 
         @media (max-width: 768px) {
             .seating-container { padding: 1rem; }
@@ -792,6 +900,15 @@ $page_title = "Seating Chart - Jacob & Melissa";
                     </button>
                 </div>
 
+                <!-- View toggle -->
+                <div class="grid-view-toggle">
+                    <button class="active" onclick="switchView('cards')" id="view-cards-btn">Card View</button>
+                    <button onclick="switchView('grid')" id="view-grid-btn">Grid View</button>
+                </div>
+
+                <!-- Grid (spreadsheet) view -->
+                <div id="grid-view-container" style="display:none;"></div>
+
                 <!-- Floor Plan -->
                 <div class="floorplan-wrapper">
                     <div class="floorplan-header">
@@ -860,6 +977,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
                             <table class="guest-list">
                                 <thead>
                                     <tr>
+                                        <th style="width:2rem;">#</th>
                                         <th>Guest</th>
                                         <th>Group</th>
                                         <th>Dietary</th>
@@ -867,10 +985,23 @@ $page_title = "Seating Chart - Jacob & Melissa";
                                     </tr>
                                 </thead>
                                 <tbody id="guests-<?php echo $table['table_id']; ?>">
-                                    <?php foreach ($table['guests'] as $guest): ?>
+                                    <?php $seatPos = 0; foreach ($table['guests'] as $guest): ?><?php $seatPos++; ?>
+                                        <?php
+                                        $guestInfo = [
+                                            'id' => $guest['guest_id'],
+                                            'name' => $guest['first_name'] . ' ' . $guest['last_name'],
+                                            'group' => $guest['group_name'],
+                                            'dietary' => $guest['dietary'] ?? '',
+                                            'has_plus_one' => (bool)($guest['has_plus_one'] && $guest['plus_one_reception_attending'] === 'yes'),
+                                            'plus_one_name' => $guest['plus_one_name'] ?: 'Guest of ' . $guest['first_name'],
+                                            'plus_one_dietary' => $guest['plus_one_dietary'] ?? '',
+                                        ];
+                                        ?>
                                         <tr draggable="true"
                                             ondragstart="dragGuest(event, <?php echo $guest['guest_id']; ?>)"
-                                            data-guest-id="<?php echo $guest['guest_id']; ?>">
+                                            data-guest-id="<?php echo $guest['guest_id']; ?>"
+                                            data-guest-info='<?php echo htmlspecialchars(json_encode($guestInfo), ENT_QUOTES); ?>'>
+                                            <td><span class="drag-handle" title="Drag to reorder">⠿</span><span class="seat-num"><?php echo $seatPos; ?></span></td>
                                             <td><?php echo htmlspecialchars($guest['first_name'] . ' ' . $guest['last_name']); ?><?php if (!empty($guest['dietary'])): ?> <span title="<?php echo htmlspecialchars($guest['dietary']); ?>" style="cursor:help;">🍽</span><?php endif; ?></td>
                                             <td><span class="group-badge"><?php echo htmlspecialchars($guest['group_name']); ?></span></td>
                                             <td>
@@ -894,6 +1025,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
                                         </tr>
                                         <?php if ($guest['has_plus_one'] && $guest['plus_one_reception_attending'] === 'yes'): ?>
                                         <tr class="plus-one-row">
+                                            <td></td>
                                             <td><?php echo htmlspecialchars($guest['plus_one_name'] ?: 'Guest of ' . $guest['first_name']); ?> (plus one)<?php if (!empty($guest['plus_one_dietary'])): ?> <span title="<?php echo htmlspecialchars($guest['plus_one_dietary']); ?>" style="cursor:help;">🍽</span><?php endif; ?></td>
                                             <td></td>
                                             <td>
@@ -931,7 +1063,19 @@ $page_title = "Seating Chart - Jacob & Melissa";
                         <p>RSVP'd yes for reception but no table assigned. Drag guests here to unseat, or use the dropdown to assign.</p>
                         <div id="unseated-list">
                             <?php foreach ($unseatedGuests as $ug): ?>
+                                <?php
+                                $ugInfo = [
+                                    'id' => $ug['id'],
+                                    'name' => $ug['first_name'] . ' ' . $ug['last_name'],
+                                    'group' => $ug['group_name'],
+                                    'dietary' => $ug['dietary'] ?? '',
+                                    'has_plus_one' => (bool)($ug['has_plus_one'] && $ug['plus_one_reception_attending'] === 'yes'),
+                                    'plus_one_name' => $ug['plus_one_name'] ?: 'Guest of ' . $ug['first_name'],
+                                    'plus_one_dietary' => $ug['plus_one_dietary'] ?? '',
+                                ];
+                                ?>
                                 <div class="unseated-guest" data-guest-id="<?php echo $ug['id']; ?>"
+                                     data-guest-info='<?php echo htmlspecialchars(json_encode($ugInfo), ENT_QUOTES); ?>'
                                      draggable="true" ondragstart="dragGuest(event, <?php echo $ug['id']; ?>)">
                                     <span class="unseated-guest-name"><?php echo htmlspecialchars($ug['first_name'] . ' ' . $ug['last_name']); ?></span>
                                     <span class="group-badge"><?php echo htmlspecialchars($ug['group_name']); ?></span>
@@ -1076,7 +1220,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
                 if (card) {
                     // Expand card
                     const tbody = document.getElementById('tbody-' + t.id);
-                    if (tbody) tbody.classList.remove('collapsed');
+                    if (tbody) { tbody.classList.remove('collapsed'); saveExpansionState(); }
                     card.classList.add('highlight');
                     card.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     setTimeout(() => card.classList.remove('highlight'), 2000);
@@ -1171,22 +1315,263 @@ $page_title = "Seating Chart - Jacob & Melissa";
         }
     }
 
+    // ---- DOM helpers for live updates ----
+    function buildGuestRow(info, targetTableId) {
+        const tr = document.createElement('tr');
+        tr.draggable = true;
+        tr.setAttribute('ondragstart', 'dragGuest(event, ' + info.id + ')');
+        tr.dataset.guestId = info.id;
+        tr.dataset.guestInfo = JSON.stringify(info);
+
+        let dietaryHtml = '';
+        if (info.dietary) {
+            dietaryHtml = '<span class="dietary-badge">' + escHtml(info.dietary) + '</span>';
+        }
+        let dietaryIcon = info.dietary ? ' <span title="' + escHtml(info.dietary) + '" style="cursor:help;">🍽</span>' : '';
+
+        let moveOpts = '<option value="">Move to...</option>';
+        tables.forEach(t => {
+            if (t.id !== parseInt(targetTableId)) {
+                moveOpts += '<option value="' + t.id + '">T' + t.number + ': ' + escHtml(t.name) + '</option>';
+            }
+        });
+
+        tr.innerHTML =
+            '<td><span class="drag-handle" title="Drag to reorder">⠿</span><span class="seat-num"></span></td>' +
+            '<td>' + escHtml(info.name) + dietaryIcon + '</td>' +
+            '<td><span class="group-badge">' + escHtml(info.group) + '</span></td>' +
+            '<td>' + dietaryHtml + '</td>' +
+            '<td><div class="guest-actions">' +
+                '<select onchange="moveGuest(' + info.id + ', this.value); this.selectedIndex=0;">' + moveOpts + '</select>' +
+                '<button class="btn-sm danger" onclick="unseatGuest(' + info.id + ')">Unseat</button>' +
+            '</div></td>';
+        return tr;
+    }
+
+    function buildPlusOneRow(info) {
+        if (!info.has_plus_one) return null;
+        const tr = document.createElement('tr');
+        tr.className = 'plus-one-row';
+        let dietaryHtml = '';
+        if (info.plus_one_dietary) {
+            dietaryHtml = '<span class="dietary-badge">' + escHtml(info.plus_one_dietary) + '</span>';
+        }
+        let dietaryIcon = info.plus_one_dietary ? ' <span title="' + escHtml(info.plus_one_dietary) + '" style="cursor:help;">🍽</span>' : '';
+        tr.innerHTML =
+            '<td></td>' +
+            '<td>' + escHtml(info.plus_one_name) + ' (plus one)' + dietaryIcon + '</td>' +
+            '<td></td>' +
+            '<td>' + dietaryHtml + '</td>' +
+            '<td></td>';
+        return tr;
+    }
+
+    function buildUnseatedDiv(info) {
+        const div = document.createElement('div');
+        div.className = 'unseated-guest';
+        div.dataset.guestId = info.id;
+        div.dataset.guestInfo = JSON.stringify(info);
+        div.draggable = true;
+        div.setAttribute('ondragstart', 'dragGuest(event, ' + info.id + ')');
+
+        let dietaryHtml = info.dietary ? '<span class="dietary-badge">' + escHtml(info.dietary) + '</span>' : '';
+        let assignOpts = '<option value="">Assign to...</option>';
+        tables.forEach(t => {
+            assignOpts += '<option value="' + t.id + '">T' + t.number + ': ' + escHtml(t.name) + '</option>';
+        });
+
+        div.innerHTML =
+            '<span class="unseated-guest-name">' + escHtml(info.name) + '</span> ' +
+            '<span class="group-badge">' + escHtml(info.group) + '</span> ' +
+            dietaryHtml +
+            '<select onchange="moveGuest(' + info.id + ', this.value); this.selectedIndex=0;" style="font-size:0.8rem;">' + assignOpts + '</select>';
+        return div;
+    }
+
+    function escHtml(str) {
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
+    function updateTableMeta(tableId) {
+        const tbody = document.getElementById('guests-' + tableId);
+        if (!tbody) return;
+        const guestRows = tbody.querySelectorAll('tr[data-guest-id]');
+        const plusOneRows = tbody.querySelectorAll('tr.plus-one-row');
+        const totalAtTable = guestRows.length + plusOneRows.length;
+
+        const tableData = tables.find(t => t.id === parseInt(tableId));
+        if (!tableData) return;
+        tableData.guest_count = totalAtTable;
+
+        const meta = document.getElementById('meta-' + tableId);
+        if (meta) {
+            const remaining = tableData.capacity - totalAtTable;
+            let badge = '';
+            if (remaining > 0) badge = '<span class="seat-remaining-badge seats-available">' + remaining + ' remaining</span>';
+            else if (remaining === 0) badge = '<span class="seat-remaining-badge seats-full">Full</span>';
+            else badge = '<span class="seat-remaining-badge seats-over">Over by ' + Math.abs(remaining) + '</span>';
+            meta.innerHTML = totalAtTable + ' / ' + tableData.capacity + ' seats' + badge;
+        }
+    }
+
+    function updateUnseatedAddSelects(guestInfo, action) {
+        // action: 'add' = guest became unseated, 'remove' = guest was seated
+        document.querySelectorAll('[id^="add-select-"]').forEach(sel => {
+            if (action === 'remove') {
+                const opt = sel.querySelector('option[value="' + guestInfo.id + '"]');
+                if (opt) opt.remove();
+            } else if (action === 'add') {
+                const opt = document.createElement('option');
+                opt.value = guestInfo.id;
+                opt.textContent = guestInfo.name + ' (' + guestInfo.group + ')';
+                sel.appendChild(opt);
+            }
+        });
+    }
+
+    function updateUnseatedSection() {
+        const list = document.getElementById('unseated-list');
+        let section = document.getElementById('unseated-section');
+        const count = list ? list.querySelectorAll('.unseated-guest').length : 0;
+
+        if (count === 0 && section) {
+            section.remove();
+        } else if (count > 0 && section) {
+            section.querySelector('h2').textContent = 'Unseated Guests (' + count + ')';
+        } else if (count > 0 && !section) {
+            // Shouldn't normally happen since we only add to existing section
+        }
+    }
+
+    function updateStats(seatedDelta) {
+        const seatedEl = document.getElementById('stat-seated');
+        const unseatedEl = document.getElementById('stat-unseated');
+        if (seatedEl) seatedEl.textContent = parseInt(seatedEl.textContent) + seatedDelta;
+        if (unseatedEl) unseatedEl.textContent = parseInt(unseatedEl.textContent) - seatedDelta;
+    }
+
+    function ensureUnseatedSection() {
+        let section = document.getElementById('unseated-section');
+        if (!section) {
+            section = document.createElement('div');
+            section.className = 'unseated-section';
+            section.id = 'unseated-section';
+            section.setAttribute('ondragover', "event.preventDefault(); this.style.borderColor='var(--color-green)';");
+            section.setAttribute('ondragleave', "this.style.borderColor='#dc3545';");
+            section.setAttribute('ondrop', "dropUnseat(event); this.style.borderColor='#dc3545';");
+            section.innerHTML = '<h2>Unseated Guests (0)</h2>' +
+                '<p>RSVP\'d yes for reception but no table assigned. Drag guests here to unseat, or use the dropdown to assign.</p>' +
+                '<div id="unseated-list"></div>';
+            // Insert before dietary summary or at end of container
+            const dietary = document.querySelector('.dietary-summary');
+            const container = dietary ? dietary.parentElement : document.querySelector('.seating-container');
+            if (dietary) container.insertBefore(section, dietary);
+            else container.appendChild(section);
+        }
+        return section;
+    }
+
     // ---- Guest actions ----
     async function moveGuest(guestId, tableId) {
         if (!tableId) return;
-        const result = await api({ action: 'move_guest', guest_id: guestId, table_id: parseInt(tableId) });
-        if (result) {
-            showToast(result.message);
-            setTimeout(() => location.reload(), 600);
+        tableId = parseInt(tableId);
+        const result = await api({ action: 'move_guest', guest_id: guestId, table_id: tableId });
+        if (!result) return;
+        showToast(result.message);
+
+        // Find guest in seated table
+        const guestRow = document.querySelector('tr[data-guest-id="' + guestId + '"]');
+        // Find guest in unseated section
+        const unseatedDiv = document.querySelector('.unseated-guest[data-guest-id="' + guestId + '"]');
+
+        if (guestRow) {
+            // Moving from one table to another
+            const sourceTbody = guestRow.closest('tbody');
+            const sourceTableId = sourceTbody?.id?.replace('guests-', '');
+            const nextRow = guestRow.nextElementSibling;
+            const plusOneRow = nextRow?.classList.contains('plus-one-row') ? nextRow : null;
+
+            const targetTbody = document.getElementById('guests-' + tableId);
+            if (targetTbody) {
+                targetTbody.appendChild(guestRow);
+                if (plusOneRow) targetTbody.appendChild(plusOneRow);
+
+                // Update move dropdown
+                const sel = guestRow.querySelector('.guest-actions select');
+                if (sel) {
+                    sel.innerHTML = '<option value="">Move to...</option>';
+                    tables.forEach(t => {
+                        if (t.id !== tableId) {
+                            const opt = document.createElement('option');
+                            opt.value = t.id;
+                            opt.textContent = 'T' + t.number + ': ' + t.name;
+                            sel.appendChild(opt);
+                        }
+                    });
+                }
+            }
+            // Renumber seats in both source and target tables
+            if (sourceTbody) { renumberSeats(sourceTbody); saveSeatingOrder(sourceTbody); }
+            if (targetTbody) { renumberSeats(targetTbody); saveSeatingOrder(targetTbody); }
+            if (sourceTableId) updateTableMeta(sourceTableId);
+            updateTableMeta(tableId);
+            renderFloorPlan();
+
+        } else if (unseatedDiv) {
+            // Seating from unseated
+            const info = JSON.parse(unseatedDiv.dataset.guestInfo);
+            unseatedDiv.remove();
+
+            const targetTbody = document.getElementById('guests-' + tableId);
+            if (targetTbody) {
+                targetTbody.appendChild(buildGuestRow(info, tableId));
+                const poRow = buildPlusOneRow(info);
+                if (poRow) targetTbody.appendChild(poRow);
+                renumberSeats(targetTbody);
+                saveSeatingOrder(targetTbody);
+            }
+
+            updateTableMeta(tableId);
+            updateUnseatedAddSelects(info, 'remove');
+            updateUnseatedSection();
+            updateStats(info.has_plus_one ? 2 : 1);
+            renderFloorPlan();
         }
     }
 
     async function unseatGuest(guestId) {
         const result = await api({ action: 'move_guest', guest_id: guestId, table_id: null });
-        if (result) {
-            showToast(result.message);
-            setTimeout(() => location.reload(), 600);
-        }
+        if (!result) return;
+        showToast(result.message);
+
+        const guestRow = document.querySelector('tr[data-guest-id="' + guestId + '"]');
+        if (!guestRow) return;
+
+        const info = JSON.parse(guestRow.dataset.guestInfo);
+        const sourceTbody = guestRow.closest('tbody');
+        const sourceTableId = sourceTbody?.id?.replace('guests-', '');
+        const nextRow = guestRow.nextElementSibling;
+        const plusOneRow = nextRow?.classList.contains('plus-one-row') ? nextRow : null;
+
+        // Remove from table
+        guestRow.remove();
+        if (plusOneRow) plusOneRow.remove();
+
+        // Renumber remaining seats
+        if (sourceTbody) { renumberSeats(sourceTbody); saveSeatingOrder(sourceTbody); }
+
+        // Add to unseated section
+        ensureUnseatedSection();
+        const list = document.getElementById('unseated-list');
+        list.appendChild(buildUnseatedDiv(info));
+
+        if (sourceTableId) updateTableMeta(sourceTableId);
+        updateUnseatedAddSelects(info, 'add');
+        updateUnseatedSection();
+        updateStats(info.has_plus_one ? -2 : -1);
+        renderFloorPlan();
     }
 
     function seatGuestFromSelect(tableId) {
@@ -1275,6 +1660,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
         const result = await api({ action: 'add_table', table_name: name });
         if (result) {
             showToast(result.message);
+            saveExpansionState();
             setTimeout(() => location.reload(), 600);
         }
     }
@@ -1284,21 +1670,46 @@ $page_title = "Seating Chart - Jacob & Melissa";
         const result = await api({ action: 'delete_table', table_id: tableId });
         if (result) {
             showToast(result.message);
+            saveExpansionState();
             setTimeout(() => location.reload(), 600);
         }
     }
 
-    // ---- Table card toggle ----
+    // ---- Table card toggle (with localStorage persistence) ----
+    function saveExpansionState() {
+        const expanded = Array.from(document.querySelectorAll('.table-body'))
+            .filter(b => !b.classList.contains('collapsed'))
+            .map(b => b.id.replace('tbody-', ''));
+        localStorage.setItem('seating-expanded', JSON.stringify(expanded));
+    }
+
+    function restoreExpansionState() {
+        try {
+            const expanded = JSON.parse(localStorage.getItem('seating-expanded') || '[]');
+            if (expanded.length > 0) {
+                expanded.forEach(id => {
+                    const body = document.getElementById('tbody-' + id);
+                    if (body) body.classList.remove('collapsed');
+                });
+            }
+        } catch(e) {}
+    }
+
     function toggleTable(tableId) {
         const body = document.getElementById('tbody-' + tableId);
         if (body) body.classList.toggle('collapsed');
+        saveExpansionState();
     }
 
     function toggleAll() {
         const bodies = document.querySelectorAll('.table-body');
         const anyVisible = Array.from(bodies).some(b => !b.classList.contains('collapsed'));
         bodies.forEach(b => anyVisible ? b.classList.add('collapsed') : b.classList.remove('collapsed'));
+        saveExpansionState();
     }
+
+    // ---- Within-table reorder state (declared early so card handlers can check it) ----
+    let reorderSourceRow = null;
 
     // ---- Drop zones on table cards ----
     document.querySelectorAll('.table-card').forEach(card => {
@@ -1308,6 +1719,10 @@ $page_title = "Seating Chart - Jacob & Melissa";
             e.preventDefault();
             card.style.outline = '';
             const tableId = card.dataset.tableId;
+            // If this is a within-table reorder, let the reorder handler deal with it
+            if (reorderSourceRow && reorderSourceRow.closest('.table-card')?.dataset.tableId === tableId) {
+                return;
+            }
             if (dragGuestId && tableId) {
                 moveGuest(dragGuestId, parseInt(tableId));
                 dragGuestId = null;
@@ -1315,7 +1730,269 @@ $page_title = "Seating Chart - Jacob & Melissa";
         });
     });
 
+    document.addEventListener('dragover', (e) => {
+        if (!reorderSourceRow) return;
+        const tbody = e.target.closest('.guest-list tbody');
+        if (!tbody) return;
+        e.preventDefault();
+        const targetRow = e.target.closest('tr[data-guest-id]');
+        if (!targetRow || targetRow === reorderSourceRow) return;
+        if (targetRow.closest('tbody') !== reorderSourceRow.closest('tbody')) return;
+
+        // Clear previous indicators
+        tbody.querySelectorAll('.drag-over-above, .drag-over-below').forEach(r => {
+            r.classList.remove('drag-over-above', 'drag-over-below');
+        });
+
+        const rect = targetRow.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        if (e.clientY < midY) {
+            targetRow.classList.add('drag-over-above');
+        } else {
+            targetRow.classList.add('drag-over-below');
+        }
+    });
+
+    document.addEventListener('dragleave', (e) => {
+        const targetRow = e.target.closest('tr[data-guest-id]');
+        if (targetRow) {
+            targetRow.classList.remove('drag-over-above', 'drag-over-below');
+        }
+    });
+
+    document.addEventListener('drop', (e) => {
+        if (!reorderSourceRow) return;
+        const tbody = e.target.closest('.guest-list tbody');
+        if (!tbody) return;
+        const targetRow = e.target.closest('tr[data-guest-id]');
+        if (!targetRow || targetRow === reorderSourceRow) return;
+        if (targetRow.closest('tbody') !== reorderSourceRow.closest('tbody')) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        // Prevent the table-card drop handler from also firing moveGuest
+        dragGuestId = null;
+
+        tbody.querySelectorAll('.drag-over-above, .drag-over-below').forEach(r => {
+            r.classList.remove('drag-over-above', 'drag-over-below');
+        });
+
+        // Collect the source guest row + its plus-one
+        const sourceNext = reorderSourceRow.nextElementSibling;
+        const sourcePlusOne = sourceNext?.classList.contains('plus-one-row') ? sourceNext : null;
+
+        // Determine insert position
+        const rect = targetRow.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const insertBefore = e.clientY < midY;
+
+        if (insertBefore) {
+            tbody.insertBefore(reorderSourceRow, targetRow);
+            if (sourcePlusOne) tbody.insertBefore(sourcePlusOne, targetRow);
+        } else {
+            // Insert after target (and its plus-one if any)
+            const targetNext = targetRow.nextElementSibling;
+            const targetPlusOne = targetNext?.classList.contains('plus-one-row') ? targetNext : null;
+            const insertRef = targetPlusOne ? targetPlusOne.nextElementSibling : targetNext;
+            tbody.insertBefore(reorderSourceRow, insertRef);
+            if (sourcePlusOne) tbody.insertBefore(sourcePlusOne, insertRef);
+        }
+
+        // Update seat numbers and save
+        renumberSeats(tbody);
+        saveSeatingOrder(tbody);
+        reorderSourceRow = null;
+    });
+
+    // Hook into dragGuest to track reorder source
+    const origDragGuest = dragGuest;
+    dragGuest = function(e, guestId) {
+        const row = e.target.closest('tr[data-guest-id]');
+        reorderSourceRow = row || null;
+        origDragGuest(e, guestId);
+    };
+
+    // Clear reorder state on dragend
+    document.addEventListener('dragend', () => {
+        document.querySelectorAll('.drag-over-above, .drag-over-below, .dragging-row').forEach(r => {
+            r.classList.remove('drag-over-above', 'drag-over-below', 'dragging-row');
+        });
+        reorderSourceRow = null;
+    });
+
+    function renumberSeats(tbody) {
+        let pos = 1;
+        tbody.querySelectorAll('tr[data-guest-id]').forEach(row => {
+            const numEl = row.querySelector('.seat-num');
+            if (numEl) numEl.textContent = pos;
+            pos++;
+        });
+    }
+
+    async function saveSeatingOrder(tbody) {
+        const tableId = parseInt(tbody.id.replace('guests-', ''));
+        const guestIds = Array.from(tbody.querySelectorAll('tr[data-guest-id]'))
+            .map(r => parseInt(r.dataset.guestId));
+        if (!guestIds.length) return;
+        const result = await api({ action: 'reorder_seats', table_id: tableId, guest_ids: guestIds });
+        if (result) showToast(result.message);
+    }
+
+    // ---- Grid (spreadsheet) view ----
+    let gridViewActive = false;
+
+    function buildGridView() {
+        const container = document.getElementById('grid-view-container');
+        const tableCards = document.querySelectorAll('.table-card[data-table-id]');
+        const cols = [];
+        tableCards.forEach(card => {
+            const tableId = card.dataset.tableId;
+            const h3 = card.querySelector('.table-header h3');
+            const name = h3 ? h3.textContent.trim() : 'Table';
+            const tbody = document.getElementById('guests-' + tableId);
+            const guests = [];
+            if (tbody) {
+                tbody.querySelectorAll('tr[data-guest-id]').forEach(row => {
+                    const info = JSON.parse(row.dataset.guestInfo);
+                    guests.push({ name: info.name, guestId: info.id, tableId: parseInt(tableId), isPlusOne: false });
+                    if (info.has_plus_one) {
+                        guests.push({ name: info.plus_one_name + ' (plus one)', guestId: null, tableId: parseInt(tableId), isPlusOne: true });
+                    }
+                });
+            }
+            cols.push({ name, tableId: parseInt(tableId), guests, isUnseated: false });
+        });
+
+        // Add unseated guests column
+        const unseatedDivs = document.querySelectorAll('.unseated-guest[data-guest-id]');
+        if (unseatedDivs.length) {
+            const unseatedGuests = [];
+            unseatedDivs.forEach(div => {
+                const info = JSON.parse(div.dataset.guestInfo);
+                unseatedGuests.push({ name: info.name, guestId: info.id, tableId: null, isPlusOne: false });
+                if (info.has_plus_one) {
+                    unseatedGuests.push({ name: info.plus_one_name + ' (plus one)', guestId: null, tableId: null, isPlusOne: true });
+                }
+            });
+            cols.push({ name: 'Unseated (' + unseatedDivs.length + ')', tableId: null, guests: unseatedGuests, isUnseated: true });
+        }
+
+        if (!cols.length) {
+            container.innerHTML = '<p style="color:var(--color-text-muted);padding:1rem;">No tables yet.</p>';
+            return;
+        }
+
+        const maxRows = Math.max(...cols.map(c => c.guests.length));
+        let html = '<div class="grid-spreadsheet-wrapper"><table class="grid-spreadsheet"><thead><tr>';
+        cols.forEach(c => {
+            if (c.isUnseated) {
+                html += '<th class="grid-unseated-header">' + escHtml(c.name) + '</th>';
+            } else {
+                html += '<th>' + escHtml(c.name) + '</th>';
+            }
+        });
+        html += '</tr></thead><tbody>';
+        for (let i = 0; i < maxRows; i++) {
+            html += '<tr>';
+            cols.forEach(c => {
+                const entry = c.guests[i];
+                if (entry) {
+                    if (entry.isPlusOne) {
+                        html += '<td class="grid-cell-plusone">' + escHtml(entry.name) + '</td>';
+                    } else if (c.isUnseated) {
+                        html += '<td class="grid-cell-guest grid-cell-unseated" data-guest-id="' + entry.guestId + '" data-table-id="">'
+                            + '<span class="grid-guest-name">' + escHtml(entry.name) + '</span>'
+                            + '<span class="grid-move-icon" title="Assign to table">&#x21c4;</span>'
+                            + '</td>';
+                    } else {
+                        const seatNum = c.guests.slice(0, i).filter(g => !g.isPlusOne).length + 1;
+                        html += '<td class="grid-cell-guest" data-guest-id="' + entry.guestId + '" data-table-id="' + entry.tableId + '">'
+                            + '<span class="grid-seat-num">' + seatNum + '.</span>'
+                            + '<span class="grid-guest-name">' + escHtml(entry.name) + '</span>'
+                            + '<span class="grid-move-icon" title="Move to another table">&#x21c4;</span>'
+                            + '</td>';
+                    }
+                } else {
+                    html += '<td></td>';
+                }
+            });
+            html += '</tr>';
+        }
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    }
+
+    // Delegate click on grid guest cells
+    document.getElementById('grid-view-container').addEventListener('click', function(e) {
+        const cell = e.target.closest('.grid-cell-guest');
+        if (!cell) return;
+
+        // Toggle: if there's already a select in this cell, remove it and stop
+        const existing = cell.querySelector('.grid-move-select');
+        if (existing) { existing.remove(); return; }
+
+        // Remove any other open selects in the grid
+        document.querySelectorAll('.grid-move-select').forEach(s => s.remove());
+
+        const guestId = parseInt(cell.dataset.guestId);
+        const currentTableId = cell.dataset.tableId ? parseInt(cell.dataset.tableId) : null;
+        const isUnseated = currentTableId === null;
+
+        const sel = document.createElement('select');
+        sel.className = 'grid-move-select';
+        sel.innerHTML = '<option value="">' + (isUnseated ? 'Assign to...' : 'Move to...') + '</option>';
+        tables.forEach(t => {
+            if (t.id !== currentTableId) {
+                sel.innerHTML += '<option value="' + t.id + '">T' + t.number + ': ' + escHtml(t.name) + '</option>';
+            }
+        });
+        if (!isUnseated) {
+            sel.innerHTML += '<option value="unseat">Unseat</option>';
+        }
+        cell.appendChild(sel);
+        sel.focus();
+
+        sel.addEventListener('change', async function() {
+            const val = sel.value;
+            sel.remove();
+            if (!val) return;
+            if (val === 'unseat') {
+                await unseatGuest(guestId);
+            } else {
+                await moveGuest(guestId, parseInt(val));
+            }
+            if (gridViewActive) buildGridView();
+        });
+
+        sel.addEventListener('blur', function() {
+            sel.remove();
+        });
+    });
+
+    function switchView(view) {
+        const gridContainer = document.getElementById('grid-view-container');
+        const cardElements = document.querySelectorAll('.table-card');
+        const cardsBtn = document.getElementById('view-cards-btn');
+        const gridBtn = document.getElementById('view-grid-btn');
+
+        if (view === 'grid') {
+            gridViewActive = true;
+            buildGridView();
+            gridContainer.style.display = '';
+            cardElements.forEach(c => c.style.display = 'none');
+            cardsBtn.classList.remove('active');
+            gridBtn.classList.add('active');
+        } else {
+            gridViewActive = false;
+            gridContainer.style.display = 'none';
+            cardElements.forEach(c => c.style.display = '');
+            cardsBtn.classList.add('active');
+            gridBtn.classList.remove('active');
+        }
+    }
+
     // ---- Init ----
+    restoreExpansionState();
     renderFloorPlan();
 
     // Warn on leave if positions unsaved
