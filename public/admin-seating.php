@@ -1272,11 +1272,13 @@ $page_title = "Seating Chart - Jacob & Melissa";
     let dragGuestId = null;
 
     // ---- Toast ----
+    let toastTimer = null;
     function showToast(msg, type = 'success') {
         const t = document.getElementById('toast');
         t.textContent = msg;
         t.className = 'toast ' + type + ' show';
-        setTimeout(() => t.classList.remove('show'), 2500);
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
     }
 
     // ---- API helper ----
@@ -1583,13 +1585,46 @@ $page_title = "Seating Chart - Jacob & Melissa";
         return section;
     }
 
+    // ---- Undo support ----
+    let lastAction = null;
+
+    function recordAction(guestId, fromTableId, toTableId) {
+        lastAction = { guestId, fromTableId, toTableId };
+    }
+
+    async function undoLastAction() {
+        if (!lastAction) return;
+        const { guestId, fromTableId } = lastAction;
+        lastAction = null; // Clear so this undo itself isn't undoable
+        if (fromTableId) {
+            await moveGuest(guestId, fromTableId);
+        } else {
+            await unseatGuest(guestId);
+        }
+    }
+
+    function showUndoToast(message) {
+        const toast = document.getElementById('toast');
+        toast.className = 'toast success show';
+        toast.innerHTML = message + ' <button onclick="undoLastAction()" style="margin-left:0.5rem;padding:0.15rem 0.5rem;border:1px solid white;border-radius:4px;background:transparent;color:white;cursor:pointer;font-size:0.85rem;">Undo</button>';
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { toast.classList.remove('show'); lastAction = null; }, 5000);
+    }
+
     // ---- Guest actions ----
     async function moveGuest(guestId, tableId) {
         if (!tableId) return;
         tableId = parseInt(tableId);
+
+        // Record source for undo before the move
+        const existingRow = document.querySelector('tr[data-guest-id="' + guestId + '"]');
+        const sourceTableIdForUndo = existingRow ? parseInt(existingRow.closest('tbody')?.id?.replace('guests-', '')) : null;
+
         const result = await api({ action: 'move_guest', guest_id: guestId, table_id: tableId });
         if (!result) return;
-        showToast(result.message);
+
+        recordAction(guestId, sourceTableIdForUndo, tableId);
+        showUndoToast(result.message);
 
         // Find guest in seated table
         const guestRow = document.querySelector('tr[data-guest-id="' + guestId + '"]');
@@ -1652,9 +1687,15 @@ $page_title = "Seating Chart - Jacob & Melissa";
     }
 
     async function unseatGuest(guestId) {
+        // Record source for undo
+        const existingRow = document.querySelector('tr[data-guest-id="' + guestId + '"]');
+        const sourceTableIdForUndo = existingRow ? parseInt(existingRow.closest('tbody')?.id?.replace('guests-', '')) : null;
+
         const result = await api({ action: 'move_guest', guest_id: guestId, table_id: null });
         if (!result) return;
-        showToast(result.message);
+
+        recordAction(guestId, sourceTableIdForUndo, null);
+        showUndoToast(result.message);
 
         const guestRow = document.querySelector('tr[data-guest-id="' + guestId + '"]');
         if (!guestRow) return;
@@ -2574,9 +2615,12 @@ $page_title = "Seating Chart - Jacob & Melissa";
                 ctx.fillText(t.guests.length + '/' + t.capacity, cx, cy + 14);
 
                 // Guest names around the table (rendered first so table name goes below)
-                const nameR = tableR + (includeNames ? 50 : 0);
+                const baseNameR = 50;
+                const extraR = Math.max(0, (t.guests.length - 8) * 5);
+                const nameR = tableR + (includeNames ? baseNameR + extraR : 0);
                 if (includeNames && t.guests.length > 0) {
-                    ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+                    const fontSize = t.guests.length > 12 ? 8 : (t.guests.length > 8 ? 9 : 10);
+                    ctx.font = fontSize + 'px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
                     ctx.fillStyle = '#333';
                     const count = t.guests.length;
                     const startAngle = -Math.PI / 2;
