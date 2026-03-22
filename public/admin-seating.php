@@ -293,6 +293,26 @@ $page_title = "Seating Chart - Jacob & Melissa";
             opacity: 0.4;
         }
 
+        /* ---- Group warnings ---- */
+        .group-warnings-box {
+            padding: 0.75rem 1rem;
+            background: var(--color-surface-alt);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+        .group-warnings-box summary {
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--color-gold);
+        }
+        .group-warning-item {
+            margin: 0.3rem 0 0.3rem 1rem;
+            color: var(--color-text-secondary);
+        }
+        .group-warning-item strong { color: var(--color-dark); }
+
         .toast {
             position: fixed;
             bottom: 2rem;
@@ -845,6 +865,13 @@ $page_title = "Seating Chart - Jacob & Melissa";
             font-size: 0.75rem;
             margin-right: 0.3rem;
         }
+        .grid-info-row td {
+            background: var(--color-surface-alt) !important;
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            padding: 0.25rem 1rem !important;
+            border-bottom: 2px solid var(--color-border);
+        }
         .grid-cell-guest {
             cursor: pointer;
             position: relative;
@@ -976,6 +1003,9 @@ $page_title = "Seating Chart - Jacob & Melissa";
                     <input type="text" id="guest-search-input" placeholder="Search guests..." autocomplete="off">
                     <div class="guest-search-results" id="guest-search-results"></div>
                 </div>
+
+                <!-- Group split warnings -->
+                <div id="group-warnings" style="display:none;"></div>
 
                 <!-- Export bar -->
                 <div class="export-bar">
@@ -1378,6 +1408,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
 
             room.appendChild(el);
         });
+        checkGroupSplits();
     }
 
     // ---- Drag table to reposition ----
@@ -2123,6 +2154,40 @@ $page_title = "Seating Chart - Jacob & Melissa";
         reorderSourceRow = null;
     });
 
+    // ---- Group split detection ----
+    function checkGroupSplits() {
+        const groupTables = {}; // group -> Set of table names
+        document.querySelectorAll('tr[data-guest-id]').forEach(row => {
+            const info = JSON.parse(row.dataset.guestInfo);
+            const tableCard = row.closest('.table-card');
+            if (!tableCard || !info.group) return;
+            const tableName = tableCard.querySelector('.table-header h3')?.textContent.trim() || '';
+            if (!groupTables[info.group]) groupTables[info.group] = new Set();
+            groupTables[info.group].add(tableName);
+        });
+
+        const splits = [];
+        for (const [group, tableSet] of Object.entries(groupTables)) {
+            if (tableSet.size > 1) {
+                splits.push({ group, tables: Array.from(tableSet) });
+            }
+        }
+
+        const container = document.getElementById('group-warnings');
+        if (splits.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        let html = '<details class="group-warnings-box"><summary>' + splits.length + ' group' + (splits.length !== 1 ? 's' : '') + ' split across tables</summary>';
+        splits.forEach(s => {
+            html += '<div class="group-warning-item"><strong>' + escHtml(s.group) + '</strong> — ' + s.tables.map(t => escHtml(t)).join(', ') + '</div>';
+        });
+        html += '</details>';
+        container.innerHTML = html;
+        container.style.display = '';
+    }
+
     function renumberSeats(tbody) {
         let pos = 1;
         tbody.querySelectorAll('tr').forEach(row => {
@@ -2184,7 +2249,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
             return;
         }
 
-        const maxRows = Math.max(...cols.map(c => c.guests.length));
+        const maxRows = Math.max(0, ...cols.map(c => c.guests.length));
         let html = '<div class="grid-spreadsheet-wrapper"><table class="grid-spreadsheet"><thead><tr>';
         cols.forEach(c => {
             if (c.isUnseated) {
@@ -2193,7 +2258,28 @@ $page_title = "Seating Chart - Jacob & Melissa";
                 html += '<th>' + escHtml(c.name) + '</th>';
             }
         });
-        html += '</tr></thead><tbody>';
+        html += '</tr>';
+        // Info row: capacity and notes
+        html += '<tr class="grid-info-row">';
+        cols.forEach(c => {
+            if (c.isUnseated) {
+                html += '<td class="grid-info-cell"></td>';
+            } else {
+                const tData = tables.find(t => t.id === c.tableId);
+                const cap = tData ? tData.capacity : '?';
+                const remaining = tData ? tData.capacity - c.guests.length : 0;
+                let badge = '';
+                if (remaining > 0) badge = '<span class="seats-available" style="font-size:0.7rem;">' + remaining + ' left</span>';
+                else if (remaining === 0) badge = '<span class="seats-full" style="font-size:0.7rem;">Full</span>';
+                else badge = '<span class="seats-over" style="font-size:0.7rem;">Over ' + Math.abs(remaining) + '</span>';
+                html += '<td class="grid-info-cell">' + c.guests.length + '/' + cap + ' ' + badge + '</td>';
+            }
+        });
+        html += '</tr>';
+        html += '</thead><tbody>';
+        if (maxRows === 0) {
+            html += '<tr><td colspan="' + cols.length + '" style="text-align:center;padding:2rem;color:var(--color-text-muted);">No guests assigned to tables yet. Use the card view to seat guests.</td></tr>';
+        }
         for (let i = 0; i < maxRows; i++) {
             html += '<tr>';
             cols.forEach((c, colIdx) => {
@@ -2417,6 +2503,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
     // ---- Init ----
     restoreExpansionState();
     renderFloorPlan();
+    checkGroupSplits();
 
     // Warn on leave if positions unsaved
     window.addEventListener('beforeunload', (e) => {
