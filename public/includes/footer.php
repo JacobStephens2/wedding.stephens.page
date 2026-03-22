@@ -4,10 +4,15 @@
         <p><a href="/admin">Admin Area</a></p>
     </footer>
     
-    <script src="/js/main.js?v=<?php 
+    <script src="/js/main.js?v=<?php
         $jsPath = __DIR__ . '/../js/main.js?v=3';
-        echo file_exists($jsPath) ? filemtime($jsPath) : time(); 
+        echo file_exists($jsPath) ? filemtime($jsPath) : time();
     ?>"></script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js');
+    }
+    </script>
 </body>
 </html>
 

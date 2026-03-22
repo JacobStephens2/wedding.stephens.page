@@ -4,12 +4,15 @@ document.addEventListener('DOMContentLoaded', function() {
     toggles.forEach(function(toggle) {
         toggle.addEventListener('click', function() {
             var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            var themeColor = document.querySelector('meta[name="theme-color"]');
             if (isDark) {
                 document.documentElement.removeAttribute('data-theme');
                 localStorage.setItem('theme', 'light');
+                if (themeColor) themeColor.content = '#7f8f65';
             } else {
                 document.documentElement.setAttribute('data-theme', 'dark');
                 localStorage.setItem('theme', 'dark');
+                if (themeColor) themeColor.content = '#1a1a1a';
             }
         });
     });

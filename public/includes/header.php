@@ -14,6 +14,10 @@
     </script>
     <title><?php echo isset($page_title) ? htmlspecialchars($page_title) : 'Jacob & Melissa - April 11, 2026'; ?></title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/app-icons/apple-touch-icon.png">
+    <meta name="theme-color" content="#7f8f65">
+    <meta name="mobile-web-app-capable" content="yes">
     <?php include __DIR__ . '/theme_init.php'; ?>
     <link rel="stylesheet" href="/css/style.css?v=<?php 
         $cssPath = __DIR__ . '/../css/style.css';
