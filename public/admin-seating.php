@@ -11,7 +11,6 @@ $seatingData = [];
 $unseatedGuests = [];
 $stats = [];
 $allTablesJson = '[]';
-$exportJson = '[]';
 
 if ($authenticated) {
     // CSV export handler — must run before any HTML output
@@ -165,40 +164,6 @@ if ($authenticated) {
             ];
         }
         $allTablesJson = json_encode($tablesForJs);
-
-        // Build full export data for JS (plain text + visual)
-        $exportData = [];
-        foreach ($seatingData as $tn => $t) {
-            $guests = [];
-            foreach ($t['guests'] as $g) {
-                $guests[] = [
-                    'name' => $g['first_name'] . ' ' . $g['last_name'],
-                    'first_name' => $g['first_name'],
-                    'dietary' => $g['dietary'] ?? '',
-                ];
-                if ($g['has_plus_one'] && $g['plus_one_reception_attending'] === 'yes') {
-                    $poFirstName = $g['plus_one_name'] ?: 'Guest of ' . $g['first_name'];
-                    $guests[] = [
-                        'name' => $poFirstName . ' (plus one)',
-                        'first_name' => explode(' ', $poFirstName)[0],
-                        'dietary' => $g['plus_one_dietary'] ?? '',
-                    ];
-                }
-            }
-            $exportData[] = [
-                'number' => $tn,
-                'name' => $t['table_name'],
-                'capacity' => $t['capacity'],
-                'pos_x' => floatval($t['pos_x'] ?? 50),
-                'pos_y' => floatval($t['pos_y'] ?? 50),
-                'guests' => $guests,
-            ];
-        }
-        $unseatedExport = [];
-        foreach ($unseatedGuests as $ug) {
-            $unseatedExport[] = $ug['first_name'] . ' ' . $ug['last_name'];
-        }
-        $exportJson = json_encode(['tables' => $exportData, 'unseated' => $unseatedExport, 'stats' => $stats]);
 
     } catch (Exception $e) {
         $error = 'Error loading seating chart: ' . htmlspecialchars($e->getMessage());
@@ -1347,7 +1312,38 @@ $page_title = "Seating Chart - Jacob & Melissa";
     <script>
     // ---- Data ----
     const tables = <?php echo $allTablesJson; ?>;
-    const exportData = <?php echo $exportJson; ?>;
+    function getExportData() {
+        const tablesData = [];
+        document.querySelectorAll('.table-card[data-table-id]').forEach(card => {
+            const tableId = parseInt(card.dataset.tableId);
+            const tData = tables.find(t => t.id === tableId);
+            if (!tData) return;
+            const h3 = card.querySelector('.table-header h3');
+            const name = h3 ? h3.querySelector('.editable')?.textContent.trim() || h3.textContent.trim() : '';
+            const tbody = document.getElementById('guests-' + tableId);
+            const guests = [];
+            if (tbody) {
+                tbody.querySelectorAll('tr[data-guest-id]').forEach(row => {
+                    const info = JSON.parse(row.dataset.guestInfo);
+                    guests.push({ name: info.name, first_name: info.name.split(' ')[0], dietary: info.dietary || '' });
+                    if (info.has_plus_one) {
+                        guests.push({ name: info.plus_one_name + ' (plus one)', first_name: info.plus_one_name.split(' ')[0], dietary: info.plus_one_dietary || '' });
+                    }
+                });
+            }
+            tablesData.push({
+                number: tData.number, name: name, capacity: tData.capacity,
+                pos_x: tData.pos_x, pos_y: tData.pos_y, guests: guests
+            });
+        });
+        const unseated = [];
+        document.querySelectorAll('.unseated-guest[data-guest-id]').forEach(div => {
+            const info = JSON.parse(div.dataset.guestInfo);
+            unseated.push(info.name);
+        });
+        const seated = tablesData.reduce((s, t) => s + t.guests.length, 0);
+        return { tables: tablesData, unseated: unseated, stats: { tables: tablesData.length, seated, unseated: unseated.length } };
+    }
     let positionsDirty = false;
     let dragGuestId = null;
 
@@ -2589,7 +2585,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
 
     // ---- Plain text export ----
     function buildPlainText() {
-        const d = exportData;
+        const d = getExportData();
         const line = '━'.repeat(44);
         const thinLine = '─'.repeat(44);
         let totalGuests = 0;
@@ -2665,7 +2661,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
 
     // ---- Print view export ----
     function openPrintView() {
-        const d = exportData;
+        const d = getExportData();
         let totalGuests = 0;
         d.tables.forEach(t => totalGuests += t.guests.length);
 
@@ -2758,7 +2754,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
 
     // ---- Visual floor plan export ----
     function exportVisual() {
-        const d = exportData;
+        const d = getExportData();
         const includeNames = document.getElementById('export-include-names').checked;
         const firstNamesOnly = document.getElementById('export-first-names-only').checked;
         const canvas = document.getElementById('export-canvas');
