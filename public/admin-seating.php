@@ -236,9 +236,56 @@ $page_title = "Seating Chart - Jacob & Melissa";
         }
         .stat-item { text-align: center; }
         .stat-number { font-size: 2rem; font-weight: bold; color: var(--color-green); }
+        .stat-number.stat-seated { color: var(--color-green); }
+        .stat-number.stat-unseated { color: #dc3545; }
+        .stat-number.stat-dietary { color: var(--color-gold); }
         .stat-label { font-size: 0.9rem; color: var(--color-dark); }
 
         /* ---- Toast ---- */
+        /* ---- Guest search ---- */
+        .guest-search {
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        .guest-search input {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.2rem;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: var(--color-surface);
+            color: var(--color-dark);
+        }
+        .guest-search input:focus {
+            outline: none;
+            border-color: var(--color-green);
+            box-shadow: 0 0 0 2px rgba(77, 107, 46, 0.2);
+        }
+        .guest-search-icon {
+            position: absolute;
+            left: 0.7rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+        .guest-search-results {
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+        }
+        tr.search-highlight td,
+        .unseated-guest.search-highlight {
+            background: rgba(77, 107, 46, 0.15) !important;
+        }
+        .table-card.search-has-match {
+            border-color: var(--color-green);
+        }
+        .table-card:not(.search-has-match).search-dimmed {
+            opacity: 0.4;
+        }
+
         .toast {
             position: fixed;
             bottom: 2rem;
@@ -419,6 +466,12 @@ $page_title = "Seating Chart - Jacob & Melissa";
             border-bottom: 1px dashed rgba(255,255,255,0.4);
         }
         .editable:hover { border-bottom-color: white; }
+        .editable-capacity {
+            cursor: pointer;
+            border-bottom: 1px dashed var(--color-text-muted);
+            padding: 0 0.15rem;
+        }
+        .editable-capacity:hover { border-bottom-color: var(--color-dark); }
         .edit-input {
             background: rgba(255,255,255,0.2);
             border: 1px solid rgba(255,255,255,0.5);
@@ -854,19 +907,26 @@ $page_title = "Seating Chart - Jacob & Melissa";
                         <div class="stat-label">Tables</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-number" style="color:#2d5016;" id="stat-seated"><?php echo $stats['seated']; ?></div>
+                        <div class="stat-number stat-seated" id="stat-seated"><?php echo $stats['seated']; ?></div>
                         <div class="stat-label">Seated</div>
                     </div>
                     <?php if ($stats['unseated'] > 0): ?>
                     <div class="stat-item" id="stat-unseated-wrap">
-                        <div class="stat-number" style="color:#dc3545;" id="stat-unseated"><?php echo $stats['unseated']; ?></div>
+                        <div class="stat-number stat-unseated" id="stat-unseated"><?php echo $stats['unseated']; ?></div>
                         <div class="stat-label">Unseated</div>
                     </div>
                     <?php endif; ?>
                     <div class="stat-item">
-                        <div class="stat-number" style="color:#856404;" id="stat-dietary"><?php echo $stats['dietary']; ?></div>
+                        <div class="stat-number stat-dietary" id="stat-dietary"><?php echo $stats['dietary']; ?></div>
                         <div class="stat-label">Dietary Needs</div>
                     </div>
+                </div>
+
+                <!-- Guest search -->
+                <div class="guest-search">
+                    <span class="guest-search-icon">&#x1F50D;</span>
+                    <input type="text" id="guest-search-input" placeholder="Search guests..." autocomplete="off">
+                    <div class="guest-search-results" id="guest-search-results"></div>
                 </div>
 
                 <!-- Export bar -->
@@ -930,6 +990,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
                 <!-- Add table -->
                 <div class="table-management">
                     <input type="text" id="new-table-name" placeholder="New table name...">
+                    <input type="number" id="new-table-capacity" placeholder="Seats" min="1" max="50" value="10" style="width:70px;">
                     <button class="btn-sm primary" onclick="addTable()">Add Table</button>
                     <div class="toggle-all" style="margin:0 0 0 auto;">
                         <button onclick="toggleAll()">Expand / Collapse All</button>
@@ -952,7 +1013,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
                                 Table <?php echo $tableNum; ?> &mdash;
                                 <span class="editable" onclick="event.stopPropagation(); editTableName(<?php echo $table['table_id']; ?>, this)"><?php echo htmlspecialchars($table['table_name']); ?></span>
                             </h3>
-                            <span class="table-meta" id="meta-<?php echo $table['table_id']; ?>"><?php echo $totalAtTable; ?> / <?php echo $table['capacity']; ?> seats<?php
+                            <span class="table-meta" id="meta-<?php echo $table['table_id']; ?>"><?php echo $totalAtTable; ?> / <span class="editable-capacity" onclick="event.stopPropagation(); editCapacity(<?php echo $table['table_id']; ?>, this)" title="Click to edit capacity"><?php echo $table['capacity']; ?></span> seats<?php
                                 $remaining = $table['capacity'] - $totalAtTable;
                                 if ($remaining > 0): ?>
                                     <span class="seat-remaining-badge seats-available"><?php echo $remaining; ?> remaining</span>
@@ -1412,7 +1473,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
             if (remaining > 0) badge = '<span class="seat-remaining-badge seats-available">' + remaining + ' remaining</span>';
             else if (remaining === 0) badge = '<span class="seat-remaining-badge seats-full">Full</span>';
             else badge = '<span class="seat-remaining-badge seats-over">Over by ' + Math.abs(remaining) + '</span>';
-            meta.innerHTML = totalAtTable + ' / ' + tableData.capacity + ' seats' + badge;
+            meta.innerHTML = totalAtTable + ' / <span class="editable-capacity" onclick="event.stopPropagation(); editCapacity(' + parseInt(tableId) + ', this)" title="Click to edit capacity">' + tableData.capacity + '</span> seats' + badge;
         }
     }
 
@@ -1653,11 +1714,52 @@ $page_title = "Seating Chart - Jacob & Melissa";
         input.focus();
     }
 
+    function editCapacity(tableId, el) {
+        const current = parseInt(el.textContent.trim());
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.value = current;
+        input.min = 1;
+        input.max = 50;
+        input.className = 'edit-input';
+        input.style.width = '60px';
+
+        async function save() {
+            const newCap = parseInt(input.value);
+            if (newCap > 0 && newCap !== current) {
+                const result = await api({ action: 'update_table', table_id: tableId, capacity: newCap });
+                if (result) {
+                    el.textContent = newCap;
+                    const t = tables.find(x => x.id === tableId);
+                    if (t) t.capacity = newCap;
+                    updateTableMeta(tableId);
+                    renderFloorPlan();
+                    showToast('Capacity updated.');
+                    return;
+                }
+            }
+            el.textContent = current;
+        }
+
+        input.addEventListener('blur', save);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+            if (e.key === 'Escape') { el.textContent = current; }
+        });
+
+        el.textContent = '';
+        el.appendChild(input);
+        input.focus();
+        input.select();
+    }
+
     async function addTable() {
         const input = document.getElementById('new-table-name');
         const name = input.value.trim();
         if (!name) { input.focus(); return; }
-        const result = await api({ action: 'add_table', table_name: name });
+        const capInput = document.getElementById('new-table-capacity');
+        const capacity = parseInt(capInput.value) || 10;
+        const result = await api({ action: 'add_table', table_name: name, capacity: capacity });
         if (result) {
             showToast(result.message);
             saveExpansionState();
@@ -1990,6 +2092,72 @@ $page_title = "Seating Chart - Jacob & Melissa";
             gridBtn.classList.remove('active');
         }
     }
+
+    // ---- Guest search ----
+    const searchInput = document.getElementById('guest-search-input');
+    const searchResults = document.getElementById('guest-search-results');
+
+    searchInput.addEventListener('input', function() {
+        const q = this.value.trim().toLowerCase();
+
+        // Clear previous highlights
+        document.querySelectorAll('.search-highlight').forEach(el => el.classList.remove('search-highlight'));
+        document.querySelectorAll('.search-has-match, .search-dimmed').forEach(el => {
+            el.classList.remove('search-has-match', 'search-dimmed');
+        });
+
+        if (!q) { searchResults.textContent = ''; return; }
+
+        let matchCount = 0;
+        const matchedCards = new Set();
+
+        // Search seated guests
+        document.querySelectorAll('tr[data-guest-id]').forEach(row => {
+            const info = JSON.parse(row.dataset.guestInfo);
+            const text = (info.name + ' ' + info.group + ' ' + (info.dietary || '')).toLowerCase();
+            if (text.includes(q)) {
+                row.classList.add('search-highlight');
+                matchCount++;
+                const card = row.closest('.table-card');
+                if (card) {
+                    matchedCards.add(card);
+                    // Auto-expand the table body
+                    const tbody = card.querySelector('.table-body');
+                    if (tbody) tbody.classList.remove('collapsed');
+                }
+            }
+        });
+
+        // Search unseated guests
+        document.querySelectorAll('.unseated-guest[data-guest-id]').forEach(div => {
+            const info = JSON.parse(div.dataset.guestInfo);
+            const text = (info.name + ' ' + info.group + ' ' + (info.dietary || '')).toLowerCase();
+            if (text.includes(q)) {
+                div.classList.add('search-highlight');
+                matchCount++;
+            }
+        });
+
+        // Dim non-matching cards
+        if (matchCount > 0) {
+            document.querySelectorAll('.table-card').forEach(card => {
+                if (matchedCards.has(card)) {
+                    card.classList.add('search-has-match');
+                } else {
+                    card.classList.add('search-dimmed');
+                }
+            });
+        }
+
+        searchResults.textContent = matchCount === 0 ? 'No matches found' :
+            matchCount + ' guest' + (matchCount !== 1 ? 's' : '') + ' found';
+
+        // Scroll to first match
+        if (matchCount > 0) {
+            const first = document.querySelector('.search-highlight');
+            if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
 
     // ---- Init ----
     restoreExpansionState();

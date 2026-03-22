@@ -104,7 +104,7 @@ try {
             }
             if (isset($input['capacity'])) {
                 $fields[] = 'capacity = ?';
-                $params[] = intval($input['capacity']);
+                $params[] = max(1, intval($input['capacity']));
             }
 
             if (empty($fields)) {
@@ -136,8 +136,10 @@ try {
             $posX = 50;
             $posY = 85;
 
-            $stmt = $pdo->prepare("INSERT INTO seating_tables (table_number, table_name, capacity, pos_x, pos_y) VALUES (?, ?, 10, ?, ?)");
-            $stmt->execute([$nextNum, $tableName, $posX, $posY]);
+            $capacity = max(1, intval($input['capacity'] ?? 10));
+
+            $stmt = $pdo->prepare("INSERT INTO seating_tables (table_number, table_name, capacity, pos_x, pos_y) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$nextNum, $tableName, $capacity, $posX, $posY]);
             $newId = $pdo->lastInsertId();
 
             echo json_encode([
@@ -168,6 +170,21 @@ try {
             $pdo->prepare("DELETE FROM seating_tables WHERE id = ?")->execute([$tableId]);
 
             echo json_encode(['success' => true, 'message' => 'Table deleted.']);
+            break;
+
+        case 'reorder_seats':
+            $tableId = intval($input['table_id'] ?? 0);
+            $guestIds = $input['guest_ids'] ?? [];
+            if (!$tableId || empty($guestIds)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'table_id and guest_ids required.']);
+                exit;
+            }
+            $stmt = $pdo->prepare("UPDATE guests SET seat_number = ? WHERE id = ? AND seating_table_id = ?");
+            foreach ($guestIds as $i => $gid) {
+                $stmt->execute([$i + 1, intval($gid), $tableId]);
+            }
+            echo json_encode(['success' => true, 'message' => 'Seat order saved.']);
             break;
 
         case 'save_positions':
