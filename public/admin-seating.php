@@ -641,6 +641,19 @@ $page_title = "Seating Chart - Jacob & Melissa";
             flex-wrap: wrap;
         }
         .unseated-guest-name { min-width: 160px; }
+        .unseated-guest input[type="checkbox"] { width: auto; margin: 0; cursor: pointer; }
+        .bulk-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 0.85rem;
+        }
+        .bulk-actions label { cursor: pointer; color: var(--color-text-secondary); }
+        .bulk-actions select { font-size: 0.85rem; }
+        .bulk-count { font-weight: bold; color: var(--color-dark); }
 
         /* ---- Dietary summary ---- */
         .dietary-summary {
@@ -1214,6 +1227,17 @@ $page_title = "Seating Chart - Jacob & Melissa";
                          ondrop="dropUnseat(event); this.style.borderColor='#dc3545';">
                         <h2>Unseated Guests (<?php echo count($unseatedGuests); ?>)</h2>
                         <p>RSVP'd yes for reception but no table assigned. Drag guests here to unseat, or use the dropdown to assign.</p>
+                        <div class="bulk-actions" id="bulk-actions">
+                            <label><input type="checkbox" id="bulk-select-all" onchange="toggleSelectAll(this.checked)"> Select all</label>
+                            <span class="bulk-count" id="bulk-count"></span>
+                            <select id="bulk-table-select">
+                                <option value="">Assign selected to...</option>
+                                <?php foreach ($seatingData as $tn2 => $t2): ?>
+                                    <option value="<?php echo $t2['table_id']; ?>">T<?php echo $tn2; ?>: <?php echo htmlspecialchars($t2['table_name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button class="btn-sm primary" onclick="bulkAssign()">Assign</button>
+                        </div>
                         <div id="unseated-list">
                             <?php foreach ($unseatedGuests as $ug): ?>
                                 <?php
@@ -1235,6 +1259,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
                                 <div class="unseated-guest" data-guest-id="<?php echo $ug['id']; ?>"
                                      data-guest-info='<?php echo htmlspecialchars(json_encode($ugInfo), ENT_QUOTES); ?>'
                                      draggable="true" ondragstart="dragGuest(event, <?php echo $ug['id']; ?>)">
+                                    <input type="checkbox" class="bulk-check" value="<?php echo $ug['id']; ?>" onchange="updateBulkCount()">
                                     <span class="unseated-guest-name"><?php echo htmlspecialchars($ug['first_name'] . ' ' . $ug['last_name']); ?></span>
                                     <span class="group-badge"><?php echo htmlspecialchars($ug['group_name']); ?></span>
                                     <?php if (!empty($ug['dietary'])): ?>
@@ -1786,6 +1811,30 @@ $page_title = "Seating Chart - Jacob & Melissa";
         if (sel.value) {
             moveGuest(parseInt(sel.value), tableId);
         }
+    }
+
+    // ---- Bulk operations ----
+    function toggleSelectAll(checked) {
+        document.querySelectorAll('.bulk-check').forEach(cb => cb.checked = checked);
+        updateBulkCount();
+    }
+
+    function updateBulkCount() {
+        const checked = document.querySelectorAll('.bulk-check:checked').length;
+        const el = document.getElementById('bulk-count');
+        if (el) el.textContent = checked > 0 ? checked + ' selected' : '';
+    }
+
+    async function bulkAssign() {
+        const tableId = document.getElementById('bulk-table-select')?.value;
+        if (!tableId) { showToast('Select a table first.', 'error'); return; }
+        const checked = document.querySelectorAll('.bulk-check:checked');
+        if (!checked.length) { showToast('No guests selected.', 'error'); return; }
+        for (const cb of checked) {
+            await moveGuest(parseInt(cb.value), parseInt(tableId));
+        }
+        document.getElementById('bulk-table-select').selectedIndex = 0;
+        showToast(checked.length + ' guest' + (checked.length !== 1 ? 's' : '') + ' assigned.');
     }
 
     // ---- Table editing ----
@@ -2497,6 +2546,22 @@ $page_title = "Seating Chart - Jacob & Melissa";
         if (matchCount > 0) {
             const first = document.querySelector('.search-highlight');
             if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+
+    // ---- Keyboard shortcuts ----
+    document.addEventListener('keydown', (e) => {
+        // Ctrl+Z / Cmd+Z to undo last move
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+            if (lastAction) {
+                e.preventDefault();
+                undoLastAction();
+            }
+        }
+        // Escape to close text export modal
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('text-export-modal');
+            if (modal?.classList.contains('open')) closeTextExport();
         }
     });
 
