@@ -2430,7 +2430,14 @@ $page_title = "Seating Chart - Jacob & Melissa";
             } else {
                 await moveGuest(guestId, parseInt(val));
             }
-            if (gridViewActive) buildGridView();
+            if (gridViewActive) {
+                const w = document.querySelector('.grid-spreadsheet-wrapper');
+                const sl = w ? w.scrollLeft : 0;
+                const st = w ? w.scrollTop : 0;
+                buildGridView();
+                const nw = document.querySelector('.grid-spreadsheet-wrapper');
+                if (nw) { nw.scrollLeft = sl; nw.scrollTop = st; }
+            }
         });
 
         sel.addEventListener('blur', function() {
@@ -2475,7 +2482,14 @@ $page_title = "Seating Chart - Jacob & Melissa";
 
         renumberSeats(tbody);
         await saveSeatingOrder(tbody);
+
+        // Preserve scroll position across grid rebuild
+        const wrapper = document.querySelector('.grid-spreadsheet-wrapper');
+        const scrollLeft = wrapper ? wrapper.scrollLeft : 0;
+        const scrollTop = wrapper ? wrapper.scrollTop : 0;
         buildGridView();
+        const newWrapper = document.querySelector('.grid-spreadsheet-wrapper');
+        if (newWrapper) { newWrapper.scrollLeft = scrollLeft; newWrapper.scrollTop = scrollTop; }
     }
 
     function switchView(view) {
