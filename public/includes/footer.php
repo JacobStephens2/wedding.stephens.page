@@ -8,11 +8,6 @@
         $jsPath = __DIR__ . '/../js/main.js?v=3';
         echo file_exists($jsPath) ? filemtime($jsPath) : time();
     ?>"></script>
-    <script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js');
-    }
-    </script>
 </body>
 </html>
 
