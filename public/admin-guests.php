@@ -2,20 +2,22 @@
 require_once __DIR__ . '/../private/config.php';
 require_once __DIR__ . '/../private/db.php';
 require_once __DIR__ . '/../private/admin_auth.php';
+require_once __DIR__ . '/../private/admin_sample.php';
 
 session_start();
 
 $error = '';
 $success = '';
-$authenticated = false;
+$sampleMode = isAdminSampleMode();
+$authenticated = $sampleMode;
 
 // Check auth
-if (isAdminAuthenticated()) {
+if (!$sampleMode && isAdminAuthenticated()) {
     $authenticated = true;
 }
 
 // Handle login
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && isset($_POST['admin_login'])) {
+if (!$sampleMode && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && isset($_POST['admin_login'])) {
     $password = trim($_POST['password'] ?? '');
     $adminPassword = $_ENV['ADMIN_PASSWORD'] ?? '';
     if ($password === $adminPassword) {
@@ -27,14 +29,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && isset(
 }
 
 // Handle logout
-if (isset($_GET['logout'])) {
+if (!$sampleMode && isset($_GET['logout'])) {
     session_destroy();
     header('Location: /admin-guests');
     exit;
 }
 
 // Handle rehearsal contacts CSV export
-if ($authenticated && isset($_GET['export_rehearsal'])) {
+if (!$sampleMode && $authenticated && isset($_GET['export_rehearsal'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->query("
@@ -79,7 +81,7 @@ if ($authenticated && isset($_GET['export_rehearsal'])) {
 }
 
 // Handle dietary restrictions CSV export
-if ($authenticated && isset($_GET['export_dietary'])) {
+if (!$sampleMode && $authenticated && isset($_GET['export_dietary'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->query("
@@ -119,7 +121,7 @@ if ($authenticated && isset($_GET['export_dietary'])) {
 }
 
 // Handle pending RSVPs CSV export
-if ($authenticated && isset($_GET['export_pending'])) {
+if (!$sampleMode && $authenticated && isset($_GET['export_pending'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->query("
@@ -144,7 +146,7 @@ if ($authenticated && isset($_GET['export_pending'])) {
 }
 
 // Handle full guest list CSV export
-if ($authenticated && isset($_GET['export_all'])) {
+if (!$sampleMode && $authenticated && isset($_GET['export_all'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->query("
@@ -177,7 +179,7 @@ if ($authenticated && isset($_GET['export_all'])) {
 }
 
 // Handle add guest
-if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_guest'])) {
+if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_guest'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("
@@ -233,7 +235,7 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add
 }
 
 // Handle update guest
-if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_guest'])) {
+if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_guest'])) {
     try {
         $pdo = getDbConnection();
         $mailingGroup = trim($_POST['mailing_group'] ?? '');
@@ -330,7 +332,7 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upd
 }
 
 // Handle delete guest
-if ($authenticated && isset($_GET['delete'])) {
+if (!$sampleMode && $authenticated && isset($_GET['delete'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("DELETE FROM guests WHERE id = ?");
@@ -343,7 +345,7 @@ if ($authenticated && isset($_GET['delete'])) {
 }
 
 // Handle bulk action
-if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_action'])) {
+if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_action'])) {
     try {
         $action = $_POST['bulk_action'];
         $guestIdsRaw = $_POST['guest_ids'] ?? '';
@@ -377,7 +379,23 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bul
 // Fetch guest for editing
 $editGuest = null;
 $editAddress = null;
-if ($authenticated && isset($_GET['edit'])) {
+if ($sampleMode && isset($_GET['edit'])) {
+    foreach (getSampleGuestRecords() as $sampleGuest) {
+        if ((int) $sampleGuest['id'] === (int) $_GET['edit']) {
+            $editGuest = $sampleGuest;
+            $editAddress = [
+                'mailing_group' => $sampleGuest['mailing_group'],
+                'address_1' => $sampleGuest['address_1'],
+                'address_2' => $sampleGuest['address_2'],
+                'city' => $sampleGuest['city'],
+                'state' => $sampleGuest['state'],
+                'zip' => $sampleGuest['zip'],
+                'country' => $sampleGuest['country'],
+            ];
+            break;
+        }
+    }
+} elseif ($authenticated && isset($_GET['edit'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("SELECT * FROM guests WHERE id = ?");
@@ -397,7 +415,14 @@ if ($authenticated && isset($_GET['edit'])) {
 
 // Fetch guest for admin RSVP entry
 $rsvpGuest = null;
-if ($authenticated && isset($_GET['rsvp'])) {
+if ($sampleMode && isset($_GET['rsvp'])) {
+    foreach (getSampleGuestRecords() as $sampleGuest) {
+        if ((int) $sampleGuest['id'] === (int) $_GET['rsvp']) {
+            $rsvpGuest = $sampleGuest;
+            break;
+        }
+    }
+} elseif ($authenticated && isset($_GET['rsvp'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("SELECT * FROM guests WHERE id = ?");
@@ -411,7 +436,19 @@ if ($authenticated && isset($_GET['rsvp'])) {
 // Fetch all guests if authenticated
 $guests = [];
 $stats = ['total' => 0, 'attending' => 0, 'declined' => 0, 'pending' => 0, 'ceremony' => 0, 'reception' => 0, 'ceremony_declined' => 0, 'reception_declined' => 0, 'rehearsal' => 0, 'reception_children' => 0, 'pending_children' => 0, 'reception_infants' => 0, 'pending_infants' => 0];
-if ($authenticated) {
+if ($sampleMode) {
+    $search = trim($_GET['search'] ?? '');
+    $groupFilter = trim($_GET['group_filter'] ?? '');
+    $statusFilter = trim($_GET['status_filter'] ?? '');
+    $sort = $_GET['sort'] ?? 'mailing_group';
+    $order = $_GET['order'] ?? 'ASC';
+    $sampleGuestsPage = getSampleGuestsPageData($search, $groupFilter, $statusFilter, $sort, $order);
+    $guests = $sampleGuestsPage['guests'];
+    $stats = $sampleGuestsPage['stats'];
+    $nextGroupNumber = $sampleGuestsPage['next_group_number'];
+    $existingGroups = $sampleGuestsPage['existing_groups'];
+    $rsvpTimeline = $sampleGuestsPage['rsvp_timeline'];
+} elseif ($authenticated) {
     try {
         $pdo = getDbConnection();
         
@@ -673,6 +710,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
     <title><?php echo htmlspecialchars($page_title); ?></title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <?php include __DIR__ . '/includes/theme_init.php'; ?>
+    <?php renderAdminSampleModeAssets(); ?>
     <link rel="stylesheet" href="/css/style.css?v=<?php
         $cssPath = __DIR__ . '/css/style.css';
         echo file_exists($cssPath) ? filemtime($cssPath) : time(); 
@@ -1207,6 +1245,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
 <body>
     <?php include __DIR__ . '/includes/admin_menu.php'; ?>
     <main class="page-container">
+        <?php renderAdminSampleBanner('Guest Management Sample Mode'); ?>
         <div class="back-to-site">
             <a href="/">← Back to Main Site</a>
         </div>

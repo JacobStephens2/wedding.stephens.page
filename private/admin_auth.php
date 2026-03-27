@@ -4,7 +4,9 @@
  */
 
 function requireAdminAuth() {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
     
     $authenticated = false;
     
@@ -43,13 +45,16 @@ function requireAdminAuth() {
 }
 
 function isAdminAuthenticated() {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
     return isset($_SESSION['admin_authenticated']) && $_SESSION['admin_authenticated'] === true;
 }
 
 function adminLogout() {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
     session_destroy();
 }
-
 

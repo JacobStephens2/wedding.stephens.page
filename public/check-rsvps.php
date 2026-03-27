@@ -2,23 +2,25 @@
 require_once __DIR__ . '/../private/config.php';
 require_once __DIR__ . '/../private/db.php';
 require_once __DIR__ . '/../private/admin_auth.php';
+require_once __DIR__ . '/../private/admin_sample.php';
 
 session_start();
 
 $error = '';
-$authenticated = false;
+$sampleMode = isAdminSampleMode();
+$authenticated = $sampleMode;
 
 // Check unified admin auth first
-if (isAdminAuthenticated()) {
+if (!$sampleMode && isAdminAuthenticated()) {
     $authenticated = true;
-} else {
+} elseif (!$sampleMode) {
     if (isset($_SESSION['rsvp_check_authenticated']) && $_SESSION['rsvp_check_authenticated'] === true) {
         $authenticated = true;
     }
 }
 
 // Handle login
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
+if (!$sampleMode && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
     $password = trim($_POST['password'] ?? '');
     
     $adminPassword = $_ENV['ADMIN_PASSWORD'] ?? '';
@@ -37,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
 }
 
 // Handle logout
-if (isset($_GET['logout'])) {
+if (!$sampleMode && isset($_GET['logout'])) {
     session_destroy();
     header('Location: /check-rsvps');
     exit;
@@ -46,7 +48,13 @@ if (isset($_GET['logout'])) {
 // Fetch guest RSVPs if authenticated
 $guestRsvps = [];
 $guestStats = ['total' => 0, 'attending' => 0, 'declined' => 0, 'pending' => 0];
-if ($authenticated) {
+if ($sampleMode) {
+    $sort = $_GET['sort'] ?? 'rsvp_submitted_at';
+    $order = $_GET['order'] ?? 'DESC';
+    $sampleRsvps = getSampleRsvpData($sort, $order);
+    $guestRsvps = $sampleRsvps['rows'];
+    $guestStats = $sampleRsvps['stats'];
+} elseif ($authenticated) {
     // Sorting
     $sort = $_GET['sort'] ?? 'rsvp_submitted_at';
     $order = $_GET['order'] ?? 'DESC';
@@ -121,6 +129,7 @@ $page_title = "Check RSVPs - Jacob & Melissa";
     <title><?php echo htmlspecialchars($page_title); ?></title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <?php include __DIR__ . '/includes/theme_init.php'; ?>
+    <?php renderAdminSampleModeAssets(); ?>
     <link rel="stylesheet" href="/css/style.css?v=<?php
         $cssPath = __DIR__ . '/../css/style.css';
         echo file_exists($cssPath) ? filemtime($cssPath) : time();
@@ -242,6 +251,7 @@ $page_title = "Check RSVPs - Jacob & Melissa";
 <body>
     <?php include __DIR__ . '/includes/admin_menu.php'; ?>
     <main class="page-container">
+        <?php renderAdminSampleBanner('RSVP Dashboard Sample Mode'); ?>
         <div class="back-to-site">
             <a href="/">← Back to Main Site</a>
         </div>

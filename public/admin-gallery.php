@@ -2,12 +2,14 @@
 require_once __DIR__ . '/../private/config.php';
 require_once __DIR__ . '/../private/db.php';
 require_once __DIR__ . '/../private/admin_auth.php';
+require_once __DIR__ . '/../private/admin_sample.php';
 
 session_start();
 
 $error = '';
 $success = '';
-$authenticated = false;
+$sampleMode = isAdminSampleMode();
+$authenticated = $sampleMode;
 
 $storySections = [
     ''                   => '(None — gallery only)',
@@ -24,11 +26,11 @@ $storySections = [
     'divine_mercy'       => 'Divine Mercy\'s Design',
 ];
 
-if (isAdminAuthenticated()) {
+if (!$sampleMode && isAdminAuthenticated()) {
     $authenticated = true;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && isset($_POST['admin_login'])) {
+if (!$sampleMode && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && isset($_POST['admin_login'])) {
     $password = trim($_POST['password'] ?? '');
     $adminPassword = $_ENV['ADMIN_PASSWORD'] ?? '';
     if ($password === $adminPassword) {
@@ -39,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && isset(
     }
 }
 
-if (isset($_GET['logout'])) {
+if (!$sampleMode && isset($_GET['logout'])) {
     session_destroy();
     header('Location: /admin-gallery');
     exit;
@@ -108,7 +110,7 @@ function handlePhotoUpload(array $file, string &$error): ?string {
 }
 
 // Handle add photo
-if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_photo'])) {
+if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_photo'])) {
     try {
         $pdo = getDbConnection();
         $path = trim($_POST['path'] ?? '');
@@ -150,7 +152,7 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add
 }
 
 // Handle update photo
-if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_photo'])) {
+if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_photo'])) {
     try {
         $pdo = getDbConnection();
         $id = (int)$_POST['photo_id'];
@@ -195,7 +197,7 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upd
 }
 
 // Handle delete photo
-if ($authenticated && isset($_GET['delete'])) {
+if (!$sampleMode && $authenticated && isset($_GET['delete'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("DELETE FROM gallery_photos WHERE id = ?");
@@ -209,7 +211,14 @@ if ($authenticated && isset($_GET['delete'])) {
 
 // Fetch photo for editing
 $editPhoto = null;
-if ($authenticated && isset($_GET['edit'])) {
+if ($sampleMode && isset($_GET['edit'])) {
+    foreach (getSampleGalleryPhotos() as $samplePhoto) {
+        if ((int) $samplePhoto['id'] === (int) $_GET['edit']) {
+            $editPhoto = $samplePhoto;
+            break;
+        }
+    }
+} elseif ($authenticated && isset($_GET['edit'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("SELECT * FROM gallery_photos WHERE id = ?");
@@ -222,7 +231,9 @@ if ($authenticated && isset($_GET['edit'])) {
 
 // Fetch all photos
 $photos = [];
-if ($authenticated) {
+if ($sampleMode) {
+    $photos = getSampleGalleryPhotos();
+} elseif ($authenticated) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->query("SELECT * FROM gallery_photos ORDER BY photo_date ASC, id ASC");
@@ -242,6 +253,7 @@ $page_title = "Manage Gallery - Jacob & Melissa";
     <title><?php echo htmlspecialchars($page_title); ?></title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <?php include __DIR__ . '/includes/theme_init.php'; ?>
+    <?php renderAdminSampleModeAssets(); ?>
     <link rel="stylesheet" href="/css/style.css?v=<?php
         $cssPath = __DIR__ . '/css/style.css';
         echo file_exists($cssPath) ? filemtime($cssPath) : time();
@@ -416,6 +428,7 @@ $page_title = "Manage Gallery - Jacob & Melissa";
 <body>
     <?php include __DIR__ . '/includes/admin_menu.php'; ?>
     <main class="page-container">
+        <?php renderAdminSampleBanner('Gallery Sample Mode'); ?>
         <div class="back-to-site">
             <a href="/">← Back to Main Site</a>
         </div>

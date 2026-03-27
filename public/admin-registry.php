@@ -2,17 +2,19 @@
 require_once __DIR__ . '/../private/config.php';
 require_once __DIR__ . '/../private/db.php';
 require_once __DIR__ . '/../private/admin_auth.php';
+require_once __DIR__ . '/../private/admin_sample.php';
 
 session_start();
 
 $error = '';
 $success = '';
-$authenticated = false;
+$sampleMode = isAdminSampleMode();
+$authenticated = $sampleMode;
 
 // Check unified admin auth first
-if (isAdminAuthenticated()) {
+if (!$sampleMode && isAdminAuthenticated()) {
     $authenticated = true;
-} else {
+} elseif (!$sampleMode) {
     // Fallback to old auth system for backward compatibility
     if (isset($_SESSION['registry_admin_authenticated']) && $_SESSION['registry_admin_authenticated'] === true) {
         $authenticated = true;
@@ -20,7 +22,7 @@ if (isAdminAuthenticated()) {
 }
 
 // Handle login - try unified admin auth first
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && !isset($_POST['title'])) {
+if (!$sampleMode && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && !isset($_POST['title'])) {
     $password = trim($_POST['password'] ?? '');
     
     // Try unified admin password first
@@ -41,14 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && !isset
 }
 
 // Handle logout
-if (isset($_GET['logout'])) {
+if (!$sampleMode && isset($_GET['logout'])) {
     session_destroy();
     header('Location: /admin-registry');
     exit;
 }
 
 // Handle adding new item or updating existing item
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title'])) {
+if (!$sampleMode && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title'])) {
     if (!$authenticated) {
         // Session expired - show error message
         $error = 'Your session has expired. Please log in again. Your form data has been saved and will be restored after you log in.';
@@ -106,7 +108,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title'])) {
 
 // Fetch item for editing
 $editItem = null;
-if ($authenticated && isset($_GET['edit'])) {
+if ($sampleMode && isset($_GET['edit'])) {
+    foreach (getSampleRegistryItems() as $sampleItem) {
+        if ((int) $sampleItem['id'] === (int) $_GET['edit']) {
+            $editItem = $sampleItem;
+            break;
+        }
+    }
+} elseif ($authenticated && isset($_GET['edit'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("
@@ -122,7 +131,7 @@ if ($authenticated && isset($_GET['edit'])) {
 }
 
 // Handle deleting item
-if ($authenticated && isset($_GET['delete'])) {
+if (!$sampleMode && $authenticated && isset($_GET['delete'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("DELETE FROM registry_items WHERE id = ?");
@@ -134,7 +143,7 @@ if ($authenticated && isset($_GET['delete'])) {
 }
 
 // Handle toggling purchased status
-if ($authenticated && isset($_GET['toggle_purchased'])) {
+if (!$sampleMode && $authenticated && isset($_GET['toggle_purchased'])) {
     try {
         $pdo = getDbConnection();
         // First get current status
@@ -163,7 +172,7 @@ if ($authenticated && isset($_GET['toggle_purchased'])) {
 }
 
 // Handle move order (move up / move down)
-if ($authenticated && isset($_GET['move_up'], $_GET['id']) && is_numeric($_GET['id'])) {
+if (!$sampleMode && $authenticated && isset($_GET['move_up'], $_GET['id']) && is_numeric($_GET['id'])) {
     $moveId = (int) $_GET['id'];
     try {
         $pdo = getDbConnection();
@@ -189,7 +198,7 @@ if ($authenticated && isset($_GET['move_up'], $_GET['id']) && is_numeric($_GET['
         $error = 'Error reordering: ' . htmlspecialchars($e->getMessage());
     }
 }
-if ($authenticated && isset($_GET['move_down'], $_GET['id']) && is_numeric($_GET['id'])) {
+if (!$sampleMode && $authenticated && isset($_GET['move_down'], $_GET['id']) && is_numeric($_GET['id'])) {
     $moveId = (int) $_GET['id'];
     try {
         $pdo = getDbConnection();
@@ -217,7 +226,7 @@ if ($authenticated && isset($_GET['move_down'], $_GET['id']) && is_numeric($_GET
 }
 
 // Handle bulk reorder
-if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_reorder']) && isset($_POST['positions'])) {
+if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_reorder']) && isset($_POST['positions'])) {
     try {
         $pdo = getDbConnection();
         $positions = $_POST['positions']; // array of id => new position number
@@ -257,7 +266,9 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bul
 
 // Fetch registry items if authenticated
 $items = [];
-if ($authenticated) {
+if ($sampleMode) {
+    $items = getSampleRegistryItems();
+} elseif ($authenticated) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->query("
@@ -281,6 +292,7 @@ $page_title = "Manage Registry - Jacob & Melissa";
     <title><?php echo htmlspecialchars($page_title); ?></title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <?php include __DIR__ . '/includes/theme_init.php'; ?>
+    <?php renderAdminSampleModeAssets(); ?>
     <link rel="stylesheet" href="/css/style.css?v=<?php 
         $cssPath = __DIR__ . '/../css/style.css';
         echo file_exists($cssPath) ? filemtime($cssPath) : time(); 
@@ -725,6 +737,7 @@ $page_title = "Manage Registry - Jacob & Melissa";
 <body>
     <?php include __DIR__ . '/includes/admin_menu.php'; ?>
     <main class="page-container">
+        <?php renderAdminSampleBanner('Registry Sample Mode'); ?>
         <div class="back-to-site">
             <a href="/">← Back to Main Site</a>
         </div>
@@ -1275,4 +1288,3 @@ $page_title = "Manage Registry - Jacob & Melissa";
     </script>
 </body>
 </html>
-

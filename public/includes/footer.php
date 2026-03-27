@@ -1,7 +1,7 @@
     <footer>
         <p>&copy; <?php echo date('Y'); ?> Jacob Stephens & Melissa Longua</p>
         <p>Website created by <a href="https://stephens.page/" target="_blank" rel="noopener noreferrer">Jacob Stephens</a></p>
-        <p><a href="/admin">Admin Area</a></p>
+        <p><a href="/admin">Admin Area</a> | <a href="/admin?sample=1">Admin Preview</a></p>
     </footer>
     
     <script src="/js/main.js?v=<?php
@@ -10,4 +10,3 @@
     ?>"></script>
 </body>
 </html>
-

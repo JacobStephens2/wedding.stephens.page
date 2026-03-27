@@ -2,8 +2,10 @@
 require_once __DIR__ . '/../private/config.php';
 require_once __DIR__ . '/../private/db.php';
 require_once __DIR__ . '/../private/admin_auth.php';
+require_once __DIR__ . '/../private/admin_sample.php';
 
-$auth = requireAdminAuth();
+$sampleMode = isAdminSampleMode();
+$auth = $sampleMode ? ['authenticated' => true, 'error' => ''] : requireAdminAuth();
 $authenticated = $auth['authenticated'];
 $error = $auth['error'];
 
@@ -12,7 +14,13 @@ $unseatedGuests = [];
 $stats = [];
 $allTablesJson = '[]';
 
-if ($authenticated) {
+if ($sampleMode) {
+    $sampleSeating = getSampleSeatingData();
+    $seatingData = $sampleSeating['seating_data'];
+    $unseatedGuests = $sampleSeating['unseated_guests'];
+    $stats = $sampleSeating['stats'];
+    $allTablesJson = $sampleSeating['tables_json'];
+} elseif ($authenticated) {
     // CSV export handler — must run before any HTML output
     if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         try {
@@ -180,6 +188,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
     <title><?php echo htmlspecialchars($page_title); ?></title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <?php include __DIR__ . '/includes/theme_init.php'; ?>
+    <?php renderAdminSampleModeAssets(); ?>
     <link rel="stylesheet" href="/css/style.css?v=<?php
         $cssPath = __DIR__ . '/../css/style.css';
         echo file_exists($cssPath) ? filemtime($cssPath) : time();
@@ -872,6 +881,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
 <body>
     <?php include __DIR__ . '/includes/admin_menu.php'; ?>
     <main class="page-container">
+        <?php renderAdminSampleBanner('Seating Chart Sample Mode'); ?>
         <div class="back-to-site"><a href="/">&#8592; Back to Main Site</a></div>
 
         <?php if (!$authenticated): ?>

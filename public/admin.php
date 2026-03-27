@@ -1,8 +1,10 @@
 <?php
 require_once __DIR__ . '/../private/config.php';
 require_once __DIR__ . '/../private/admin_auth.php';
+require_once __DIR__ . '/../private/admin_sample.php';
 
-$auth = requireAdminAuth();
+$sampleMode = isAdminSampleMode();
+$auth = $sampleMode ? ['authenticated' => true, 'error' => ''] : requireAdminAuth();
 $authenticated = $auth['authenticated'];
 $error = $auth['error'];
 
@@ -16,6 +18,7 @@ $page_title = "Admin - Jacob & Melissa";
     <title><?php echo htmlspecialchars($page_title); ?></title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <?php include __DIR__ . '/includes/theme_init.php'; ?>
+    <?php renderAdminSampleModeAssets(); ?>
     <link rel="stylesheet" href="/css/style.css?v=<?php
         $cssPath = __DIR__ . '/../css/style.css';
         echo file_exists($cssPath) ? filemtime($cssPath) : time(); 
@@ -82,6 +85,7 @@ $page_title = "Admin - Jacob & Melissa";
 </head>
 <body>
     <main class="page-container">
+        <?php renderAdminSampleBanner('Admin Area Sample Mode'); ?>
         <div class="back-to-site">
             <a href="/">← Back to Main Site</a>
         </div>
@@ -102,35 +106,38 @@ $page_title = "Admin - Jacob & Melissa";
                     </div>
                     <button type="submit" class="btn">Login</button>
                 </form>
+                <p style="margin-top: 1rem; text-align: center; font-family: 'Crimson Text', serif; text-transform: none;">
+                    Want a preview? <a href="<?php echo htmlspecialchars(adminUrl('/admin')); ?>?sample=1">Open sample mode</a>.
+                </p>
             </div>
         <?php else: ?>
             <div class="admin-menu-container">
                 <div class="logout-link">
-                    <a href="/admin?logout=1">Logout</a>
+                    <a href="<?php echo htmlspecialchars($sampleMode ? '/admin' : '/admin?logout=1'); ?>"<?php echo $sampleMode ? ' data-sample-ignore="true"' : ''; ?>><?php echo $sampleMode ? 'Exit Sample Mode' : 'Logout'; ?></a>
                 </div>
                 <h1 class="page-title">Admin Menu</h1>
                 
                 <ul class="admin-menu">
                     <li class="admin-menu-item">
-                        <a href="/check-rsvps">Check RSVPs</a>
+                        <a href="<?php echo htmlspecialchars(adminUrl('/check-rsvps')); ?>">Check RSVPs</a>
                     </li>
                     <li class="admin-menu-item">
-                        <a href="/admin-guests">Manage Guests</a>
+                        <a href="<?php echo htmlspecialchars(adminUrl('/admin-guests')); ?>">Manage Guests</a>
                     </li>
                     <li class="admin-menu-item">
-                        <a href="/admin-seating">Seating Chart</a>
+                        <a href="<?php echo htmlspecialchars(adminUrl('/admin-seating')); ?>">Seating Chart</a>
                     </li>
                     <li class="admin-menu-item">
-                        <a href="/admin-registry">Manage Registry</a>
+                        <a href="<?php echo htmlspecialchars(adminUrl('/admin-registry')); ?>">Manage Registry</a>
                     </li>
                     <li class="admin-menu-item">
-                        <a href="/admin-house-fund">Manage House Fund</a>
+                        <a href="<?php echo htmlspecialchars(adminUrl('/admin-house-fund')); ?>">Manage House Fund</a>
                     </li>
                     <li class="admin-menu-item">
-                        <a href="/admin-gallery">Manage Gallery</a>
+                        <a href="<?php echo htmlspecialchars(adminUrl('/admin-gallery')); ?>">Manage Gallery</a>
                     </li>
                     <li class="admin-menu-item">
-                        <a href="/admin-honeymoon-fund">Manage Honeymoon Fund</a>
+                        <a href="<?php echo htmlspecialchars(adminUrl('/admin-honeymoon-fund')); ?>">Manage Honeymoon Fund</a>
                     </li>
                 </ul>
             </div>
@@ -138,5 +145,3 @@ $page_title = "Admin - Jacob & Melissa";
     </main>
 </body>
 </html>
-
-

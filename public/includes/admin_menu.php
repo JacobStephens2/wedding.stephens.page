@@ -6,21 +6,24 @@
 if (!function_exists('isAdminAuthenticated')) {
     require_once __DIR__ . '/../../private/admin_auth.php';
 }
+if (!function_exists('isAdminSampleMode')) {
+    require_once __DIR__ . '/../../private/admin_sample.php';
+}
 
-if (isAdminAuthenticated()):
+if (isAdminSampleMode() || isAdminAuthenticated()):
 ?>
     <nav class="admin-menu-nav">
         <div class="admin-menu-container">
             <ul class="admin-menu-list">
-                <li><a href="/admin">Admin Menu</a></li>
-                <li><a href="/check-rsvps">Check RSVPs</a></li>
-                <li><a href="/admin-guests">Manage Guests</a></li>
-                <li><a href="/admin-seating">Seating Chart</a></li>
-                <li><a href="/admin-registry">Manage Registry</a></li>
-                <li><a href="/admin-house-fund">Manage House Fund</a></li>
-                <li><a href="/admin-honeymoon-fund">Manage Honeymoon Fund</a></li>
-                <li><a href="/admin-gallery">Manage Gallery</a></li>
-                <li><a href="/admin?logout=1">Logout</a></li>
+                <li><a href="<?php echo htmlspecialchars(adminUrl('/admin')); ?>">Admin Menu</a></li>
+                <li><a href="<?php echo htmlspecialchars(adminUrl('/check-rsvps')); ?>">Check RSVPs</a></li>
+                <li><a href="<?php echo htmlspecialchars(adminUrl('/admin-guests')); ?>">Manage Guests</a></li>
+                <li><a href="<?php echo htmlspecialchars(adminUrl('/admin-seating')); ?>">Seating Chart</a></li>
+                <li><a href="<?php echo htmlspecialchars(adminUrl('/admin-registry')); ?>">Manage Registry</a></li>
+                <li><a href="<?php echo htmlspecialchars(adminUrl('/admin-house-fund')); ?>">Manage House Fund</a></li>
+                <li><a href="<?php echo htmlspecialchars(adminUrl('/admin-honeymoon-fund')); ?>">Manage Honeymoon Fund</a></li>
+                <li><a href="<?php echo htmlspecialchars(adminUrl('/admin-gallery')); ?>">Manage Gallery</a></li>
+                <li><a href="<?php echo htmlspecialchars(isAdminSampleMode() ? '/admin' : '/admin?logout=1'); ?>"<?php echo isAdminSampleMode() ? ' data-sample-ignore="true"' : ''; ?>><?php echo isAdminSampleMode() ? 'Exit Sample Mode' : 'Logout'; ?></a></li>
                 <li>
                     <button class="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode" style="color: white;">
                         <span class="icon-moon">&#9789;</span>
@@ -78,4 +81,3 @@ if (isAdminAuthenticated()):
         }
     </style>
 <?php endif; ?>
-

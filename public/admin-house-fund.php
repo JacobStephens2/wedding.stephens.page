@@ -2,17 +2,19 @@
 require_once __DIR__ . '/../private/config.php';
 require_once __DIR__ . '/../private/db.php';
 require_once __DIR__ . '/../private/admin_auth.php';
+require_once __DIR__ . '/../private/admin_sample.php';
 
 session_start();
 
 $error = '';
 $success = '';
-$authenticated = false;
+$sampleMode = isAdminSampleMode();
+$authenticated = $sampleMode;
 
 // Check unified admin auth first
-if (isAdminAuthenticated()) {
+if (!$sampleMode && isAdminAuthenticated()) {
     $authenticated = true;
-} else {
+} elseif (!$sampleMode) {
     // Fallback to old auth system for backward compatibility
     if (isset($_SESSION['registry_admin_authenticated']) && $_SESSION['registry_admin_authenticated'] === true) {
         $authenticated = true;
@@ -20,7 +22,7 @@ if (isAdminAuthenticated()) {
 }
 
 // Handle login
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && !isset($_POST['amount'])) {
+if (!$sampleMode && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && !isset($_POST['amount'])) {
     $password = trim($_POST['password'] ?? '');
     
     // Try unified admin password first
@@ -41,14 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && !isset
 }
 
 // Handle logout
-if (isset($_GET['logout'])) {
+if (!$sampleMode && isset($_GET['logout'])) {
     session_destroy();
     header('Location: /admin-house-fund');
     exit;
 }
 
 // Handle adding new contribution or updating existing contribution
-if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['amount'])) {
+if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['amount'])) {
     try {
         $pdo = getDbConnection();
         $contributionId = $_POST['contribution_id'] ?? null;
@@ -90,7 +92,7 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['amo
 }
 
 // Handle deleting contribution
-if ($authenticated && isset($_GET['delete'])) {
+if (!$sampleMode && $authenticated && isset($_GET['delete'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("DELETE FROM house_fund_contributions WHERE id = ?");
@@ -103,7 +105,14 @@ if ($authenticated && isset($_GET['delete'])) {
 
 // Fetch contribution for editing
 $editContribution = null;
-if ($authenticated && isset($_GET['edit'])) {
+if ($sampleMode && isset($_GET['edit'])) {
+    foreach (getSampleHouseFundContributions() as $sampleContribution) {
+        if ((int) $sampleContribution['id'] === (int) $_GET['edit']) {
+            $editContribution = $sampleContribution;
+            break;
+        }
+    }
+} elseif ($authenticated && isset($_GET['edit'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("SELECT * FROM house_fund_contributions WHERE id = ?");
@@ -122,7 +131,10 @@ if ($authenticated && isset($_GET['edit'])) {
 // Fetch all contributions if authenticated
 $contributions = [];
 $totalAmount = 0;
-if ($authenticated) {
+if ($sampleMode) {
+    $contributions = getSampleHouseFundContributions();
+    $totalAmount = array_sum(array_column($contributions, 'amount'));
+} elseif ($authenticated) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->query("
@@ -154,6 +166,7 @@ $page_title = "Manage House Fund - Jacob & Melissa";
     <title><?php echo htmlspecialchars($page_title); ?></title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <?php include __DIR__ . '/includes/theme_init.php'; ?>
+    <?php renderAdminSampleModeAssets(); ?>
     <link rel="stylesheet" href="/css/style.css?v=<?php
         $cssPath = __DIR__ . '/../css/style.css';
         echo file_exists($cssPath) ? filemtime($cssPath) : time();
@@ -242,6 +255,7 @@ $page_title = "Manage House Fund - Jacob & Melissa";
 <body>
     <main class="page-container">
         <div class="admin-container">
+            <?php renderAdminSampleBanner('House Fund Sample Mode'); ?>
             <div class="back-to-site">
                 <a href="/">← Back to Main Site</a>
             </div>
