@@ -583,6 +583,7 @@ function getSampleRegistryItems(): array
             'created_at' => '2026-01-10 08:00:00',
             'published' => 1,
             'sort_order' => 1,
+            'most_wanted' => 1,
         ],
         [
             'id' => 302,
@@ -596,6 +597,7 @@ function getSampleRegistryItems(): array
             'created_at' => '2026-01-12 08:00:00',
             'published' => 0,
             'sort_order' => 2,
+            'most_wanted' => 0,
         ],
         [
             'id' => 303,
@@ -609,6 +611,7 @@ function getSampleRegistryItems(): array
             'created_at' => '2026-01-14 08:00:00',
             'published' => 1,
             'sort_order' => 3,
+            'most_wanted' => 0,
         ],
     ];
 }

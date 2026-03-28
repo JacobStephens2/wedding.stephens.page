@@ -1474,6 +1474,22 @@ header {
     font-family: 'Crimson Text', serif;
 }
 
+.most-wanted-badge {
+    display: inline-block;
+    background-color: var(--color-gold);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: normal;
+    font-family: 'Crimson Text', serif;
+}
+
+.registry-item-card.most-wanted:not(.purchased) {
+    border: 2px solid var(--color-gold);
+    box-shadow: 0 2px 12px rgba(173, 124, 98, 0.2);
+}
+
 .registry-item-description {
     color: var(--color-text-secondary);
     margin-bottom: 1rem;

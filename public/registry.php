@@ -19,10 +19,10 @@ $honeymoonFundTotal = 0;
 try {
     $pdo = getDbConnection();
     $stmt = $pdo->query("
-        SELECT id, title, description, url, image_url, price, purchased, purchased_by, created_at
+        SELECT id, title, description, url, image_url, price, purchased, purchased_by, created_at, most_wanted
         FROM registry_items
         WHERE published = TRUE
-        ORDER BY purchased ASC, sort_order ASC, id ASC
+        ORDER BY purchased ASC, most_wanted DESC, sort_order ASC, id ASC
     ");
     $items = $stmt->fetchAll();
     
@@ -166,10 +166,11 @@ include __DIR__ . '/includes/header.php';
         </div>
         <div class="registry-items-grid" id="registry-items-grid">
             <?php foreach ($items as $item): ?>
-                <div class="registry-item-card <?php echo $item['purchased'] ? 'purchased' : ''; ?>" 
+                <div class="registry-item-card <?php echo $item['purchased'] ? 'purchased' : ''; ?> <?php echo !empty($item['most_wanted']) ? 'most-wanted' : ''; ?>"
                         data-item-id="<?php echo $item['id']; ?>"
                         data-price="<?php echo $item['price'] ?? '0'; ?>"
-                        data-purchased="<?php echo $item['purchased'] ? '1' : '0'; ?>">
+                        data-purchased="<?php echo $item['purchased'] ? '1' : '0'; ?>"
+                        data-most-wanted="<?php echo !empty($item['most_wanted']) ? '1' : '0'; ?>">
                     <?php if ($item['image_url']): ?>
                         <div class="registry-item-image">
                             <a href="<?php echo htmlspecialchars($item['url']); ?>" target="_blank" rel="noopener noreferrer" class="registry-item-image-link" data-item-id="<?php echo $item['id']; ?>" data-item-title="<?php echo htmlspecialchars($item['title']); ?>">
@@ -180,6 +181,9 @@ include __DIR__ . '/includes/header.php';
                     <div class="registry-item-content">
                         <h3 class="registry-item-title">
                             <?php echo htmlspecialchars($item['title']); ?>
+                            <?php if (!empty($item['most_wanted']) && !$item['purchased']): ?>
+                                <span class="most-wanted-badge">Most Wanted</span>
+                            <?php endif; ?>
                             <?php if ($item['purchased']): ?>
                                 <span class="purchased-badge">Purchased</span>
                             <?php endif; ?>
@@ -562,20 +566,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 const priceB = parseFloat(b.getAttribute('data-price')) || 0;
                 const purchasedA = parseInt(a.getAttribute('data-purchased')) || 0;
                 const purchasedB = parseInt(b.getAttribute('data-purchased')) || 0;
-                
+                const mostWantedA = parseInt(a.getAttribute('data-most-wanted')) || 0;
+                const mostWantedB = parseInt(b.getAttribute('data-most-wanted')) || 0;
+
+                // Always sort available before purchased
+                if (purchasedA !== purchasedB) {
+                    return purchasedA - purchasedB;
+                }
+                // Within available items, most wanted first
+                if (mostWantedA !== mostWantedB) {
+                    return mostWantedB - mostWantedA;
+                }
+
                 switch(sortValue) {
                     case 'price-low':
-                        // Sort by price low to high, available items first
-                        if (purchasedA !== purchasedB) {
-                            return purchasedA - purchasedB; // Available (0) before purchased (1)
-                        }
                         return priceA - priceB;
-                    
+
                     case 'price-high':
-                        // Sort by price high to low, available items first
-                        if (purchasedA !== purchasedB) {
-                            return purchasedA - purchasedB; // Available (0) before purchased (1)
-                        }
                         return priceB - priceA;
                 }
             });

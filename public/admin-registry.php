@@ -63,9 +63,10 @@ if (!$sampleMode && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title
                 // Update existing item
                 $price = !empty($_POST['price']) ? $_POST['price'] : null;
                 $published = isset($_POST['published']) && $_POST['published'] === '1' ? 1 : 0;
+                $mostWanted = isset($_POST['most_wanted']) && $_POST['most_wanted'] === '1' ? 1 : 0;
                 $stmt = $pdo->prepare("
-                    UPDATE registry_items 
-                    SET title = ?, description = ?, url = ?, image_url = ?, price = ?, published = ?
+                    UPDATE registry_items
+                    SET title = ?, description = ?, url = ?, image_url = ?, price = ?, published = ?, most_wanted = ?
                     WHERE id = ?
                 ");
                 $stmt->execute([
@@ -75,6 +76,7 @@ if (!$sampleMode && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title
                     trim($_POST['image_url'] ?? ''),
                     $price,
                     $published,
+                    $mostWanted,
                     $itemId
                 ]);
                 // Redirect to clear edit parameter and show success
@@ -84,10 +86,11 @@ if (!$sampleMode && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title
                 // Insert new item - default to published (1)
                 $price = !empty($_POST['price']) ? $_POST['price'] : null;
                 $published = isset($_POST['published']) && $_POST['published'] === '1' ? 1 : 1; // Default to published
+                $mostWanted = isset($_POST['most_wanted']) && $_POST['most_wanted'] === '1' ? 1 : 0;
                 $maxOrder = (int) $pdo->query("SELECT COALESCE(MAX(sort_order), 0) + 1 FROM registry_items")->fetchColumn();
                 $stmt = $pdo->prepare("
-                    INSERT INTO registry_items (title, description, url, image_url, price, published, sort_order)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO registry_items (title, description, url, image_url, price, published, most_wanted, sort_order)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 $stmt->execute([
                     trim($_POST['title'] ?? ''),
@@ -96,6 +99,7 @@ if (!$sampleMode && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title
                     trim($_POST['image_url'] ?? ''),
                     $price,
                     $published,
+                    $mostWanted,
                     $maxOrder
                 ]);
                 $success = 'Registry item added successfully!';
@@ -119,7 +123,7 @@ if ($sampleMode && isset($_GET['edit'])) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("
-            SELECT id, title, description, url, image_url, price, published
+            SELECT id, title, description, url, image_url, price, published, most_wanted
             FROM registry_items
             WHERE id = ?
         ");
@@ -165,6 +169,25 @@ if (!$sampleMode && $authenticated && isset($_GET['toggle_purchased'])) {
                 $_GET['toggle_purchased']
             ]);
             $success = 'Item status updated!';
+        }
+    } catch (Exception $e) {
+        $error = 'Error updating item: ' . htmlspecialchars($e->getMessage());
+    }
+}
+
+// Handle toggling most wanted status
+if (!$sampleMode && $authenticated && isset($_GET['toggle_most_wanted'])) {
+    try {
+        $pdo = getDbConnection();
+        $stmt = $pdo->prepare("SELECT most_wanted FROM registry_items WHERE id = ?");
+        $stmt->execute([$_GET['toggle_most_wanted']]);
+        $item = $stmt->fetch();
+
+        if ($item) {
+            $newStatus = !$item['most_wanted'];
+            $stmt = $pdo->prepare("UPDATE registry_items SET most_wanted = ? WHERE id = ?");
+            $stmt->execute([$newStatus ? 1 : 0, $_GET['toggle_most_wanted']]);
+            $success = 'Most wanted status updated!';
         }
     } catch (Exception $e) {
         $error = 'Error updating item: ' . htmlspecialchars($e->getMessage());
@@ -272,7 +295,7 @@ if ($sampleMode) {
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->query("
-            SELECT id, title, description, url, image_url, price, purchased, purchased_by, created_at, published, sort_order
+            SELECT id, title, description, url, image_url, price, purchased, purchased_by, created_at, published, sort_order, most_wanted
             FROM registry_items
             ORDER BY sort_order ASC, id ASC
         ");
@@ -671,6 +694,31 @@ $page_title = "Manage Registry - Jacob & Melissa";
             color: #6c757d;
             font-weight: normal;
         }
+        .most-wanted-badge {
+            display: inline-block;
+            background-color: var(--color-gold);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin-left: 0.5rem;
+        }
+        .btn-most-wanted {
+            background-color: #e9ecef;
+            color: var(--color-dark);
+        }
+        .btn-most-wanted:hover {
+            background-color: var(--color-gold);
+            color: white;
+        }
+        .btn-most-wanted-active {
+            background-color: var(--color-gold);
+            color: white;
+        }
+        .btn-most-wanted-active:hover {
+            background-color: #e9ecef;
+            color: var(--color-dark);
+        }
         .unpublished-badge {
             display: inline-block;
             background-color: #6c757d;
@@ -1009,6 +1057,14 @@ $page_title = "Manage Registry - Jacob & Melissa";
                             </select>
                             <small style="display: block; margin-top: 0.5rem; color: var(--color-text-secondary);">Published items appear on the public registry page. Unpublished items are only visible in the admin area.</small>
                         </div>
+                        <div class="form-group">
+                            <label for="most_wanted">Most Wanted</label>
+                            <select id="most_wanted" name="most_wanted">
+                                <option value="0" <?php echo ($editItem && !empty($editItem['most_wanted'])) ? '' : 'selected'; ?>>No</option>
+                                <option value="1" <?php echo ($editItem && !empty($editItem['most_wanted'])) ? 'selected' : ''; ?>>Yes</option>
+                            </select>
+                            <small style="display: block; margin-top: 0.5rem; color: var(--color-text-secondary);">Most wanted items are highlighted and shown first on the public registry page.</small>
+                        </div>
                         <div class="form-actions">
                             <button type="submit" class="btn" id="submit-btn"><?php echo $editItem ? 'Update Item' : 'Add Item'; ?></button>
                             <?php if ($editItem): ?>
@@ -1046,6 +1102,9 @@ $page_title = "Manage Registry - Jacob & Melissa";
                                                 <?php if ($item['purchased']): ?>
                                                     <span class="purchased-badge">Purchased</span>
                                                 <?php endif; ?>
+                                                <?php if (!empty($item['most_wanted'])): ?>
+                                                    <span class="most-wanted-badge">Most Wanted</span>
+                                                <?php endif; ?>
                                                 <?php if (!$item['published']): ?>
                                                     <span class="unpublished-badge">Unpublished</span>
                                                 <?php endif; ?>
@@ -1075,6 +1134,9 @@ $page_title = "Manage Registry - Jacob & Melissa";
                                                 </a>
                                                 <a href="/admin-registry?toggle_purchased=<?php echo $item['id']; ?>" class="btn-small btn-toggle">
                                                     <?php echo $item['purchased'] ? 'Mark as Available' : 'Mark as Purchased'; ?>
+                                                </a>
+                                                <a href="/admin-registry?toggle_most_wanted=<?php echo $item['id']; ?>" class="btn-small <?php echo !empty($item['most_wanted']) ? 'btn-most-wanted-active' : 'btn-most-wanted'; ?>">
+                                                    <?php echo !empty($item['most_wanted']) ? '★ Most Wanted' : '☆ Most Wanted'; ?>
                                                 </a>
                                                 <a href="/admin-registry?delete=<?php echo $item['id']; ?>" class="btn-small btn-delete" onclick="return confirm('Are you sure you want to delete this item?');">
                                                     Delete
@@ -1167,7 +1229,8 @@ $page_title = "Manage Registry - Jacob & Melissa";
                     url: document.getElementById('url')?.value || '',
                     image_url: document.getElementById('image_url')?.value || '',
                     price: document.getElementById('price')?.value || '',
-                    published: document.getElementById('published')?.value || '1'
+                    published: document.getElementById('published')?.value || '1',
+                    most_wanted: document.getElementById('most_wanted')?.value || '0'
                 };
                 
                 // Only save if at least one field has content
@@ -1208,6 +1271,10 @@ $page_title = "Manage Registry - Jacob & Melissa";
                             if (formData.published) {
                                 const publishedSelect = document.getElementById('published');
                                 if (publishedSelect) publishedSelect.value = formData.published;
+                            }
+                            if (formData.most_wanted) {
+                                const mostWantedSelect = document.getElementById('most_wanted');
+                                if (mostWantedSelect) mostWantedSelect.value = formData.most_wanted;
                             }
                             
                             // Show a notice that data was restored
