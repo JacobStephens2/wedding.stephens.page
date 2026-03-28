@@ -697,10 +697,11 @@ $page_title = "Manage Registry - Jacob & Melissa";
         .most-wanted-badge {
             display: inline-block;
             background-color: var(--color-gold);
-            color: white;
+            color: var(--color-dark);
             padding: 0.25rem 0.75rem;
             border-radius: 12px;
             font-size: 0.85rem;
+            font-weight: bold;
             margin-left: 0.5rem;
         }
         .btn-most-wanted {

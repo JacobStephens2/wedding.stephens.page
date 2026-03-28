@@ -28,6 +28,7 @@
 [data-theme="dark"] {
     --color-light: #1a1a1a;
     --color-dark: #e0e0e0;
+    --color-gold: hsl(13 45% 45%);
     --color-green: #97a87d;
     --color-lavender: #b0b2be;
     --color-surface: #252525;
@@ -1480,11 +1481,11 @@ header {
 .most-wanted-badge {
     display: inline-block;
     background-color: var(--color-gold);
-    color: white;
+    color: var(--color-dark);
     padding: 0.25rem 0.75rem;
     border-radius: 12px;
     font-size: 0.85rem;
-    font-weight: normal;
+    font-weight: bold;
     font-family: 'Crimson Text', serif;
 }
 
