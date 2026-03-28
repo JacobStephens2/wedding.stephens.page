@@ -405,6 +405,49 @@ $page_title = "Manage Registry - Jacob & Melissa";
         .item-content {
             flex: 1;
         }
+        /* Mobile layout for item cards */
+        @media (max-width: 767px) {
+            .items-list {
+                padding: 1rem;
+            }
+            .items-list-grid {
+                grid-template-columns: 1fr;
+            }
+            .item-card {
+                flex-direction: column;
+                padding: 0;
+                overflow: hidden;
+            }
+            .item-card .item-position {
+                order: 1;
+                border-bottom: none;
+                border-top: 1px solid var(--color-border);
+            }
+            .item-card .item-image {
+                width: 100%;
+                height: 200px;
+                object-fit: contain;
+                border-radius: 0;
+                background-color: var(--color-light);
+                padding: 0.75rem;
+            }
+            .item-card .item-content {
+                padding: 1rem;
+            }
+            .item-card .item-title {
+                font-size: 1.1rem;
+            }
+            .item-card .item-actions {
+                flex-wrap: wrap;
+            }
+            .add-item-form {
+                padding: 1rem;
+            }
+            .reorder-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
         /* Grid layout for wide viewports */
         @media (min-width: 768px) {
             .items-list-grid {
