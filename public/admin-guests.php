@@ -492,7 +492,7 @@ if ($sampleMode) {
                     $where[] = "g.attending = 'no'";
                     break;
                 case 'pending':
-                    $where[] = "g.attending IS NULL";
+                    $where[] = "(g.attending IS NULL OR (g.has_plus_one = 1 AND g.plus_one_attending IS NULL))";
                     break;
                 case 'not_declined':
                     $where[] = "(g.attending IS NULL OR g.attending = 'yes')";
