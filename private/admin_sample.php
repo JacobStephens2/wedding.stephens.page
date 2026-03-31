@@ -344,8 +344,16 @@ function getSampleGuestStats(array $records): array
         'reception_infants' => 0,
         'pending_infants' => 0,
     ];
+    $householdsSeen = [];
+    $householdsAttending = [];
 
     foreach ($records as $guest) {
+        if (!empty($guest['mailing_group'])) {
+            $householdsSeen[$guest['mailing_group']] = true;
+            if ($guest['attending'] === 'yes') {
+                $householdsAttending[$guest['mailing_group']] = true;
+            }
+        }
         $stats['total']++;
         if ($guest['attending'] === 'yes') {
             $stats['attending']++;
@@ -386,6 +394,9 @@ function getSampleGuestStats(array $records): array
             if (!empty($guest['plus_one_is_infant']) && $guest['plus_one_attending'] === null) $stats['pending_infants']++;
         }
     }
+
+    $stats['total_households'] = count($householdsSeen);
+    $stats['households_attending'] = count($householdsAttending);
 
     return $stats;
 }

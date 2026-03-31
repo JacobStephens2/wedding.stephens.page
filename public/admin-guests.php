@@ -445,6 +445,10 @@ if ($sampleMode) {
     $sampleGuestsPage = getSampleGuestsPageData($search, $groupFilter, $statusFilter, $sort, $order);
     $guests = $sampleGuestsPage['guests'];
     $stats = $sampleGuestsPage['stats'];
+    $householdStats = [
+        'total_households' => $stats['total_households'],
+        'households_attending' => $stats['households_attending'],
+    ];
     $nextGroupNumber = $sampleGuestsPage['next_group_number'];
     $existingGroups = $sampleGuestsPage['existing_groups'];
     $rsvpTimeline = $sampleGuestsPage['rsvp_timeline'];
@@ -677,6 +681,16 @@ if ($sampleMode) {
             FROM guests
         ");
         $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
+
+        // Household (mailing group) stats
+        $householdStmt = $pdo->query("
+            SELECT
+                COUNT(DISTINCT mailing_group) as total_households,
+                COUNT(DISTINCT CASE WHEN attending = 'yes' THEN mailing_group END) as households_attending
+            FROM guests
+            WHERE mailing_group IS NOT NULL
+        ");
+        $householdStats = $householdStmt->fetch(PDO::FETCH_ASSOC);
 
         // Get next available mailing group number
         $nextGroupStmt = $pdo->query("SELECT COALESCE(MAX(mailing_group), 0) + 1 AS next_group FROM guests");
@@ -1616,6 +1630,11 @@ $page_title = "Manage Guests - Jacob & Melissa";
                             $maxInfants = $stats['reception_infants'] + $stats['pending_infants'];
                         ?>
                         <span class="stat-label" style="font-size: 0.75rem; color: var(--color-text-muted);"><?php echo $maxAdults; ?> adults, <?php echo $maxChildren; ?> children, <?php echo $maxInfants; ?> infants</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" style="color: var(--color-green);"><?php echo $householdStats['households_attending']; ?></span>
+                        <span class="stat-label">Households Attending</span>
+                        <span class="stat-label" style="font-size: 0.75rem; color: var(--color-text-muted);"><?php echo $householdStats['total_households']; ?> total</span>
                     </div>
                 </div>
                 <div class="stats-bar" style="margin-top: -1rem;">
