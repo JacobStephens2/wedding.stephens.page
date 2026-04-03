@@ -16,6 +16,8 @@ function toSentenceCase($text) {
 $items = [];
 $houseFundTotal = 0;
 $honeymoonFundTotal = 0;
+$houseFundVisible = true;
+$honeymoonFundVisible = true;
 try {
     $pdo = getDbConnection();
     $stmt = $pdo->query("
@@ -25,27 +27,45 @@ try {
         ORDER BY purchased ASC, most_wanted DESC, sort_order ASC, id ASC
     ");
     $items = $stmt->fetchAll();
-    
-    // Get total house fund contributions
-    $stmt = $pdo->query("
-        SELECT COALESCE(SUM(amount), 0) as total
-        FROM house_fund_contributions
-    ");
-    $result = $stmt->fetch();
-    $houseFundTotal = $result['total'] ?? 0;
 
-    // Get total honeymoon fund contributions
+    // Check fund visibility settings
     try {
+        $stmt = $pdo->query("SELECT setting_key, setting_value FROM site_settings WHERE setting_key IN ('house_fund_visible', 'honeymoon_fund_visible')");
+        foreach ($stmt->fetchAll() as $row) {
+            if ($row['setting_key'] === 'house_fund_visible') {
+                $houseFundVisible = $row['setting_value'] === '1';
+            } elseif ($row['setting_key'] === 'honeymoon_fund_visible') {
+                $honeymoonFundVisible = $row['setting_value'] === '1';
+            }
+        }
+    } catch (Exception $e) {
+        // Default to visible if settings table doesn't exist yet
+    }
+
+    // Get total house fund contributions
+    if ($houseFundVisible) {
         $stmt = $pdo->query("
             SELECT COALESCE(SUM(amount), 0) as total
-            FROM honeymoon_fund_contributions
+            FROM house_fund_contributions
         ");
         $result = $stmt->fetch();
-        $honeymoonFundTotal = $result['total'] ?? 0;
-    } catch (Exception $e) {
-        // Allow registry page to load even if the honeymoon table isn't set up yet.
-        $honeymoonFundTotal = 0;
-        error_log("Error loading honeymoon fund total: " . $e->getMessage());
+        $houseFundTotal = $result['total'] ?? 0;
+    }
+
+    // Get total honeymoon fund contributions
+    if ($honeymoonFundVisible) {
+        try {
+            $stmt = $pdo->query("
+                SELECT COALESCE(SUM(amount), 0) as total
+                FROM honeymoon_fund_contributions
+            ");
+            $result = $stmt->fetch();
+            $honeymoonFundTotal = $result['total'] ?? 0;
+        } catch (Exception $e) {
+            // Allow registry page to load even if the honeymoon table isn't set up yet.
+            $honeymoonFundTotal = 0;
+            error_log("Error loading honeymoon fund total: " . $e->getMessage());
+        }
     }
 } catch (Exception $e) {
     error_log("Error loading registry items: " . $e->getMessage());
@@ -60,6 +80,7 @@ include __DIR__ . '/includes/header.php';
         <h2>Our Wedding Registry</h2>
 
         <!-- House Fund Section -->
+        <?php if ($houseFundVisible): ?>
         <div class="house-fund-section collapsed" id="house-fund-section">
             <button type="button" class="house-fund-header" id="house-fund-toggle" aria-expanded="false" aria-controls="house-fund-body">
                 <h3>House Fund</h3>
@@ -105,8 +126,10 @@ include __DIR__ . '/includes/header.php';
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
         <!-- Honeymoon Fund Section -->
+        <?php if ($honeymoonFundVisible): ?>
         <div class="honeymoon-fund-section collapsed" id="honeymoon-fund-section">
             <button type="button" class="honeymoon-fund-header" id="honeymoon-fund-toggle" aria-expanded="false" aria-controls="honeymoon-fund-body">
                 <h3>Honeymoon Fund</h3>
@@ -152,6 +175,7 @@ include __DIR__ . '/includes/header.php';
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
         <div class="registry-prompt" id="registry-prompt">
             <p><strong>Please remember:</strong> If you've purchased an item, please click "Mark as Purchased" so others know it's been taken.</p>

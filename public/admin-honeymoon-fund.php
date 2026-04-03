@@ -91,6 +91,22 @@ if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && i
     }
 }
 
+// Handle toggling fund visibility
+if (!$sampleMode && $authenticated && isset($_GET['toggle_visibility'])) {
+    try {
+        $pdo = getDbConnection();
+        $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'honeymoon_fund_visible'");
+        $stmt->execute();
+        $row = $stmt->fetch();
+        $currentValue = $row ? $row['setting_value'] : '1';
+        $newValue = $currentValue === '1' ? '0' : '1';
+        $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES ('honeymoon_fund_visible', ?) ON DUPLICATE KEY UPDATE setting_value = ?")->execute([$newValue, $newValue]);
+        $success = $newValue === '1' ? 'Honeymoon fund is now visible on the registry page.' : 'Honeymoon fund is now hidden from the registry page.';
+    } catch (Exception $e) {
+        $error = 'Error updating visibility: ' . htmlspecialchars($e->getMessage());
+    }
+}
+
 // Handle deleting contribution
 if (!$sampleMode && $authenticated && isset($_GET['delete'])) {
     try {
@@ -131,6 +147,7 @@ if ($sampleMode && isset($_GET['edit'])) {
 // Fetch all contributions if authenticated
 $contributions = [];
 $totalAmount = 0;
+$fundVisible = true;
 if ($sampleMode) {
     $contributions = getSampleHoneymoonFundContributions();
     $totalAmount = array_sum(array_column($contributions, 'amount'));
@@ -151,6 +168,12 @@ if ($sampleMode) {
         ");
         $result = $stmt->fetch();
         $totalAmount = $result['total'] ?? 0;
+
+        // Fetch visibility setting
+        $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'honeymoon_fund_visible'");
+        $stmt->execute();
+        $row = $stmt->fetch();
+        $fundVisible = $row ? $row['setting_value'] === '1' : true;
     } catch (Exception $e) {
         $error = 'Error loading contributions: ' . htmlspecialchars($e->getMessage());
     }
@@ -250,6 +273,43 @@ $page_title = "Manage Honeymoon Fund - Jacob & Melissa";
             box-shadow: 0 2px 10px var(--color-shadow);
             margin-bottom: 2rem;
         }
+        .visibility-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            background-color: var(--color-surface);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px var(--color-shadow);
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .visibility-status {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.1rem;
+        }
+        .visibility-status.visible {
+            color: var(--color-green);
+            font-weight: bold;
+        }
+        .visibility-status.hidden {
+            color: var(--color-text-muted);
+        }
+        .btn-hide {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-hide:hover {
+            background-color: #5a6268;
+        }
+        .btn-show {
+            background-color: var(--color-green);
+            color: white;
+        }
+        .btn-show:hover {
+            background-color: #2d5016;
+        }
         .form-actions {
             display: flex;
             gap: 1rem;
@@ -305,6 +365,15 @@ $page_title = "Manage Honeymoon Fund - Jacob & Melissa";
                 <div class="total-summary">
                     <h2>Total Contributions</h2>
                     <p class="total-amount">$<?php echo number_format($totalAmount, 2); ?></p>
+                </div>
+
+                <div class="visibility-toggle">
+                    <span class="visibility-status <?php echo $fundVisible ? 'visible' : 'hidden'; ?>">
+                        <?php echo $fundVisible ? 'Visible on registry page' : 'Hidden from registry page'; ?>
+                    </span>
+                    <a href="/admin-honeymoon-fund?toggle_visibility=1" class="btn btn-small <?php echo $fundVisible ? 'btn-hide' : 'btn-show'; ?>">
+                        <?php echo $fundVisible ? 'Hide from Registry' : 'Show on Registry'; ?>
+                    </a>
                 </div>
 
                 <div class="form-container">

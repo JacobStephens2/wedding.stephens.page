@@ -35,6 +35,21 @@ try {
         echo json_encode(['success' => false, 'error' => 'Invalid fund type']);
         exit;
     }
+
+    // Check if fund is visible
+    $settingKey = $fund . '_fund_visible';
+    try {
+        $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = ?");
+        $stmt->execute([$settingKey]);
+        $row = $stmt->fetch();
+        if ($row && $row['setting_value'] !== '1') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'This fund is not currently accepting contributions']);
+            exit;
+        }
+    } catch (Exception $e) {
+        // If settings table doesn't exist, allow by default
+    }
     
     // Insert contribution
     $stmt = $pdo->prepare("
