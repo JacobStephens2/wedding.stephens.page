@@ -246,6 +246,19 @@ try {
             echo json_encode(['success' => true, 'message' => 'Seat order saved.']);
             break;
 
+        case 'set_plus_one_seat_before':
+            $guestId = intval($input['guest_id'] ?? 0);
+            $before = intval($input['before'] ?? 0);
+            if (!$guestId) {
+                http_response_code(400);
+                echo json_encode(['error' => 'guest_id required.']);
+                exit;
+            }
+            $stmt = $pdo->prepare("UPDATE guests SET plus_one_seat_before = ? WHERE id = ?");
+            $stmt->execute([$before ? 1 : 0, $guestId]);
+            echo json_encode(['success' => true, 'message' => 'Plus-one seat position updated.']);
+            break;
+
         case 'save_positions':
             $positions = $input['positions'] ?? [];
             if (empty($positions)) {
