@@ -95,7 +95,7 @@ if ($sampleMode) {
                    g.reception_attending, g.dietary, g.message,
                    g.is_child, g.is_infant,
                    g.has_plus_one, g.plus_one_name, g.plus_one_reception_attending, g.plus_one_dietary,
-                   g.plus_one_is_child, g.plus_one_is_infant, g.plus_one_seat_before
+                   g.plus_one_is_child, g.plus_one_is_infant, g.plus_one_seat_before, g.plus_one_seat_number
             FROM seating_tables st
             LEFT JOIN guests g ON g.seating_table_id = st.id
             ORDER BY st.table_number, g.seat_number, g.last_name, g.first_name
@@ -125,7 +125,7 @@ if ($sampleMode) {
             SELECT id, first_name, last_name, group_name, reception_attending, dietary, message,
                    is_child, is_infant,
                    has_plus_one, plus_one_name, plus_one_reception_attending, plus_one_dietary,
-                   plus_one_is_child, plus_one_is_infant, plus_one_seat_before
+                   plus_one_is_child, plus_one_is_infant, plus_one_seat_before, plus_one_seat_number
             FROM guests
             WHERE seating_table_id IS NULL
               AND reception_attending = 'yes'
@@ -1045,8 +1045,10 @@ $page_title = "Seating Chart - Jacob & Melissa";
                                     </tr>
                                 </thead>
                                 <tbody id="guests-<?php echo $table['table_id']; ?>">
-                                    <?php $seatPos = 0; foreach ($table['guests'] as $guest): ?><?php $seatPos++; ?>
-                                        <?php
+                                    <?php
+                                    // Build flat ordered list of all seats (guests + plus-ones interleaved)
+                                    $allSeats = [];
+                                    foreach ($table['guests'] as $guest) {
                                         $guestInfo = [
                                             'id' => $guest['guest_id'],
                                             'name' => $guest['first_name'] . ' ' . $guest['last_name'],
@@ -1062,24 +1064,22 @@ $page_title = "Seating Chart - Jacob & Melissa";
                                             'plus_one_is_infant' => (bool)($guest['plus_one_is_infant'] ?? false),
                                             'plus_one_seat_before' => (bool)($guest['plus_one_seat_before'] ?? false),
                                         ];
-                                        ?>
-                                        <?php if (!empty($guestInfo['has_plus_one']) && !empty($guestInfo['plus_one_seat_before'])): ?><?php $seatPos++; ?>
-                                        <tr class="plus-one-row" data-parent-guest-id="<?php echo $guest['guest_id']; ?>">
-                                            <td><span class="seat-num"><?php echo $seatPos; ?></span></td>
-                                            <td><?php echo htmlspecialchars($guest['plus_one_name'] ?: 'Guest of ' . $guest['first_name']); ?> (plus one)<?php
-                                                if (!empty($guest['plus_one_is_child'])): ?> <span class="age-badge child" title="Child">child</span><?php endif;
-                                                if (!empty($guest['plus_one_is_infant'])): ?> <span class="age-badge infant" title="Infant">infant</span><?php endif;
-                                                if (!empty($guest['plus_one_dietary'])): ?> <span title="<?php echo htmlspecialchars($guest['plus_one_dietary']); ?>" style="cursor:help;">🍽</span><?php endif;
-                                            ?></td>
-                                            <td></td>
-                                            <td>
-                                                <?php if (!empty($guest['plus_one_dietary'])): ?>
-                                                    <span class="dietary-badge"><?php echo htmlspecialchars($guest['plus_one_dietary']); ?></span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <?php endif; ?>
+                                        $allSeats[] = ['type' => 'guest', 'pos' => (float)($guest['seat_number'] ?? 999), 'guest' => $guest, 'info' => $guestInfo];
+                                        if ($guestInfo['has_plus_one']) {
+                                            $poPos = $guest['plus_one_seat_number'] ?? null;
+                                            if ($poPos === null) {
+                                                // Fallback for legacy data: place adjacent based on plus_one_seat_before
+                                                $poPos = $guestInfo['plus_one_seat_before']
+                                                    ? ((float)$guest['seat_number'] - 0.5)
+                                                    : ((float)$guest['seat_number'] + 0.5);
+                                            }
+                                            $allSeats[] = ['type' => 'plusone', 'pos' => (float)$poPos, 'guest' => $guest, 'info' => $guestInfo];
+                                        }
+                                    }
+                                    usort($allSeats, fn($a, $b) => $a['pos'] <=> $b['pos']);
+                                    ?>
+                                    <?php $seatPos = 0; foreach ($allSeats as $seat): $seatPos++; ?>
+                                        <?php if ($seat['type'] === 'guest'): $guest = $seat['guest']; $guestInfo = $seat['info']; ?>
                                         <tr draggable="true"
                                             ondragstart="dragGuest(event, <?php echo $guest['guest_id']; ?>)"
                                             data-guest-id="<?php echo $guest['guest_id']; ?>"
@@ -1111,9 +1111,11 @@ $page_title = "Seating Chart - Jacob & Melissa";
                                                 </div>
                                             </td>
                                         </tr>
-                                        <?php if ($guest['has_plus_one'] && $guest['plus_one_reception_attending'] === 'yes' && empty($guest['plus_one_seat_before'])): ?><?php $seatPos++; ?>
-                                        <tr class="plus-one-row" data-parent-guest-id="<?php echo $guest['guest_id']; ?>">
-                                            <td><span class="seat-num"><?php echo $seatPos; ?></span></td>
+                                        <?php else: $guest = $seat['guest']; ?>
+                                        <tr class="plus-one-row" draggable="true"
+                                            ondragstart="dragPlusOne(event, <?php echo $guest['guest_id']; ?>)"
+                                            data-parent-guest-id="<?php echo $guest['guest_id']; ?>">
+                                            <td><span class="drag-handle" title="Drag to reorder">⠿</span><span class="seat-num"><?php echo $seatPos; ?></span></td>
                                             <td><?php echo htmlspecialchars($guest['plus_one_name'] ?: 'Guest of ' . $guest['first_name']); ?> (plus one)<?php
                                                 if (!empty($guest['plus_one_is_child'])): ?> <span class="age-badge child" title="Child">child</span><?php endif;
                                                 if (!empty($guest['plus_one_is_infant'])): ?> <span class="age-badge infant" title="Infant">infant</span><?php endif;
@@ -1450,6 +1452,14 @@ $page_title = "Seating Chart - Jacob & Melissa";
         e.target.closest('tr, .unseated-guest')?.classList.add('dragging-row');
     }
 
+    function dragPlusOne(e, parentGuestId) {
+        // Plus-ones can only be reordered within their table, not moved cross-table
+        dragGuestId = null;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', '');
+        e.target.closest('tr')?.classList.add('dragging-row');
+    }
+
     function dropUnseat(e) {
         e.preventDefault();
         if (dragGuestId) {
@@ -1499,6 +1509,8 @@ $page_title = "Seating Chart - Jacob & Melissa";
         if (!info.has_plus_one) return null;
         const tr = document.createElement('tr');
         tr.className = 'plus-one-row';
+        tr.draggable = true;
+        tr.setAttribute('ondragstart', 'dragPlusOne(event, ' + info.id + ')');
         tr.dataset.parentGuestId = info.id;
         let dietaryHtml = '';
         if (info.plus_one_dietary) {
@@ -1509,7 +1521,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
         if (info.plus_one_is_child) poAgeHtml += ' <span class="age-badge child" title="Child">child</span>';
         if (info.plus_one_is_infant) poAgeHtml += ' <span class="age-badge infant" title="Infant">infant</span>';
         tr.innerHTML =
-            '<td><span class="seat-num"></span></td>' +
+            '<td><span class="drag-handle" title="Drag to reorder">⠿</span><span class="seat-num"></span></td>' +
             '<td>' + escHtml(info.plus_one_name) + ' (plus one)' + poAgeHtml + dietaryIcon + '</td>' +
             '<td></td>' +
             '<td>' + dietaryHtml + '</td>' +
@@ -1686,16 +1698,13 @@ $page_title = "Seating Chart - Jacob & Melissa";
             // Moving from one table to another
             const sourceTbody = guestRow.closest('tbody');
             const sourceTableId = sourceTbody?.id?.replace('guests-', '');
-            const prevRow = guestRow.previousElementSibling;
-            const nextRow = guestRow.nextElementSibling;
-            const plusOneBefore = prevRow?.classList.contains('plus-one-row') ? prevRow : null;
-            const plusOneAfter = nextRow?.classList.contains('plus-one-row') ? nextRow : null;
+            // Find plus-one row anywhere in the tbody (may not be adjacent)
+            const plusOneRow = sourceTbody?.querySelector('tr.plus-one-row[data-parent-guest-id="' + guestId + '"]');
 
             const targetTbody = document.getElementById('guests-' + tableId);
             if (targetTbody) {
-                if (plusOneBefore) targetTbody.appendChild(plusOneBefore);
                 targetTbody.appendChild(guestRow);
-                if (plusOneAfter) targetTbody.appendChild(plusOneAfter);
+                if (plusOneRow) targetTbody.appendChild(plusOneRow);
 
                 // Update move dropdown
                 const sel = guestRow.querySelector('.guest-actions select');
@@ -1763,15 +1772,12 @@ $page_title = "Seating Chart - Jacob & Melissa";
         const info = JSON.parse(guestRow.dataset.guestInfo);
         const sourceTbody = guestRow.closest('tbody');
         const sourceTableId = sourceTbody?.id?.replace('guests-', '');
-        const prevRow = guestRow.previousElementSibling;
-        const nextRow = guestRow.nextElementSibling;
-        const plusOneBefore = prevRow?.classList.contains('plus-one-row') ? prevRow : null;
-        const plusOneAfter = nextRow?.classList.contains('plus-one-row') ? nextRow : null;
+        // Find plus-one row anywhere in the tbody (may not be adjacent)
+        const plusOneRow = sourceTbody?.querySelector('tr.plus-one-row[data-parent-guest-id="' + guestId + '"]');
 
         // Remove from table
-        if (plusOneBefore) plusOneBefore.remove();
+        if (plusOneRow) plusOneRow.remove();
         guestRow.remove();
-        if (plusOneAfter) plusOneAfter.remove();
 
         // Renumber remaining seats
         if (sourceTbody) { renumberSeats(sourceTbody); saveSeatingOrder(sourceTbody); }
@@ -2136,7 +2142,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
 
     // ---- Drop zones on table cards ----
     document.querySelectorAll('.table-card').forEach(card => {
-        card.addEventListener('dragover', (e) => { e.preventDefault(); card.style.outline = '2px solid var(--color-green)'; });
+        card.addEventListener('dragover', (e) => { if (!dragGuestId && !reorderSourceRow) return; e.preventDefault(); card.style.outline = '2px solid var(--color-green)'; });
         card.addEventListener('dragleave', () => { card.style.outline = ''; });
         card.addEventListener('drop', (e) => {
             e.preventDefault();
@@ -2158,7 +2164,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
         const tbody = e.target.closest('.guest-list tbody');
         if (!tbody) return;
         e.preventDefault();
-        const targetRow = e.target.closest('tr[data-guest-id]');
+        const targetRow = e.target.closest('tr[data-guest-id], tr.plus-one-row');
         if (!targetRow || targetRow === reorderSourceRow) return;
         if (targetRow.closest('tbody') !== reorderSourceRow.closest('tbody')) return;
 
@@ -2177,7 +2183,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
     });
 
     document.addEventListener('dragleave', (e) => {
-        const targetRow = e.target.closest('tr[data-guest-id]');
+        const targetRow = e.target.closest('tr[data-guest-id], tr.plus-one-row');
         if (targetRow) {
             targetRow.classList.remove('drag-over-above', 'drag-over-below');
         }
@@ -2187,7 +2193,7 @@ $page_title = "Seating Chart - Jacob & Melissa";
         if (!reorderSourceRow) return;
         const tbody = e.target.closest('.guest-list tbody');
         if (!tbody) return;
-        const targetRow = e.target.closest('tr[data-guest-id]');
+        const targetRow = e.target.closest('tr[data-guest-id], tr.plus-one-row');
         if (!targetRow || targetRow === reorderSourceRow) return;
         if (targetRow.closest('tbody') !== reorderSourceRow.closest('tbody')) return;
 
@@ -2200,33 +2206,16 @@ $page_title = "Seating Chart - Jacob & Melissa";
             r.classList.remove('drag-over-above', 'drag-over-below');
         });
 
-        // Collect the source guest row + its plus-one (could be before or after)
-        const sourceNext = reorderSourceRow.nextElementSibling;
-        const sourcePrev = reorderSourceRow.previousElementSibling;
-        const sourcePlusOneAfter = sourceNext?.classList.contains('plus-one-row') ? sourceNext : null;
-        const sourcePlusOneBefore = sourcePrev?.classList.contains('plus-one-row') ? sourcePrev : null;
-
         // Determine insert position
         const rect = targetRow.getBoundingClientRect();
         const midY = rect.top + rect.height / 2;
         const insertBefore = e.clientY < midY;
 
+        // Move only the dragged row (independent movement for both guests and plus-ones)
         if (insertBefore) {
-            // Find the real target start (if target has plus-one before it)
-            const targetPrev = targetRow.previousElementSibling;
-            const targetPlusOneBefore = targetPrev?.classList.contains('plus-one-row') ? targetPrev : null;
-            const insertRef = targetPlusOneBefore || targetRow;
-            if (sourcePlusOneBefore) tbody.insertBefore(sourcePlusOneBefore, insertRef);
-            tbody.insertBefore(reorderSourceRow, insertRef);
-            if (sourcePlusOneAfter) tbody.insertBefore(sourcePlusOneAfter, insertRef);
+            tbody.insertBefore(reorderSourceRow, targetRow);
         } else {
-            // Insert after target (and its plus-one if any)
-            const targetNext = targetRow.nextElementSibling;
-            const targetPlusOneAfter = targetNext?.classList.contains('plus-one-row') ? targetNext : null;
-            const insertRef = targetPlusOneAfter ? targetPlusOneAfter.nextElementSibling : targetNext;
-            if (sourcePlusOneBefore) tbody.insertBefore(sourcePlusOneBefore, insertRef);
-            tbody.insertBefore(reorderSourceRow, insertRef);
-            if (sourcePlusOneAfter) tbody.insertBefore(sourcePlusOneAfter, insertRef);
+            tbody.insertBefore(reorderSourceRow, targetRow.nextElementSibling);
         }
 
         // Update seat numbers and save
@@ -2235,12 +2224,18 @@ $page_title = "Seating Chart - Jacob & Melissa";
         reorderSourceRow = null;
     });
 
-    // Hook into dragGuest to track reorder source
+    // Hook into dragGuest/dragPlusOne to track reorder source
     const origDragGuest = dragGuest;
     dragGuest = function(e, guestId) {
         const row = e.target.closest('tr[data-guest-id]');
         reorderSourceRow = row || null;
         origDragGuest(e, guestId);
+    };
+    const origDragPlusOne = dragPlusOne;
+    dragPlusOne = function(e, parentGuestId) {
+        const row = e.target.closest('tr.plus-one-row');
+        reorderSourceRow = row || null;
+        origDragPlusOne(e, parentGuestId);
     };
 
     // Clear reorder state on dragend
@@ -2261,10 +2256,16 @@ $page_title = "Seating Chart - Jacob & Melissa";
 
     async function saveSeatingOrder(tbody) {
         const tableId = parseInt(tbody.id.replace('guests-', ''));
-        const guestIds = Array.from(tbody.querySelectorAll('tr[data-guest-id]'))
-            .map(r => parseInt(r.dataset.guestId));
-        if (!guestIds.length) return;
-        const result = await api({ action: 'reorder_seats', table_id: tableId, guest_ids: guestIds });
+        const seatEntries = [];
+        tbody.querySelectorAll('tr[data-guest-id], tr.plus-one-row').forEach(row => {
+            if (row.dataset.guestId) {
+                seatEntries.push(parseInt(row.dataset.guestId));
+            } else if (row.dataset.parentGuestId) {
+                seatEntries.push('p' + row.dataset.parentGuestId);
+            }
+        });
+        if (!seatEntries.length) return;
+        const result = await api({ action: 'reorder_seats', table_id: tableId, seat_entries: seatEntries });
         if (result) showToast(result.message);
     }
 
@@ -2282,12 +2283,18 @@ $page_title = "Seating Chart - Jacob & Melissa";
             const tbody = document.getElementById('guests-' + tableId);
             const guests = [];
             if (tbody) {
-                tbody.querySelectorAll('tr[data-guest-id]').forEach(row => {
-                    const info = JSON.parse(row.dataset.guestInfo);
-                    const plusOneEntry = info.has_plus_one ? { name: info.plus_one_name + ' (plus one)', guestId: null, parentGuestId: info.id, tableId: parseInt(tableId), isPlusOne: true } : null;
-                    if (plusOneEntry && info.plus_one_seat_before) guests.push(plusOneEntry);
-                    guests.push({ name: info.name, guestId: info.id, tableId: parseInt(tableId), isPlusOne: false, hasPlusOne: info.has_plus_one, plusOneSeatBefore: !!info.plus_one_seat_before });
-                    if (plusOneEntry && !info.plus_one_seat_before) guests.push(plusOneEntry);
+                // Read all rows in DOM order (guests and plus-ones are interleaved)
+                tbody.querySelectorAll('tr[data-guest-id], tr.plus-one-row').forEach(row => {
+                    if (row.dataset.guestId) {
+                        const info = JSON.parse(row.dataset.guestInfo);
+                        guests.push({ name: info.name, guestId: info.id, tableId: parseInt(tableId), isPlusOne: false, hasPlusOne: info.has_plus_one });
+                    } else if (row.dataset.parentGuestId) {
+                        const parentId = parseInt(row.dataset.parentGuestId);
+                        const parentRow = tbody.querySelector('tr[data-guest-id="' + parentId + '"]');
+                        const parentInfo = parentRow ? JSON.parse(parentRow.dataset.guestInfo) : null;
+                        const poName = parentInfo ? parentInfo.plus_one_name : 'Plus one';
+                        guests.push({ name: poName + ' (plus one)', guestId: null, parentGuestId: parentId, tableId: parseInt(tableId), isPlusOne: true });
+                    }
                 });
             }
             cols.push({ name, tableId: parseInt(tableId), guests, isUnseated: false });
@@ -2503,23 +2510,15 @@ $page_title = "Seating Chart - Jacob & Melissa";
             }
         });
 
-        // Helper: find a guest's plus-one row (could be before or after the primary row)
+        // Helper: find a guest's plus-one row anywhere in the tbody
         function findPlusOneRow(tbody, guestRow) {
-            const next = guestRow.nextElementSibling;
-            if (next?.classList.contains('plus-one-row')) return { row: next, isBefore: false };
-            const prev = guestRow.previousElementSibling;
-            if (prev?.classList.contains('plus-one-row')) return { row: prev, isBefore: true };
-            return null;
-        }
-
-        // Helper: find the full unit boundary (plus-one before + primary + plus-one after)
-        function getUnitEnd(guestRow) {
-            const next = guestRow.nextElementSibling;
-            return next?.classList.contains('plus-one-row') ? next : guestRow;
-        }
-        function getUnitStart(guestRow) {
-            const prev = guestRow.previousElementSibling;
-            return prev?.classList.contains('plus-one-row') ? prev : guestRow;
+            const guestId = guestRow.dataset.guestId;
+            const poRow = tbody.querySelector('tr.plus-one-row[data-parent-guest-id="' + guestId + '"]');
+            if (!poRow) return null;
+            const allRows = Array.from(tbody.querySelectorAll('tr'));
+            const guestIdx = allRows.indexOf(guestRow);
+            const poIdx = allRows.indexOf(poRow);
+            return { row: poRow, isBefore: poIdx < guestIdx };
         }
 
         gridContainer.addEventListener('drop', async function(e) {
@@ -2554,71 +2553,46 @@ $page_title = "Seating Chart - Jacob & Melissa";
             const dragRow = tbody.querySelector('tr[data-guest-id="' + gridDragGuestId + '"]');
             if (!dragRow) return;
 
-            // CASE: Plus-one dragged within its own pair (toggle before/after)
+            // CASE: Plus-one dragged within its own pair (toggle adjacent position)
             if (gridDragIsPlusOne && dropGuestId === gridDragGuestId) {
                 const po = findPlusOneRow(tbody, dragRow);
                 if (po) {
-                    // Always toggle: if currently after → move before, if before → move after
+                    // Toggle: move plus-one to adjacent position on other side of primary
                     const newBefore = !po.isBefore;
                     if (newBefore) {
                         tbody.insertBefore(po.row, dragRow);
                     } else {
                         tbody.insertBefore(po.row, dragRow.nextElementSibling);
                     }
-                    // Update the guestInfo
-                    const info = JSON.parse(dragRow.dataset.guestInfo);
-                    info.plus_one_seat_before = newBefore;
-                    dragRow.dataset.guestInfo = JSON.stringify(info);
                     renumberSeats(tbody);
-                    await api({ action: 'set_plus_one_seat_before', guest_id: gridDragGuestId, before: newBefore ? 1 : 0 });
+                    await saveSeatingOrder(tbody);
                 }
             } else {
-                // CASE: Moving a guest (or plus-one's pair) to a different position
-                const dropRow = tbody.querySelector('tr[data-guest-id="' + dropGuestId + '"]');
-                if (!dropRow || dropGuestId === gridDragGuestId) { gridDragGuestId = null; gridDragTableId = null; return; }
-
-                // Collect drag unit (primary + its plus-one)
-                const dragPo = findPlusOneRow(tbody, dragRow);
-
-                // If dragging a plus-one, set plus_one_seat_before based on drop position
-                let newSeatBefore = dragPo?.isBefore ?? false;
+                // CASE: Moving a single entity (guest or plus-one) to a different position
+                // Determine which row is being dragged
+                let rowToMove;
                 if (gridDragIsPlusOne) {
-                    // When dragging a plus-one to another guest's position, keep plus-one first
-                    newSeatBefore = true;
-                }
-
-                // Remove drag unit from current position
-                if (dragPo) dragPo.row.remove();
-                dragRow.remove();
-
-                // Determine where to insert relative to the drop target's unit
-                let dropAfter = isBelow;
-
-                // Find insertion reference point
-                let insertRef;
-                if (dropAfter) {
-                    const dropEnd = getUnitEnd(dropRow);
-                    insertRef = dropEnd.nextElementSibling;
+                    rowToMove = tbody.querySelector('tr.plus-one-row[data-parent-guest-id="' + gridDragGuestId + '"]');
                 } else {
-                    const dropStart = getUnitStart(dropRow);
-                    insertRef = dropStart;
+                    rowToMove = dragRow;
                 }
+                if (!rowToMove) { gridDragGuestId = null; gridDragTableId = null; return; }
 
-                // Insert drag unit
-                if (newSeatBefore && dragPo) {
-                    tbody.insertBefore(dragPo.row, insertRef);
+                // Determine drop target row in card view
+                let dropTargetRow;
+                if (dropOnPlusOne) {
+                    dropTargetRow = tbody.querySelector('tr.plus-one-row[data-parent-guest-id="' + dropGuestId + '"]');
+                } else {
+                    dropTargetRow = tbody.querySelector('tr[data-guest-id="' + dropGuestId + '"]');
                 }
-                tbody.insertBefore(dragRow, insertRef);
-                if (!newSeatBefore && dragPo) {
-                    tbody.insertBefore(dragPo.row, insertRef);
-                }
+                if (!dropTargetRow || dropTargetRow === rowToMove) { gridDragGuestId = null; gridDragTableId = null; return; }
 
-                // Update guestInfo if plus_one_seat_before changed
-                if (dragPo && newSeatBefore !== dragPo.isBefore) {
-                    const info = JSON.parse(dragRow.dataset.guestInfo);
-                    info.plus_one_seat_before = newSeatBefore;
-                    dragRow.dataset.guestInfo = JSON.stringify(info);
-                    await api({ action: 'set_plus_one_seat_before', guest_id: gridDragGuestId, before: newSeatBefore ? 1 : 0 });
+                // Move only the dragged row
+                rowToMove.remove();
+                if (isBelow) {
+                    tbody.insertBefore(rowToMove, dropTargetRow.nextElementSibling);
+                } else {
+                    tbody.insertBefore(rowToMove, dropTargetRow);
                 }
 
                 renumberSeats(tbody);

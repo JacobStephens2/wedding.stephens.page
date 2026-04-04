@@ -73,7 +73,7 @@ try {
                 }
             }
 
-            $stmt = $pdo->prepare("UPDATE guests SET seating_table_id = ?, seat_number = NULL WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE guests SET seating_table_id = ?, seat_number = NULL, plus_one_seat_number = NULL WHERE id = ?");
             $stmt->execute([$tableId, $guestId]);
 
             $msg = $tableId === null
@@ -233,15 +233,42 @@ try {
 
         case 'reorder_seats':
             $tableId = intval($input['table_id'] ?? 0);
-            $guestIds = $input['guest_ids'] ?? [];
-            if (!$tableId || empty($guestIds)) {
+            $seatEntries = $input['seat_entries'] ?? null;
+            $guestIds = $input['guest_ids'] ?? null;
+
+            if (!$tableId || (empty($seatEntries) && empty($guestIds))) {
                 http_response_code(400);
-                echo json_encode(['error' => 'table_id and guest_ids required.']);
+                echo json_encode(['error' => 'table_id and seat_entries (or guest_ids) required.']);
                 exit;
             }
-            $stmt = $pdo->prepare("UPDATE guests SET seat_number = ? WHERE id = ? AND seating_table_id = ?");
-            foreach ($guestIds as $i => $gid) {
-                $stmt->execute([$i + 1, intval($gid), $tableId]);
+
+            if ($seatEntries) {
+                // New format: array of guest IDs (int) and "pN" plus-one entries (string)
+                $guestPositions = [];
+                $plusOnePositions = [];
+                foreach ($seatEntries as $i => $entry) {
+                    $pos = $i + 1;
+                    if (is_string($entry) && str_starts_with($entry, 'p')) {
+                        $plusOnePositions[intval(substr($entry, 1))] = $pos;
+                    } else {
+                        $guestPositions[intval($entry)] = $pos;
+                    }
+                }
+                $stmtGuest = $pdo->prepare("UPDATE guests SET seat_number = ? WHERE id = ? AND seating_table_id = ?");
+                foreach ($guestPositions as $gid => $pos) {
+                    $stmtGuest->execute([$pos, $gid, $tableId]);
+                }
+                $stmtPlusOne = $pdo->prepare("UPDATE guests SET plus_one_seat_number = ?, plus_one_seat_before = ? WHERE id = ? AND seating_table_id = ?");
+                foreach ($plusOnePositions as $gid => $poPos) {
+                    $guestPos = $guestPositions[$gid] ?? PHP_INT_MAX;
+                    $stmtPlusOne->execute([$poPos, $poPos < $guestPos ? 1 : 0, $gid, $tableId]);
+                }
+            } else {
+                // Legacy format: just guest IDs
+                $stmt = $pdo->prepare("UPDATE guests SET seat_number = ? WHERE id = ? AND seating_table_id = ?");
+                foreach ($guestIds as $i => $gid) {
+                    $stmt->execute([$i + 1, intval($gid), $tableId]);
+                }
             }
             echo json_encode(['success' => true, 'message' => 'Seat order saved.']);
             break;
