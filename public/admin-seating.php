@@ -27,41 +27,66 @@ if ($sampleMode) {
             $pdo = getDbConnection();
             $stmt = $pdo->query("
                 SELECT st.table_number, st.table_name,
-                       g.first_name, g.last_name, g.group_name, g.dietary,
-                       g.has_plus_one, g.plus_one_name, g.plus_one_reception_attending, g.plus_one_dietary
+                       g.first_name, g.last_name, g.group_name, g.dietary, g.seat_number,
+                       g.has_plus_one, g.plus_one_name, g.plus_one_reception_attending, g.plus_one_dietary,
+                       g.plus_one_seat_before, g.plus_one_seat_number
                 FROM seating_tables st
                 LEFT JOIN guests g ON g.seating_table_id = st.id
                 ORDER BY st.table_number, g.seat_number, g.last_name, g.first_name
             ");
             $rows = $stmt->fetchAll();
 
+            // Group rows by table so we can compute the true seated order
+            // (combining each guest and their plus-one by their seat positions).
+            $byTable = [];
+            foreach ($rows as $r) {
+                if (!$r['first_name']) continue;
+                $key = $r['table_number'];
+                if (!isset($byTable[$key])) {
+                    $byTable[$key] = ['table_number' => $r['table_number'], 'table_name' => $r['table_name'], 'seats' => []];
+                }
+                $byTable[$key]['seats'][] = [
+                    'pos' => (float)($r['seat_number'] ?? 999),
+                    'first_name' => $r['first_name'],
+                    'last_name' => $r['last_name'],
+                    'group_name' => $r['group_name'],
+                    'dietary' => $r['dietary'] ?? '',
+                ];
+                if ($r['has_plus_one'] && $r['plus_one_reception_attending'] === 'yes') {
+                    $poPos = $r['plus_one_seat_number'];
+                    if ($poPos === null) {
+                        $poPos = ((float)$r['seat_number']) + ($r['plus_one_seat_before'] ? -0.5 : 0.5);
+                    }
+                    $poName = $r['plus_one_name'] ?: 'Guest of ' . $r['first_name'];
+                    $poParts = explode(' ', trim($poName), 2);
+                    $byTable[$key]['seats'][] = [
+                        'pos' => (float)$poPos,
+                        'first_name' => $poParts[0] ?? '',
+                        'last_name' => trim(($poParts[1] ?? '') . ' (plus one)'),
+                        'group_name' => '',
+                        'dietary' => $r['plus_one_dietary'] ?? '',
+                    ];
+                }
+            }
+
             header('Content-Type: text/csv; charset=utf-8');
             header('Content-Disposition: attachment; filename="seating-chart.csv"');
             $out = fopen('php://output', 'w');
             fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM
-            fputcsv($out, ['Table #', 'Table Name', 'First Name', 'Last Name', 'Group', 'Dietary Restrictions']);
-            foreach ($rows as $r) {
-                if (!$r['first_name']) continue;
-                fputcsv($out, [
-                    $r['table_number'],
-                    $r['table_name'],
-                    $r['first_name'],
-                    $r['last_name'],
-                    $r['group_name'],
-                    $r['dietary'] ?? '',
-                ]);
-                if ($r['has_plus_one'] && $r['plus_one_reception_attending'] === 'yes') {
-                    $poName = $r['plus_one_name'] ?: 'Guest of ' . $r['first_name'];
-                    $poParts = explode(' ', trim($poName), 2);
-                    $poFirst = $poParts[0] ?? '';
-                    $poLast = ($poParts[1] ?? '') . ' (plus one)';
+            fputcsv($out, ['Table #', 'Table Name', 'Seat #', 'First Name', 'Last Name', 'Group', 'Dietary Restrictions']);
+            foreach ($byTable as $tbl) {
+                usort($tbl['seats'], fn($a, $b) => $a['pos'] <=> $b['pos']);
+                $seatPos = 0;
+                foreach ($tbl['seats'] as $s) {
+                    $seatPos++;
                     fputcsv($out, [
-                        $r['table_number'],
-                        $r['table_name'],
-                        $poFirst,
-                        trim($poLast),
-                        '',
-                        $r['plus_one_dietary'] ?? '',
+                        $tbl['table_number'],
+                        $tbl['table_name'],
+                        $seatPos,
+                        $s['first_name'],
+                        $s['last_name'],
+                        $s['group_name'],
+                        $s['dietary'],
                     ]);
                 }
             }
@@ -73,7 +98,7 @@ if ($sampleMode) {
                 ORDER BY group_name, last_name, first_name
             ");
             foreach ($stmt2->fetchAll() as $ug) {
-                fputcsv($out, ['', '(Unseated)', $ug['first_name'], $ug['last_name'], $ug['group_name'], $ug['dietary'] ?? '']);
+                fputcsv($out, ['', '(Unseated)', '', $ug['first_name'], $ug['last_name'], $ug['group_name'], $ug['dietary'] ?? '']);
             }
             fclose($out);
             exit;
