@@ -2885,8 +2885,10 @@ $page_title = "Seating Chart - Jacob & Melissa";
     // ---- Visual floor plan export ----
     function exportVisual() {
         const d = getExportData();
-        const includeNames = document.getElementById('export-include-names').checked;
         const firstNamesOnly = document.getElementById('export-first-names-only').checked;
+        // "First names only" implies that names should be drawn — even if the
+        // broader "include names" checkbox is unchecked.
+        const includeNames = document.getElementById('export-include-names').checked || firstNamesOnly;
         const canvas = document.getElementById('export-canvas');
         const W = includeNames ? 1800 : 1200;
         const H = includeNames ? 1050 : 700;
