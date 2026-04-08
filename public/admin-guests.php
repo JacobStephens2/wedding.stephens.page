@@ -155,7 +155,7 @@ if (!$sampleMode && $authenticated && isset($_GET['export_all'])) {
                    g.has_plus_one, g.plus_one_name, g.plus_one_attending,
                    g.plus_one_ceremony_attending, g.plus_one_reception_attending,
                    g.dietary, g.plus_one_dietary, g.song_request, g.message, g.notes,
-                   g.is_child, g.is_infant, g.rehearsal_invited,
+                   g.is_child, g.is_infant, g.age, g.plus_one_age, g.rehearsal_invited,
                    ma.address_1, ma.address_2, ma.city, ma.state, ma.zip, ma.country
             FROM guests g
             LEFT JOIN mailing_addresses ma ON g.mailing_group = ma.mailing_group
@@ -168,7 +168,7 @@ if (!$sampleMode && $authenticated && isset($_GET['export_all'])) {
         fputcsv($out, ['First Name', 'Last Name', 'Group', 'Mailing Group', 'Email', 'Phone',
             'Attending', 'Ceremony', 'Reception', 'Has +1', '+1 Name', '+1 Attending',
             '+1 Ceremony', '+1 Reception', 'Dietary', '+1 Dietary', 'Song Request', 'Message', 'Notes',
-            'Child', 'Infant', 'Rehearsal',
+            'Child', 'Infant', 'Age', '+1 Age', 'Rehearsal',
             'Address 1', 'Address 2', 'City', 'State', 'Zip', 'Country']);
         foreach ($rows as $row) { fputcsv($out, $row); }
         fclose($out);
@@ -183,14 +183,16 @@ if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && i
     try {
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("
-            INSERT INTO guests (first_name, last_name, group_name, mailing_group, has_plus_one, rehearsal_invited, is_child, is_infant)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO guests (first_name, last_name, group_name, mailing_group, has_plus_one, rehearsal_invited, is_child, is_infant, age)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $mailingGroup = trim($_POST['mailing_group'] ?? '');
         $hasPlusOne = isset($_POST['has_plus_one']) && $_POST['has_plus_one'] === '1' ? 1 : 0;
         $rehearsalInvited = isset($_POST['rehearsal_invited']) && $_POST['rehearsal_invited'] === '1' ? 1 : 0;
         $isChild = isset($_POST['is_child']) && $_POST['is_child'] === '1' ? 1 : 0;
         $isInfant = isset($_POST['is_infant']) && $_POST['is_infant'] === '1' ? 1 : 0;
+        $ageRaw = trim($_POST['age'] ?? '');
+        $age = ($ageRaw !== '' && ctype_digit($ageRaw)) ? min(255, (int)$ageRaw) : null;
         $groupName = trim($_POST['group_name'] ?? '');
         $mailingGroupVal = $mailingGroup !== '' ? (int)$mailingGroup : null;
         $stmt->execute([
@@ -202,6 +204,7 @@ if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && i
             $rehearsalInvited,
             $isChild,
             $isInfant,
+            $age,
         ]);
 
         // Insert extra guests in the same group
@@ -209,12 +212,15 @@ if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && i
         $extraLastNames = $_POST['extra_last_names'] ?? [];
         $extraIsChild = $_POST['extra_is_child'] ?? [];
         $extraIsInfant = $_POST['extra_is_infant'] ?? [];
+        $extraAges = $_POST['extra_age'] ?? [];
         foreach ($extraFirstNames as $i => $firstName) {
             $extraFirst = trim($firstName ?? '');
             if ($extraFirst === '') continue;
             $extraLast = trim($extraLastNames[$i] ?? '');
             $extraChildVal = !empty($extraIsChild[$i]) ? 1 : 0;
             $extraInfantVal = !empty($extraIsInfant[$i]) ? 1 : 0;
+            $extraAgeRaw = trim($extraAges[$i] ?? '');
+            $extraAgeVal = ($extraAgeRaw !== '' && ctype_digit($extraAgeRaw)) ? min(255, (int)$extraAgeRaw) : null;
             $stmt->execute([
                 $extraFirst,
                 $extraLast,
@@ -224,6 +230,7 @@ if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && i
                 0,
                 $extraChildVal,
                 $extraInfantVal,
+                $extraAgeVal,
             ]);
         }
 
@@ -261,6 +268,10 @@ if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && i
         $plusOneIsChild = isset($_POST['plus_one_is_child']) && $_POST['plus_one_is_child'] === '1' ? 1 : 0;
         $isInfant = isset($_POST['is_infant']) && $_POST['is_infant'] === '1' ? 1 : 0;
         $plusOneIsInfant = isset($_POST['plus_one_is_infant']) && $_POST['plus_one_is_infant'] === '1' ? 1 : 0;
+        $ageRaw = trim($_POST['age'] ?? '');
+        $age = ($ageRaw !== '' && ctype_digit($ageRaw)) ? min(255, (int)$ageRaw) : null;
+        $plusOneAgeRaw = trim($_POST['plus_one_age'] ?? '');
+        $plusOneAge = ($plusOneAgeRaw !== '' && ctype_digit($plusOneAgeRaw)) ? min(255, (int)$plusOneAgeRaw) : null;
         $notes = trim($_POST['notes'] ?? '');
 
         $stmt = $pdo->prepare("
@@ -270,6 +281,7 @@ if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && i
                 phone = ?, rehearsal_invited = ?, plus_one_rehearsal_invited = ?,
                 is_child = ?, plus_one_is_child = ?,
                 is_infant = ?, plus_one_is_infant = ?,
+                age = ?, plus_one_age = ?,
                 notes = ?
             WHERE id = ?
         ");
@@ -289,6 +301,8 @@ if (!$sampleMode && $authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && i
             $plusOneIsChild,
             $isInfant,
             $plusOneIsInfant,
+            $age,
+            $plusOneAge,
             $notes !== '' ? $notes : null,
             (int)$_POST['guest_id'],
         ]);
@@ -617,6 +631,7 @@ if ($sampleMode) {
                         'rehearsal_invited' => $guest['plus_one_rehearsal_invited'],
                         'is_child' => $guest['plus_one_is_child'],
                         'is_infant' => $guest['plus_one_is_infant'],
+                        'age' => $guest['plus_one_age'] ?? null,
                         'is_plus_one' => true,
                     ];
                 }
@@ -699,6 +714,52 @@ if ($sampleMode) {
         // Get existing groups for "Add guest to group" feature
         $groupsStmt = $pdo->query("SELECT DISTINCT mailing_group, group_name FROM guests WHERE mailing_group IS NOT NULL ORDER BY mailing_group ASC");
         $existingGroups = $groupsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Age stats — count guests by age (primary + plus-ones who have an age set).
+        // Each row is [age, reception_yes (0/1)] so we can show overall and reception-confirmed counts.
+        $ageStmt = $pdo->query("
+            SELECT age,
+                   CASE WHEN reception_attending = 'yes' THEN 1 ELSE 0 END AS reception_yes
+            FROM guests
+            WHERE age IS NOT NULL
+            UNION ALL
+            SELECT plus_one_age AS age,
+                   CASE WHEN plus_one_reception_attending = 'yes' THEN 1 ELSE 0 END AS reception_yes
+            FROM guests
+            WHERE has_plus_one = 1 AND plus_one_age IS NOT NULL
+        ");
+        $byAge = []; // age => ['total' => n, 'reception' => n]
+        $totalCount = 0;
+        $ageSum = 0;
+        $minAge = null;
+        $maxAge = null;
+        foreach ($ageStmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $a = (int)$r['age'];
+            if (!isset($byAge[$a])) $byAge[$a] = ['total' => 0, 'reception' => 0];
+            $byAge[$a]['total']++;
+            if ((int)$r['reception_yes'] === 1) $byAge[$a]['reception']++;
+            $totalCount++;
+            $ageSum += $a;
+            if ($minAge === null || $a < $minAge) $minAge = $a;
+            if ($maxAge === null || $a > $maxAge) $maxAge = $a;
+        }
+        ksort($byAge);
+        $missingAgeCount = (int)$pdo->query("
+            SELECT
+                (
+                    COALESCE(SUM(CASE WHEN age IS NULL THEN 1 ELSE 0 END), 0)
+                    + COALESCE(SUM(CASE WHEN has_plus_one = 1 AND plus_one_age IS NULL THEN 1 ELSE 0 END), 0)
+                ) AS missing
+            FROM guests
+        ")->fetch(PDO::FETCH_ASSOC)['missing'];
+        $ageStats = [
+            'count' => $totalCount,
+            'avg' => $totalCount > 0 ? $ageSum / $totalCount : null,
+            'min' => $minAge,
+            'max' => $maxAge,
+            'by_age' => $byAge,
+            'missing' => $missingAgeCount,
+        ];
 
         // Get RSVP submissions over time
         $timelineStmt = $pdo->query("
@@ -1771,6 +1832,11 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                        style="width:auto; margin:0;">
                                 <label for="is_infant" style="margin:0; cursor:pointer;">Infant</label>
                             </div>
+                            <div class="form-group" style="min-width:80px; max-width:90px;">
+                                <label for="age">Age</label>
+                                <input type="number" id="age" name="age" min="0" max="120" step="1" inputmode="numeric"
+                                       value="<?php echo htmlspecialchars((isset($editGuest['age']) && $editGuest['age'] !== null) ? $editGuest['age'] : ''); ?>">
+                            </div>
                             <?php if ($editGuest && !empty($editGuest['has_plus_one'])): ?>
                             <div class="form-group" style="display:flex; align-items:center; gap:0.5rem; min-width:160px; padding-top:1.8rem;">
                                 <input type="checkbox" id="plus_one_rehearsal_invited" name="plus_one_rehearsal_invited" value="1"
@@ -1789,6 +1855,11 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                        <?php echo (!empty($editGuest['plus_one_is_infant'])) ? 'checked' : ''; ?>
                                        style="width:auto; margin:0;">
                                 <label for="plus_one_is_infant" style="margin:0; cursor:pointer;">+1 Infant</label>
+                            </div>
+                            <div class="form-group" style="min-width:90px; max-width:100px;">
+                                <label for="plus_one_age">+1 Age</label>
+                                <input type="number" id="plus_one_age" name="plus_one_age" min="0" max="120" step="1" inputmode="numeric"
+                                       value="<?php echo htmlspecialchars((isset($editGuest['plus_one_age']) && $editGuest['plus_one_age'] !== null) ? $editGuest['plus_one_age'] : ''); ?>">
                             </div>
                             <?php endif; ?>
                             <?php if ($editGuest): ?>
@@ -1997,6 +2068,64 @@ $page_title = "Manage Guests - Jacob & Melissa";
                     var visible = panel.style.display !== 'none';
                     panel.style.display = visible ? 'none' : 'block';
                     this.textContent = visible ? 'View Song Requests' : 'Hide Song Requests';
+                });
+                </script>
+
+                <!-- Age Stats View -->
+                <?php $hasAgeData = isset($ageStats) && $ageStats['count'] > 0; ?>
+                <button type="button" id="age-toggle" class="btn-filter" style="margin-bottom: 1rem;">View Age Breakdown</button>
+                <div id="age-panel" style="display: none; margin-bottom: 1.5rem; background: var(--color-surface-alt); border: 1px solid var(--color-border); border-radius: 8px; padding: 1rem;">
+                    <h3 style="margin: 0 0 0.75rem;">Guests by Age</h3>
+                    <?php if (!$hasAgeData): ?>
+                        <p style="color: var(--color-text-secondary);">No ages have been entered yet. Add ages on the Edit Guest form to see a breakdown here.</p>
+                    <?php else: ?>
+                        <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1rem; font-size: 0.95rem;">
+                            <div><strong>Average:</strong> <?php echo number_format($ageStats['avg'], 1); ?></div>
+                            <div><strong>Range:</strong> <?php echo (int)$ageStats['min']; ?>–<?php echo (int)$ageStats['max']; ?></div>
+                            <div><strong>With age set:</strong> <?php echo (int)$ageStats['count']; ?></div>
+                            <?php if ((int)$ageStats['missing'] > 0): ?>
+                                <div style="color: var(--color-text-muted);"><strong>Missing age:</strong> <?php echo (int)$ageStats['missing']; ?></div>
+                            <?php endif; ?>
+                        </div>
+                        <?php
+                            $maxBucket = 0;
+                            foreach ($ageStats['by_age'] as $bucket) {
+                                if ($bucket['total'] > $maxBucket) $maxBucket = $bucket['total'];
+                            }
+                        ?>
+                        <table style="width: 100%; border-collapse: collapse; max-width: 540px;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; padding: 0.4rem 0.5rem; border-bottom: 2px solid var(--color-border);">Age</th>
+                                    <th style="text-align: right; padding: 0.4rem 0.5rem; border-bottom: 2px solid var(--color-border);">Total</th>
+                                    <th style="text-align: right; padding: 0.4rem 0.5rem; border-bottom: 2px solid var(--color-border);">Coming</th>
+                                    <th style="padding: 0.4rem 0.5rem; border-bottom: 2px solid var(--color-border);"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($ageStats['by_age'] as $age => $bucket):
+                                    $barPct = $maxBucket > 0 ? ($bucket['total'] / $maxBucket) * 100 : 0;
+                                ?>
+                                    <tr>
+                                        <td style="padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--color-border);"><?php echo (int)$age; ?></td>
+                                        <td style="padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--color-border); text-align: right;"><?php echo (int)$bucket['total']; ?></td>
+                                        <td style="padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--color-border); text-align: right; color: var(--color-green);"><?php echo (int)$bucket['reception']; ?></td>
+                                        <td style="padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--color-border); width: 50%;">
+                                            <div style="background: var(--color-gold); height: 0.6rem; width: <?php echo $barPct; ?>%; border-radius: 2px;"></div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                        <p style="color: var(--color-text-muted); font-size: 0.8rem; margin-top: 0.75rem;">"Coming" counts only guests whose reception RSVP is yes. "Total" counts everyone with an age on file regardless of RSVP status.</p>
+                    <?php endif; ?>
+                </div>
+                <script>
+                document.getElementById('age-toggle').addEventListener('click', function() {
+                    var panel = document.getElementById('age-panel');
+                    var visible = panel.style.display !== 'none';
+                    panel.style.display = visible ? 'none' : 'block';
+                    this.textContent = visible ? 'View Age Breakdown' : 'Hide Age Breakdown';
                 });
                 </script>
 
@@ -2261,6 +2390,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                 <th><a href="<?php echo getSortUrl('has_plus_one', $sort, $order); ?>">+1<?php echo getSortIndicator('has_plus_one', $sort, $order); ?></a></th>
                                 <th><a href="<?php echo getSortUrl('rehearsal_invited', $sort, $order); ?>">Rehearsal<?php echo getSortIndicator('rehearsal_invited', $sort, $order); ?></a></th>
                                 <th>Child</th>
+                                <th>Age</th>
                                 <th><a href="<?php echo getSortUrl('attending', $sort, $order); ?>">RSVP Status<?php echo getSortIndicator('attending', $sort, $order); ?></a></th>
                                 <th>Actions</th>
                             </tr>
@@ -2302,6 +2432,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                         if (!empty($guest['is_infant'])) echo 'Infant';
                                         elseif (!empty($guest['is_child'])) echo '✓';
                                     ?></td>
+                                    <td><?php echo (isset($guest['age']) && $guest['age'] !== null && $guest['age'] !== '') ? (int)$guest['age'] : '—'; ?></td>
                                     <td>
                                         <?php if ($guest['attending'] === 'yes'): ?>
                                             <span class="rsvp-badge rsvp-attending">Attending</span>
@@ -2325,7 +2456,7 @@ $page_title = "Manage Guests - Jacob & Melissa";
                                 </tr>
                             <?php endforeach; ?>
                             <?php if (empty($guests)): ?>
-                                <tr><td colspan="11" style="text-align:center; padding:2rem; color:var(--color-text-secondary);">No guests found.</td></tr>
+                                <tr><td colspan="12" style="text-align:center; padding:2rem; color:var(--color-text-secondary);">No guests found.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -2450,6 +2581,10 @@ $page_title = "Manage Guests - Jacob & Melissa";
                 '<input type="hidden" name="extra_is_infant[' + idx + ']" value="0">' +
                 '<input type="checkbox" id="extra_is_infant_' + count + '" name="extra_is_infant[' + idx + ']" value="1" style="width:auto; margin:0;">' +
                 '<label for="extra_is_infant_' + count + '" style="margin:0; cursor:pointer;">Infant</label>' +
+            '</div>' +
+            '<div class="form-group" style="min-width:80px; max-width:90px;">' +
+                '<label for="extra_age_' + count + '">Age</label>' +
+                '<input type="number" id="extra_age_' + count + '" name="extra_age[' + idx + ']" min="0" max="120" step="1" inputmode="numeric">' +
             '</div>' +
             '<div class="form-group" style="padding-bottom:0.25rem;">' +
                 '<button type="button" class="btn-secondary remove-extra-guest" style="color:#8b0000;">Remove</button>' +

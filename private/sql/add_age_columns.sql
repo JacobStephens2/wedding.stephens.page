@@ -1,0 +1,3 @@
+ALTER TABLE guests
+    ADD COLUMN age TINYINT UNSIGNED DEFAULT NULL AFTER is_infant,
+    ADD COLUMN plus_one_age TINYINT UNSIGNED DEFAULT NULL AFTER plus_one_is_infant;
