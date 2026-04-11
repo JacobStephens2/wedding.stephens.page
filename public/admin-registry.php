@@ -1078,17 +1078,23 @@ $page_title = "Manage Registry - Jacob & Melissa";
                 <?php endif; ?>
                 
                 <?php
-                // Calculate summary stats
-                $totalItems = count($items);
+                // Summary and price-band counts only cover published items so they
+                // match what guests actually see on the public /registry page.
+                // Unpublished drafts are still listed below but are excluded from counts.
+                $publishedItems = array_values(array_filter($items, function ($it) {
+                    return !empty($it['published']);
+                }));
+                $totalItems = count($publishedItems);
                 $purchasedItems = 0;
                 $availableItems = 0;
-                foreach ($items as $item) {
+                foreach ($publishedItems as $item) {
                     if ($item['purchased']) {
                         $purchasedItems++;
                     } else {
                         $availableItems++;
                     }
                 }
+                $unpublishedCount = count($items) - $totalItems;
 
                 // Price band guidance (kept in sync with private/sources/Registry Guidance.md)
                 $targetTotalMin = 50;
@@ -1150,7 +1156,7 @@ $page_title = "Manage Registry - Jacob & Melissa";
                 }
                 $noPriceCounts = ['total' => 0, 'available' => 0, 'purchased' => 0];
 
-                foreach ($items as $item) {
+                foreach ($publishedItems as $item) {
                     $priceRaw = $item['price'] ?? null;
                     $price = is_numeric($priceRaw) ? (float) $priceRaw : null;
                     $isPurchased = !empty($item['purchased']);
@@ -1192,7 +1198,7 @@ $page_title = "Manage Registry - Jacob & Melissa";
                 <div class="summary-stats">
                     <div class="stat-card">
                         <span class="stat-value"><?php echo $totalItems; ?></span>
-                        <span class="stat-label">Total Items</span>
+                        <span class="stat-label">Published Items<?php if ($unpublishedCount > 0): ?> <small>(+<?php echo $unpublishedCount; ?> unpublished)</small><?php endif; ?></span>
                     </div>
                     <div class="stat-card">
                         <span class="stat-value"><?php echo $availableItems; ?></span>
@@ -1211,7 +1217,7 @@ $page_title = "Manage Registry - Jacob & Melissa";
                     </button>
                     <div class="price-band-body" id="price-band-body">
                         <p class="price-band-note">
-                            Counts are based on the item <strong>Price</strong> field (including unpublished items). Suggested ranges assume a 50–75 physical-item “shield” for ~150 guests.
+                            Counts cover <strong>published</strong> items only, matching what guests see on the public registry page. Suggested ranges assume a 50–75 physical-item &ldquo;shield&rdquo; for ~150 guests.
                         </p>
                         <table class="price-band-table">
                             <thead>
