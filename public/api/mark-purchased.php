@@ -15,6 +15,7 @@ $input = json_decode(file_get_contents('php://input'), true);
 $itemId = $input['item_id'] ?? null;
 $purchaserName = trim($input['purchaser_name'] ?? '');
 $purchaserMessage = trim($input['purchaser_message'] ?? '');
+$turnstileToken = trim($input['cf_turnstile_token'] ?? '');
 if (mb_strlen($purchaserMessage) > 2000) {
     $purchaserMessage = mb_substr($purchaserMessage, 0, 2000);
 }
@@ -23,6 +24,37 @@ if (!$itemId) {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'Item ID is required']);
     exit;
+}
+
+/**
+ * Verify a Cloudflare Turnstile token against the siteverify endpoint.
+ * Returns true when verification succeeds, false otherwise.
+ */
+function verifyTurnstileToken(string $token, string $secret, ?string $remoteIp): bool
+{
+    if ($secret === '' || $token === '') {
+        return false;
+    }
+    $payload = http_build_query(array_filter([
+        'secret' => $secret,
+        'response' => $token,
+        'remoteip' => $remoteIp,
+    ]));
+    $ctx = stream_context_create([
+        'http' => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+            'content' => $payload,
+            'timeout' => 6,
+            'ignore_errors' => true,
+        ],
+    ]);
+    $resp = @file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false, $ctx);
+    if ($resp === false) {
+        return false;
+    }
+    $data = json_decode($resp, true);
+    return is_array($data) && !empty($data['success']);
 }
 
 try {
@@ -41,6 +73,19 @@ try {
 
     // Toggle purchased status
     $newPurchasedStatus = !$item['purchased'];
+
+    // Bot protection: require a valid Turnstile token when transitioning an
+    // item to purchased. Unmarking (available) stays open so the "Mark as
+    // Available" button keeps working without re-solving a challenge.
+    $turnstileSecret = $_ENV['TURNSTILE_SECRET_KEY'] ?? '';
+    if ($newPurchasedStatus && $turnstileSecret !== '') {
+        $remoteIp = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? null;
+        if (!verifyTurnstileToken($turnstileToken, $turnstileSecret, $remoteIp)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Bot check failed. Please reload and try again.']);
+            exit;
+        }
+    }
     $stmt = $pdo->prepare("
         UPDATE registry_items
         SET purchased = ?,

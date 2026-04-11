@@ -71,9 +71,14 @@ try {
     error_log("Error loading registry items: " . $e->getMessage());
 }
 
+$turnstileSiteKey = $_ENV['TURNSTILE_SITE_KEY'] ?? '';
+
 $page_title = "Registry - Jacob & Melissa";
 include __DIR__ . '/includes/header.php';
 ?>
+<?php if ($turnstileSiteKey): ?>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<?php endif; ?>
 
 <main class="page-container">
     <div class="registry-container">
@@ -256,6 +261,11 @@ include __DIR__ . '/includes/header.php';
                 <textarea id="purchaser-message" name="purchaser_message" rows="3" maxlength="2000" placeholder="Leave a note with your gift"></textarea>
             </div>
             <input type="hidden" id="purchase-item-id" name="item_id">
+            <?php if ($turnstileSiteKey): ?>
+                <div class="form-group">
+                    <div id="purchase-turnstile" class="cf-turnstile" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey); ?>"></div>
+                </div>
+            <?php endif; ?>
             <div class="modal-actions">
                 <button type="submit" class="btn">Mark as Purchased</button>
                 <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
@@ -387,6 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function closeModal() {
         modal.style.display = 'none';
         document.body.style.overflow = '';
+        resetTurnstile();
     }
     
     // Return prompt modal elements
@@ -525,6 +536,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    function getTurnstileToken() {
+        if (typeof turnstile === 'undefined') return '';
+        const el = document.getElementById('purchase-turnstile');
+        if (!el) return '';
+        try {
+            return turnstile.getResponse(el) || '';
+        } catch (e) {
+            return '';
+        }
+    }
+
+    function resetTurnstile() {
+        if (typeof turnstile === 'undefined') return;
+        const el = document.getElementById('purchase-turnstile');
+        if (!el) return;
+        try { turnstile.reset(el); } catch (e) {}
+    }
+
     // Handle form submission
     if (purchaseForm) {
         purchaseForm.addEventListener('submit', function(e) {
@@ -532,12 +561,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const itemId = purchaseItemIdInput.value;
             const purchaserName = purchaserNameInput.value.trim();
             const purchaserMessage = purchaserMessageInput ? purchaserMessageInput.value.trim() : '';
-            markItemPurchased(itemId, purchaserName, false, purchaserMessage);
+            const turnstileToken = getTurnstileToken();
+            const turnstileRequired = !!document.getElementById('purchase-turnstile');
+            if (turnstileRequired && !turnstileToken) {
+                alert('Please complete the bot check before marking this item as purchased.');
+                return;
+            }
+            markItemPurchased(itemId, purchaserName, false, purchaserMessage, turnstileToken);
             closeModal();
         });
     }
 
-    function markItemPurchased(itemId, purchaserName, isToggle, purchaserMessage) {
+    function markItemPurchased(itemId, purchaserName, isToggle, purchaserMessage, turnstileToken) {
         fetch('/api/mark-purchased.php', {
             method: 'POST',
             headers: {
@@ -546,7 +581,8 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({
                 item_id: itemId,
                 purchaser_name: purchaserName,
-                purchaser_message: purchaserMessage || ''
+                purchaser_message: purchaserMessage || '',
+                cf_turnstile_token: turnstileToken || ''
             })
         })
         .then(response => response.json())
