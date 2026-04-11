@@ -58,7 +58,11 @@ try {
         echo json_encode(['success' => false, 'error' => 'Item is not currently marked as purchased']);
         exit;
     }
-    $update = $pdo->prepare("UPDATE registry_items SET purchased_by = ? WHERE id = ?");
+    // Self-assign updated_at so MySQL's ON UPDATE CURRENT_TIMESTAMP does not
+    // fire. Without this, editing a name would bump the row's timestamp and
+    // make it jump to the top of the admin Recent Purchases list, hiding
+    // the real purchase time.
+    $update = $pdo->prepare("UPDATE registry_items SET purchased_by = ?, updated_at = updated_at WHERE id = ?");
     $update->execute([$purchaserName !== '' ? $purchaserName : null, $itemId]);
     echo json_encode(['success' => true, 'purchased_by' => $purchaserName]);
 } catch (Exception $e) {
