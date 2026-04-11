@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/../private/config.php';
+require_once __DIR__ . '/../private/turnstile.php';
+$turnstileSiteKey = $_ENV['TURNSTILE_SITE_KEY'] ?? '';
 $page_title = "Contact - Jacob & Melissa";
 include __DIR__ . '/includes/header.php';
 
@@ -11,12 +13,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $subject = trim($_POST['subject'] ?? '');
     $message = trim($_POST['message'] ?? '');
-    
+
     // Validation
     if (empty($name) || empty($email) || empty($subject) || empty($message)) {
         $error = 'Please fill in all required fields.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Please enter a valid email address.';
+    } elseif (turnstileEnabled() && !verifyTurnstileToken(trim($_POST['cf-turnstile-response'] ?? ''), turnstileClientIp())) {
+        $error = 'Bot check failed. Please reload the page and try again.';
     } else {
         // Send email
         require_once __DIR__ . '/../private/email_handler.php';
@@ -41,6 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
+<?php if ($turnstileSiteKey): ?>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<?php endif; ?>
 
 <main class="page-container">
     <h1 class="page-title">Contact Us</h1>
@@ -99,7 +107,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label for="message">Message</label>
                     <textarea id="message" name="message" required placeholder="Your message..."><?php echo htmlspecialchars($_POST['message'] ?? ''); ?></textarea>
                 </div>
-                
+
+                <?php if ($turnstileSiteKey): ?>
+                    <div class="form-group">
+                        <div class="cf-turnstile" data-sitekey="<?php echo htmlspecialchars($turnstileSiteKey); ?>"></div>
+                    </div>
+                <?php endif; ?>
+
                 <button type="submit" class="btn">Send Message</button>
             </form>
         </div>
