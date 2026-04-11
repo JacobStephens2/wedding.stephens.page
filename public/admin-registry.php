@@ -1007,10 +1007,51 @@ $page_title = "Manage Registry - Jacob & Melissa";
             border-left: 3px solid var(--color-gold);
             padding-left: 0.5rem;
         }
-        .rp-noname-tag {
+        .rp-name-input {
+            width: 100%;
+            min-width: 9rem;
+            padding: 0.3rem 0.45rem;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            background-color: transparent;
+            color: inherit;
+            font: inherit;
+            font-family: 'Crimson Text', serif;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .rp-name-input:hover {
+            border-color: var(--color-border);
+        }
+        .rp-name-input:focus {
+            outline: none;
+            border-color: var(--color-green);
+            background-color: var(--color-surface);
+            box-shadow: 0 0 0 2px rgba(127, 143, 101, 0.25);
+        }
+        .rp-name-input.rp-name-input-empty::placeholder {
             color: #b02a37;
             font-style: italic;
-            font-size: 0.9rem;
+            opacity: 1;
+        }
+        .rp-name-input[readonly] {
+            cursor: default;
+        }
+        .rp-name-status {
+            display: inline-block;
+            margin-left: 0.4rem;
+            font-size: 0.8rem;
+            font-family: 'Crimson Text', serif;
+            color: var(--color-text-secondary);
+            min-width: 3rem;
+        }
+        .rp-name-status.rp-status-saving {
+            color: var(--color-text-secondary);
+        }
+        .rp-name-status.rp-status-saved {
+            color: #2d5016;
+        }
+        .rp-name-status.rp-status-error {
+            color: #b02a37;
         }
         .recent-purchases-table tr.rp-noname.rp-cluster {
             background-color: #fff6f6;
@@ -1357,11 +1398,15 @@ $page_title = "Manage Registry - Jacob & Melissa";
                                                 </td>
                                                 <td class="rp-col-price"><?php echo $p['price'] ? '$' . number_format((float) $p['price'], 2) : '—'; ?></td>
                                                 <td class="rp-col-name">
-                                                    <?php if ($noName): ?>
-                                                        <span class="rp-noname-tag">(no name)</span>
-                                                    <?php else: ?>
-                                                        <?php echo htmlspecialchars($p['purchased_by']); ?>
-                                                    <?php endif; ?>
+                                                    <input type="text"
+                                                           class="rp-name-input<?php echo $noName ? ' rp-name-input-empty' : ''; ?>"
+                                                           value="<?php echo htmlspecialchars((string) ($p['purchased_by'] ?? '')); ?>"
+                                                           placeholder="(add name)"
+                                                           maxlength="255"
+                                                           data-item-id="<?php echo (int) $p['id']; ?>"
+                                                           data-original="<?php echo htmlspecialchars((string) ($p['purchased_by'] ?? '')); ?>"
+                                                           <?php echo $sampleMode ? 'readonly' : ''; ?>>
+                                                    <span class="rp-name-status" aria-live="polite"></span>
                                                 </td>
                                                 <td class="rp-col-action">
                                                     <a href="/admin-registry?toggle_purchased=<?php echo (int) $p['id']; ?>#recent-purchases" class="btn-small btn-toggle">Mark Available</a>
@@ -1577,6 +1622,68 @@ $page_title = "Manage Registry - Jacob & Melissa";
                 refreshBulkState();
             }));
             refreshBulkState();
+
+            // Inline edit of purchased_by name
+            const nameInputs = document.querySelectorAll('.rp-name-input');
+            nameInputs.forEach(function(input) {
+                if (input.readOnly) return;
+                const status = input.parentElement.querySelector('.rp-name-status');
+
+                function setStatus(text, cls) {
+                    if (!status) return;
+                    status.textContent = text;
+                    status.className = 'rp-name-status' + (cls ? ' ' + cls : '');
+                }
+
+                function saveIfChanged() {
+                    const current = input.value.trim();
+                    const original = (input.dataset.original || '').trim();
+                    if (current === original) {
+                        setStatus('', '');
+                        return;
+                    }
+                    setStatus('Saving…', 'rp-status-saving');
+                    fetch('/api/update-purchaser.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            item_id: parseInt(input.dataset.itemId, 10),
+                            purchaser_name: current
+                        })
+                    })
+                    .then(function(resp) {
+                        return resp.json().then(function(data) { return { ok: resp.ok, data: data }; });
+                    })
+                    .then(function(result) {
+                        if (result.ok && result.data && result.data.success) {
+                            input.dataset.original = current;
+                            input.classList.toggle('rp-name-input-empty', current === '');
+                            const row = input.closest('tr');
+                            if (row) row.classList.toggle('rp-noname', current === '');
+                            setStatus('Saved ✓', 'rp-status-saved');
+                            setTimeout(function() { setStatus('', ''); }, 2000);
+                        } else {
+                            const msg = (result.data && result.data.error) ? result.data.error : 'Error';
+                            setStatus(msg, 'rp-status-error');
+                        }
+                    })
+                    .catch(function() {
+                        setStatus('Network error', 'rp-status-error');
+                    });
+                }
+
+                input.addEventListener('blur', saveIfChanged);
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault(); // don't submit the bulk-unmark form
+                        input.blur();       // triggers saveIfChanged
+                    } else if (e.key === 'Escape') {
+                        input.value = input.dataset.original || '';
+                        input.blur();
+                        setStatus('', '');
+                    }
+                });
+            });
         })();
 
         // Reorder position inputs
